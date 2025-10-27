@@ -219,7 +219,7 @@
         <label for="email">E-mail</label>
         <input id="email" type="email" required placeholder="seu@exemplo.com" />
         <label for="password">Senha</label>
-        <input id="password" type="password" required placeholder="sua senha" />
+        <input id="password" type="password" required placeholder="sua senha" autocomplete="current-password" />
         <div style="margin-top:12px; display:flex; gap:8px;">
           <button type="submit" class="btn">Entrar</button>
           <button id="btnToRegister" type="button" class="btn" style="background:transparent;color:#C8A045;border:1px solid rgba(200,160,69,0.15)">Registrar (opcional)</button>
@@ -311,8 +311,8 @@
     </section>
   </main>
 
-  <!-- Supabase CDN (v2) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/bundles/supabase.umd.js"></script>
+  <!-- Supabase CDN (v2) - tentativa UMD minificada (pode ser bloqueada por extensões) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <script>
     // ====== CONFIGURE AQUI ======
@@ -320,8 +320,61 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaHRkdHlsaGVscmd4ZGt2Z254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTY3MzgsImV4cCI6MjA3NjczMjczOH0.q3SDbmT6VPWyCdK6vm1R2d-9IUGksE8rprJPmlYl524';
     // ============================
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // variável global que será inicializada com o client do supabase
+    let supabase = null;
 
+    // Tenta carregar o cliente do Supabase de formas diferentes (UMD já carregado, ESM, injeção UMD)
+    async function initSupabase() {
+      // 1) Se UMD já está presente (window.supabase), use-o
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          window.supabaseClient = supabase;
+          console.info('Supabase (UMD) inicializado com sucesso.');
+          return;
+        } catch (err) {
+          console.warn('Erro ao inicializar supabase via window.supabase:', err);
+        }
+      }
+
+      // 2) Tenta importar ESM diretamente (funciona em navegadores modernos)
+      try {
+        const module = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/module/index.js');
+        if (module && typeof module.createClient === 'function') {
+          supabase = module.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          window.supabaseClient = supabase;
+          console.info('Supabase (ESM) inicializado com sucesso.');
+          return;
+        }
+      } catch (err) {
+        console.info('Import ESM do supabase falhou (pode ser bloqueado):', err);
+      }
+
+      // 3) Tenta injetar o UMD minificado dinamicamente (última tentativa)
+      try {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          window.supabaseClient = supabase;
+          console.info('Supabase (UMD injetado) inicializado com sucesso.');
+          return;
+        }
+      } catch (err) {
+        console.warn('Injeção dinâmica do UMD supabase falhou:', err);
+      }
+
+      // 4) Se chegar aqui, não foi possível carregar o cliente
+      console.error('Não foi possível carregar o cliente Supabase. Verifique extensões (AdBlock/uBlock) ou carregue o SDK localmente.');
+      alert('Não foi possível carregar o cliente Supabase. Desative extensões de bloqueio (AdBlock/uBlock) ou hospede o SDK localmente.');
+    }
+
+    // --- o resto do seu código permanece igual. Usamos a variável `supabase` global ---
     // UI refs
     const loginPanel = document.getElementById('loginPanel');
     const loginForm = document.getElementById('loginForm');
@@ -389,6 +442,11 @@
 
     // Auth state handling
     async function initAuth() {
+      if (!supabase) {
+        console.error('Supabase não inicializado — abortando initAuth.');
+        return;
+      }
+
       // start with sidebar disabled and main locked
       setSidebarEnabled(false);
       lockMain(true);
@@ -444,7 +502,6 @@
       if (pErr) console.error('erro ao buscar profile', pErr);
       if (profile?.barbearia_id) {
         selectBarbearia.value = profile.barbearia_id;
-        // if profile is admin of one barbearia we keep select (you can disable to lock)
       }
 
       await refreshAgendamentos();
@@ -593,8 +650,16 @@
       return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
     }
 
-    // init
-    initAuth();
+    // Inicialização: primeiro inicializa o supabase, depois a auth (se ok)
+    (async () => {
+      await initSupabase();
+      if (!supabase) {
+        // supabase não inicializado — prevenir que o app tente usar APIs
+        console.error('Supabase não inicializado. Interrompendo inicialização da app.');
+        return;
+      }
+      initAuth();
+    })();
   </script>
 </body>
 </html>
