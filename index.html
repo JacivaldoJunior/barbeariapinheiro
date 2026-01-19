@@ -91,11 +91,16 @@
     .btn {
       background:#C8A045;
       color:#111;
-      padding:6px 10px;
+      padding:8px 14px;
       border-radius:8px;
       border:none;
       cursor:pointer;
       font-weight:600;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background:#d4b05a;
+      transform: translateY(-1px);
     }
 
     main.content {
@@ -135,6 +140,9 @@
       position: relative;
       color: #C8A045;
     }
+    .card:hover {
+      box-shadow: 0 0 20px rgba(200,160,69,0.3);
+    }
     .card h2 { font-size: 0.9rem; color:#a88c3a; margin-bottom:8px; text-transform:uppercase; }
     .card .value { font-size:1.6rem; color:#fff; font-weight:700; }
 
@@ -154,9 +162,15 @@
     th { color:#a88c3a; font-weight:700; text-transform:uppercase; font-size:0.8rem; }
     .muted { color:#a88c3a; font-size:0.9rem; }
 
-    .form-row { display:flex; gap:10px; margin-top:8px; }
+    .form-row { display:flex; gap:10px; margin-top:8px; flex-wrap: wrap; }
     .form-row input, .form-row select {
-      padding:8px 10px; border-radius:8px; border:1px solid rgba(200,160,69,0.15); background:#0f0f0f; color:#fff; flex:1;
+      padding:8px 10px; 
+      border-radius:8px; 
+      border:1px solid rgba(200,160,69,0.15); 
+      background:#0f0f0f; 
+      color:#fff; 
+      flex:1;
+      min-width: 200px;
     }
     .form-row input[type="datetime-local"] { min-width:220px; }
 
@@ -171,24 +185,60 @@
     }
     #loginPanel h2 { color:#C8A045; margin-bottom:8px; }
     #loginPanel label { display:block; color:#a88c3a; margin-top:8px; font-size:0.9rem; }
-    #loginPanel input { width:100%; padding:10px; margin-top:6px; border-radius:8px; background:#0f0f0f; border:1px solid rgba(200,160,69,0.12); color:#fff; }
+    #loginPanel input { 
+      width:100%; 
+      padding:10px; 
+      margin-top:6px; 
+      border-radius:8px; 
+      background:#0f0f0f; 
+      border:1px solid rgba(200,160,69,0.12); 
+      color:#fff; 
+    }
+
+    .section {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-msg {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4CAF50;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .error-msg {
+      background: rgba(244, 67, 54, 0.2);
+      color: #f44336;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid rgba(244, 67, 54, 0.3);
+    }
 
     @media (max-width: 900px) {
       nav.sidebar { display:none; }
       body { flex-direction:column; }
       main.content { padding:16px; }
+      .form-row { flex-direction: column; }
     }
   </style>
 </head>
 <body>
   <nav class="sidebar hidden" aria-label="Menu principal">
     <div class="logo" aria-label="Logo da Barbearia">✂️ Barbearia</div>
-    <a href="#" class="active" data-label="Dashboard" data-section="dashboard" aria-current="page">Dashboard</a>
-    <a href="#" data-label="Agenda" data-section="agenda">Agenda</a>
-    <a href="#" data-label="Vendas" data-section="vendas">Vendas</a>
-    <a href="#" data-label="Fechamento de Caixa" data-section="fechamento">Fechamento de Caixa</a>
-    <a href="#" data-label="Usuários" data-section="usuarios">Usuários</a>
-    <a href="#" data-label="Config" data-section="config">Config</a>
+    <a href="#" class="active" data-section="dashboard" aria-current="page">Dashboard</a>
+    <a href="#" data-section="agenda">Agenda</a>
+    <a href="#" data-section="vendas">Vendas</a>
+    <a href="#" data-section="fechamento">Fechamento de Caixa</a>
+    <a href="#" data-section="usuarios">Usuários</a>
+    <a href="#" data-section="config">Config</a>
   </nav>
 
   <main class="content locked" role="main">
@@ -207,7 +257,7 @@
         <input id="password" type="password" required placeholder="sua senha" autocomplete="current-password" />
         <div style="margin-top:12px; display:flex; gap:8px;">
           <button type="submit" class="btn">Entrar</button>
-          <button id="btnToRegister" type="button" class="btn" style="background:transparent;color:#C8A045;border:1px solid rgba(200,160,69,0.15)">Registrar (opcional)</button>
+          <button id="btnToRegister" type="button" class="btn" style="background:transparent;color:#C8A045;border:1px solid rgba(200,160,69,0.15)">Registrar</button>
         </div>
       </form>
       <div id="loginMsg" class="muted" style="margin-top:8px;"></div>
@@ -235,13 +285,16 @@
         <h2 class="muted">Novo agendamento</h2>
         <div class="form-row">
           <input id="clienteNome" placeholder="Nome do cliente" />
-          <select id="selectBarbearia"></select>
+          <select id="selectBarbearia">
+            <option value="">Selecione a barbearia</option>
+          </select>
         </div>
         <div class="form-row">
-          <input id="servico" placeholder="Serviço" />
+          <input id="servico" placeholder="Serviço (ex: Corte, Barba)" />
           <input id="dataHora" type="datetime-local" />
         </div>
         <button id="btnCriarAgendamento" class="btn" style="margin-top:10px;">Criar Agendamento</button>
+        <div id="agendamentoMsg"></div>
       </section>
 
       <section style="margin-top:18px;">
@@ -250,32 +303,30 @@
           <thead>
             <tr><th>Cliente</th><th>Serviço</th><th>Data / Hora</th><th>Barbearia</th></tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            <tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>
+          </tbody>
         </table>
       </section>
     </section>
-
-    <!-- Outras seções omitidas para brevidade, mas mantidas no seu código real -->
   </main>
 
-  <!-- Carregamento ÚNICO e SEGURO do Supabase -->
+  <!-- Carregamento do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     const SUPABASE_URL = 'https://zchtdtylhelrgxdkvgnx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaHRkdHlsaGVscmd4ZGt2Z254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTY3MzgsImV4cCI6MjA3NjczMjczOH0.q3SDbmT6VPWyCdK6vm1R2d-9IUGksE8rprJPmlYl524';
 
-    // Mudamos o nome para evitar conflito com a variável global da biblioteca
     let supabaseClient = null;
 
     async function initApp() {
       try {
-        // Inicializa o cliente usando a variável global 'supabase' fornecida pela CDN
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.info('Supabase conectado.');
+        console.info('✅ Supabase conectado.');
         initAuth();
       } catch (err) {
-        console.error('Erro ao iniciar Supabase:', err);
+        console.error('❌ Erro ao iniciar Supabase:', err);
       }
     }
 
@@ -285,6 +336,7 @@
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const loginMsg = document.getElementById('loginMsg');
+    const btnToRegister = document.getElementById('btnToRegister');
     const userInfo = document.getElementById('userInfo');
     const btnLogout = document.getElementById('btnLogout');
     const dashboardSection = document.getElementById('dashboard');
@@ -294,6 +346,7 @@
     const servicoInput = document.getElementById('servico');
     const dataHoraInput = document.getElementById('dataHora');
     const btnCriarAgendamento = document.getElementById('btnCriarAgendamento');
+    const agendamentoMsg = document.getElementById('agendamentoMsg');
     const vendasHojeEl = document.getElementById('vendasHoje');
     const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
@@ -312,12 +365,18 @@
 
     async function initAuth() {
       const { data } = await supabaseClient.auth.getSession();
-      if (data.session) handleSignedIn(data.session.user);
-      else setUnauthenticated();
+      if (data.session) {
+        handleSignedIn(data.session.user);
+      } else {
+        setUnauthenticated();
+      }
 
       supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session) handleSignedIn(session.user);
-        else setUnauthenticated();
+        if (session) {
+          handleSignedIn(session.user);
+        } else {
+          setUnauthenticated();
+        }
       });
     }
 
@@ -338,64 +397,262 @@
       lockMain(false);
       dashboardSection.classList.remove('hidden');
 
+      console.log('✅ Usuário autenticado:', user.email);
+
+      // Carrega dados
       await loadBarbearias();
       await refreshAgendamentos();
       await refreshMetrics();
     }
 
+    // --- LOGIN ---
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       loginMsg.textContent = 'Entrando...';
-      const { error } = await supabaseClient.auth.signInWithPassword({
+      loginMsg.className = 'muted';
+      
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: emailInput.value,
         password: passwordInput.value
       });
-      if (error) loginMsg.textContent = error.message;
+      
+      if (error) {
+        loginMsg.textContent = '❌ ' + error.message;
+        loginMsg.className = 'error-msg';
+      } else {
+        loginMsg.textContent = '✅ Login realizado com sucesso!';
+        loginMsg.className = 'success-msg';
+      }
     });
 
-    btnLogout.addEventListener('click', () => supabaseClient.auth.signOut());
+    // --- REGISTRO ---
+    btnToRegister.addEventListener('click', async () => {
+      const email = prompt('Digite seu e-mail:');
+      const password = prompt('Digite sua senha (mínimo 6 caracteres):');
+      
+      if (email && password) {
+        loginMsg.textContent = 'Registrando...';
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: email,
+          password: password
+        });
+        
+        if (error) {
+          loginMsg.textContent = '❌ ' + error.message;
+          loginMsg.className = 'error-msg';
+        } else {
+          loginMsg.textContent = '✅ Registro realizado! Verifique seu e-mail.';
+          loginMsg.className = 'success-msg';
+        }
+      }
+    });
 
+    // --- LOGOUT ---
+    btnLogout.addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      console.log('✅ Logout realizado');
+    });
+
+    // --- CARREGAR BARBEARIAS ---
     async function loadBarbearias() {
-      const { data } = await supabaseClient.from('barbearias').select('id,nome');
-      if (data) {
-        selectBarbearia.innerHTML = data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+      try {
+        const { data, error } = await supabaseClient
+          .from('barbearias')
+          .select('id, nome')
+          .order('nome');
+        
+        if (error) {
+          console.error('❌ Erro ao carregar barbearias:', error);
+          selectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          selectBarbearia.innerHTML = '<option value="">Selecione a barbearia</option>' +
+            data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+          console.log('✅ Barbearias carregadas:', data.length);
+        } else {
+          selectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          console.warn('⚠️ Nenhuma barbearia encontrada');
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar barbearias:', err);
       }
     }
 
+    // --- MÉTRICAS ---
     async function refreshMetrics() {
-      const { data } = await supabaseClient.from('vendas').select('total');
-      if (data) {
-        const total = data.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
-        vendasHojeEl.textContent = `R$ ${total.toFixed(2)}`;
+      try {
+        // Vendas hoje
+        const hoje = new Date().toISOString().split('T')[0];
+        const { data: vendas, error: vendasError } = await supabaseClient
+          .from('vendas')
+          .select('total')
+          .gte('created_at', hoje);
+        
+        if (!vendasError && vendas) {
+          const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
+          vendasHojeEl.textContent = `R$ ${total.toFixed(2)}`;
+          console.log('✅ Vendas hoje:', total);
+        } else {
+          vendasHojeEl.textContent = 'R$ 0,00';
+        }
+
+        // Agendamentos
+        const { data: agendamentos, error: agendError } = await supabaseClient
+          .from('agendamentos')
+          .select('id', { count: 'exact' });
+        
+        if (!agendError && agendamentos) {
+          countAgendamentosEl.textContent = agendamentos.length;
+          
+          // Ticket médio
+          if (vendas && vendas.length > 0 && agendamentos.length > 0) {
+            const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
+            const ticketMedio = total / agendamentos.length;
+            ticketMedioEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
+          } else {
+            ticketMedioEl.textContent = 'R$ 0,00';
+          }
+        } else {
+          countAgendamentosEl.textContent = '0';
+          ticketMedioEl.textContent = 'R$ 0,00';
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar métricas:', err);
       }
     }
 
+    // --- AGENDAMENTOS ---
     async function refreshAgendamentos() {
-      const { data } = await supabaseClient.from('agendamentos').select('*').order('data_hora');
-      if (data) {
-        tableBody.innerHTML = data.map(row => `
-          <tr>
-            <td>${row.cliente_nome}</td>
-            <td>${row.servico}</td>
-            <td>${new Date(row.data_hora).toLocaleString()}</td>
-            <td>${row.barbearia_id}</td>
-          </tr>
-        `).join('');
-        countAgendamentosEl.textContent = data.length;
+      try {
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .select(`
+            *,
+            barbearias (nome)
+          `)
+          .order('data_hora', { ascending: true });
+        
+        if (error) {
+          console.error('❌ Erro ao carregar agendamentos:', error);
+          tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          tableBody.innerHTML = data.map(row => {
+            const dataHora = new Date(row.data_hora);
+            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            
+            return `
+              <tr>
+                <td>${row.cliente_nome || 'N/A'}</td>
+                <td>${row.servico || 'N/A'}</td>
+                <td>${dataHora.toLocaleString('pt-BR')}</td>
+                <td>${barbeariaNome}</td>
+              </tr>
+            `;
+          }).join('');
+          console.log('✅ Agendamentos carregados:', data.length);
+        } else {
+          tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar agendamentos:', err);
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
+    // --- CRIAR AGENDAMENTO ---
     btnCriarAgendamento.addEventListener('click', async () => {
-      const { error } = await supabaseClient.from('agendamentos').insert([{
-        cliente_nome: clienteNome.value,
-        servico: servicoInput.value,
-        data_hora: new Date(dataHoraInput.value).toISOString(),
-        barbearia_id: selectBarbearia.value
-      }]);
-      if (!error) {
-        alert('Sucesso!');
-        refreshAgendamentos();
+      // Validação
+      if (!clienteNome.value.trim()) {
+        agendamentoMsg.textContent = '❌ Digite o nome do cliente';
+        agendamentoMsg.className = 'error-msg';
+        return;
       }
+      
+      if (!servicoInput.value.trim()) {
+        agendamentoMsg.textContent = '❌ Digite o serviço';
+        agendamentoMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!dataHoraInput.value) {
+        agendamentoMsg.textContent = '❌ Selecione a data e hora';
+        agendamentoMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!selectBarbearia.value) {
+        agendamentoMsg.textContent = '❌ Selecione a barbearia';
+        agendamentoMsg.className = 'error-msg';
+        return;
+      }
+
+      try {
+        agendamentoMsg.textContent = 'Criando agendamento...';
+        agendamentoMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .insert([{
+            cliente_nome: clienteNome.value.trim(),
+            servico: servicoInput.value.trim(),
+            data_hora: new Date(dataHoraInput.value).toISOString(),
+            barbearia_id: selectBarbearia.value
+          }])
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao criar agendamento:', error);
+          agendamentoMsg.textContent = '❌ Erro: ' + error.message;
+          agendamentoMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Agendamento criado:', data);
+          agendamentoMsg.textContent = '✅ Agendamento criado com sucesso!';
+          agendamentoMsg.className = 'success-msg';
+          
+          // Limpa formulário
+          clienteNome.value = '';
+          servicoInput.value = '';
+          dataHoraInput.value = '';
+          selectBarbearia.value = '';
+          
+          // Atualiza lista
+          await refreshAgendamentos();
+          await refreshMetrics();
+          
+          // Remove mensagem após 3 segundos
+          setTimeout(() => {
+            agendamentoMsg.textContent = '';
+            agendamentoMsg.className = '';
+          }, 3000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao criar agendamento:', err);
+        agendamentoMsg.textContent = '❌ Erro ao criar agendamento';
+        agendamentoMsg.className = 'error-msg';
+      }
+    });
+
+    // --- NAVEGAÇÃO SIDEBAR ---
+    document.querySelectorAll('nav.sidebar a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Remove active de todos
+        document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
+        
+        // Adiciona active no clicado
+        link.classList.add('active');
+        
+        const section = link.getAttribute('data-section');
+        console.log('📍 Navegando para:', section);
+        
+        // Aqui você pode adicionar lógica para mostrar outras seções
+      });
     });
 
     // Inicia tudo
