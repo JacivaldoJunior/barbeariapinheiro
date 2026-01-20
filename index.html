@@ -103,6 +103,22 @@
       transform: translateY(-1px);
     }
 
+    .btn-delete {
+      background:#b33;
+      color:#fff;
+      padding:4px 8px;
+      font-size:0.8rem;
+      border-radius:6px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      transition: all 0.3s ease;
+    }
+    .btn-delete:hover {
+      background:#d44;
+      transform: translateY(-1px);
+    }
+
     main.content {
       flex-grow: 1;
       padding: 24px 32px;
@@ -301,10 +317,16 @@
         <h2 class="muted">Próximos agendamentos</h2>
         <table id="tableAgendamentos">
           <thead>
-            <tr><th>Cliente</th><th>Serviço</th><th>Data / Hora</th><th>Barbearia</th></tr>
+            <tr>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>Data / Hora</th>
+              <th>Barbearia</th>
+              <th>Ações</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>
+            <tr><td colspan="5" style="text-align:center;">Carregando...</td></tr>
           </tbody>
         </table>
       </section>
@@ -578,7 +600,7 @@
         
         if (error) {
           console.error('❌ Erro ao carregar agendamentos:', error);
-          tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
           return;
         }
         
@@ -593,16 +615,51 @@
                 <td>${row.servico || 'N/A'}</td>
                 <td>${dataHora.toLocaleString('pt-BR')}</td>
                 <td>${barbeariaNome}</td>
+                <td>
+                  <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
+                    Excluir
+                  </button>
+                </td>
               </tr>
             `;
           }).join('');
           console.log('✅ Agendamentos carregados:', data.length);
         } else {
-          tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar agendamentos:', err);
-        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+      }
+    }
+
+    // --- EXCLUIR AGENDAMENTO ---
+    async function deleteAgendamento(id) {
+      if (!confirm("Tem certeza que deseja excluir este agendamento?")) {
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from('agendamentos')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          alert("❌ Erro ao excluir: " + error.message);
+          console.error(error);
+          return;
+        }
+
+        console.log("✅ Agendamento excluído com sucesso!");
+
+        // Atualiza lista e métricas
+        await refreshAgendamentos();
+        await refreshMetrics();
+
+      } catch (err) {
+        console.error("❌ Erro ao excluir agendamento:", err);
+        alert("❌ Erro inesperado ao excluir.");
       }
     }
 
