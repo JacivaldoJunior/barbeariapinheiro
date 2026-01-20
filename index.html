@@ -206,6 +206,7 @@
       min-width: 200px;
     }
     .form-row input[type="datetime-local"] { min-width:220px; }
+    .form-row input[type="number"] { min-width:150px; }
 
     #loginPanel {
       max-width:420px;
@@ -359,6 +360,7 @@
       <div id="loginMsg" class="muted" style="margin-top:8px;"></div>
     </div>
 
+    <!-- DASHBOARD -->
     <section id="dashboard" class="section hidden">
       <h1>Dashboard</h1>
       <p class="subtitle">Visão geral — Barbearia</p>
@@ -411,9 +413,63 @@
         </table>
       </section>
     </section>
+
+    <!-- VENDAS -->
+    <section id="vendas" class="section hidden">
+      <h1>Vendas</h1>
+      <p class="subtitle">Gerenciar vendas — Barbearia</p>
+      
+      <section class="cards">
+        <article class="card">
+          <h2>Total de vendas</h2>
+          <div id="totalVendas" class="value">R$ --</div>
+        </article>
+        <article class="card">
+          <h2>Quantidade</h2>
+          <div id="countVendas" class="value">--</div>
+        </article>
+        <article class="card">
+          <h2>Ticket médio</h2>
+          <div id="ticketMedioVendas" class="value">R$ --</div>
+        </article>
+      </section>
+
+      <section>
+        <h2 class="muted">Nova venda</h2>
+        <div class="form-row">
+          <input id="descricaoVenda" placeholder="Descrição (ex: Corte, Barba)" />
+          <input id="valorVenda" type="number" placeholder="Valor (R$)" step="0.01" min="0" />
+        </div>
+        <div class="form-row">
+          <select id="selectBarbeariaVenda">
+            <option value="">Selecione a barbearia</option>
+          </select>
+        </div>
+        <button id="btnCriarVenda" class="btn" style="margin-top:10px;">Criar Venda</button>
+        <div id="vendaMsg"></div>
+      </section>
+
+      <section style="margin-top:18px;">
+        <h2 class="muted">Histórico de vendas</h2>
+        <table id="tableVendas">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Valor</th>
+              <th>Barbearia</th>
+              <th>Data</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" style="text-align:center;">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
   </main>
 
-  <!-- MODAL DE EDIÇÃO -->
+  <!-- MODAL DE EDIÇÃO AGENDAMENTO -->
   <div id="editModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2>Editar Agendamento</h2>
@@ -441,6 +497,31 @@
     </div>
   </div>
 
+  <!-- MODAL DE EDIÇÃO VENDA -->
+  <div id="editVendaModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2>Editar Venda</h2>
+      
+      <label for="editDescricaoVenda">Descrição</label>
+      <input id="editDescricaoVenda" type="text" />
+      
+      <label for="editValorVenda">Valor (R$)</label>
+      <input id="editValorVenda" type="number" step="0.01" min="0" />
+      
+      <label for="editBarbeariaVenda">Barbearia</label>
+      <select id="editBarbeariaVenda">
+        <option value="">Selecione a barbearia</option>
+      </select>
+      
+      <div id="editVendaMsg"></div>
+      
+      <div class="modal-buttons">
+        <button id="btnCancelEditVenda" class="btn btn-cancel">Cancelar</button>
+        <button id="btnSaveEditVenda" class="btn">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Carregamento do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -450,6 +531,7 @@
 
     let supabaseClient = null;
     let currentEditId = null;
+    let currentEditVendaId = null;
 
     async function initApp() {
       try {
@@ -471,6 +553,7 @@
     const userInfo = document.getElementById('userInfo');
     const btnLogout = document.getElementById('btnLogout');
     const dashboardSection = document.getElementById('dashboard');
+    const vendasSection = document.getElementById('vendas');
     const tableBody = document.querySelector('#tableAgendamentos tbody');
     const selectBarbearia = document.getElementById('selectBarbearia');
     const clienteNome = document.getElementById('clienteNome');
@@ -482,7 +565,18 @@
     const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
 
-    // Modal de edição
+    // Vendas
+    const descricaoVenda = document.getElementById('descricaoVenda');
+    const valorVenda = document.getElementById('valorVenda');
+    const selectBarbeariaVenda = document.getElementById('selectBarbeariaVenda');
+    const btnCriarVenda = document.getElementById('btnCriarVenda');
+    const vendaMsg = document.getElementById('vendaMsg');
+    const tableVendas = document.querySelector('#tableVendas tbody');
+    const totalVendasEl = document.getElementById('totalVendas');
+    const countVendasEl = document.getElementById('countVendas');
+    const ticketMedioVendasEl = document.getElementById('ticketMedioVendas');
+
+    // Modal de edição agendamento
     const editModal = document.getElementById('editModal');
     const editClienteNome = document.getElementById('editClienteNome');
     const editServico = document.getElementById('editServico');
@@ -491,6 +585,15 @@
     const editMsg = document.getElementById('editMsg');
     const btnCancelEdit = document.getElementById('btnCancelEdit');
     const btnSaveEdit = document.getElementById('btnSaveEdit');
+
+    // Modal de edição venda
+    const editVendaModal = document.getElementById('editVendaModal');
+    const editDescricaoVenda = document.getElementById('editDescricaoVenda');
+    const editValorVenda = document.getElementById('editValorVenda');
+    const editBarbeariaVenda = document.getElementById('editBarbeariaVenda');
+    const editVendaMsg = document.getElementById('editVendaMsg');
+    const btnCancelEditVenda = document.getElementById('btnCancelEditVenda');
+    const btnSaveEditVenda = document.getElementById('btnSaveEditVenda');
 
     function setSidebarEnabled(enabled) {
       const sidebar = document.querySelector('nav.sidebar');
@@ -524,6 +627,7 @@
     function setUnauthenticated() {
       loginPanel.classList.remove('hidden');
       dashboardSection.classList.add('hidden');
+      vendasSection.classList.add('hidden');
       userInfo.textContent = 'Não autenticado';
       btnLogout.classList.add('hidden');
       setSidebarEnabled(false);
@@ -540,13 +644,12 @@
 
       console.log('✅ Usuário autenticado:', user.email);
 
-      // Inicializa barbearias padrão
       await initializeBarbearias();
-
-      // Carrega dados
       await loadBarbearias();
       await refreshAgendamentos();
       await refreshMetrics();
+      await refreshVendas();
+      await refreshMetricasVendas();
     }
 
     // --- INICIALIZAR BARBEARIAS PADRÃO ---
@@ -644,7 +747,9 @@
         if (error) {
           console.error('❌ Erro ao carregar barbearias:', error);
           selectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
+          selectBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
           editBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
         
@@ -653,12 +758,16 @@
             data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
           
           selectBarbearia.innerHTML = options;
+          selectBarbeariaVenda.innerHTML = options;
           editBarbearia.innerHTML = options;
+          editBarbeariaVenda.innerHTML = options;
           
           console.log('✅ Barbearias carregadas:', data.length);
         } else {
           selectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          selectBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           editBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          editBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           console.warn('⚠️ Nenhuma barbearia encontrada');
         }
       } catch (err) {
@@ -666,7 +775,7 @@
       }
     }
 
-    // --- MÉTRICAS ---
+    // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
       try {
         const hoje = new Date().toISOString().split('T')[0];
@@ -703,6 +812,29 @@
         }
       } catch (err) {
         console.error('❌ Erro ao carregar métricas:', err);
+      }
+    }
+
+    // --- MÉTRICAS VENDAS ---
+    async function refreshMetricasVendas() {
+      try {
+        const { data: vendas, error } = await supabaseClient
+          .from('vendas')
+          .select('total');
+        
+        if (!error && vendas) {
+          const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
+          const quantidade = vendas.length;
+          const ticketMedio = quantidade > 0 ? total / quantidade : 0;
+          
+          totalVendasEl.textContent = `R$ ${total.toFixed(2)}`;
+          countVendasEl.textContent = quantidade;
+          ticketMedioVendasEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
+          
+          console.log('✅ Métricas de vendas atualizadas');
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar métricas de vendas:', err);
       }
     }
 
@@ -755,14 +887,62 @@
       }
     }
 
-    // --- ABRIR MODAL DE EDIÇÃO ---
+    // --- VENDAS ---
+    async function refreshVendas() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('vendas')
+          .select(`
+            *,
+            barbearias (nome)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('❌ Erro ao carregar vendas:', error);
+          tableVendas.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          tableVendas.innerHTML = data.map(row => {
+            const data_criacao = new Date(row.created_at);
+            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            
+            return `
+              <tr>
+                <td>${row.descricao || 'N/A'}</td>
+                <td>R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
+                <td>${barbeariaNome}</td>
+                <td>${data_criacao.toLocaleString('pt-BR')}</td>
+                <td>
+                  <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.barbearia_id}')">
+                    Editar
+                  </button>
+                  <button class="btn-delete" onclick="deleteVenda('${row.id}')">
+                    Excluir
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+          console.log('✅ Vendas carregadas:', data.length);
+        } else {
+          tableVendas.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar vendas:', err);
+        tableVendas.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+      }
+    }
+
+    // --- ABRIR MODAL DE EDIÇÃO AGENDAMENTO ---
     function openEditModal(id, clienteNome, servico, dataHora, barbeariaId) {
       currentEditId = id;
       
       editClienteNome.value = clienteNome;
       editServico.value = servico;
       
-      // Converte data para formato local datetime
       const date = new Date(dataHora);
       const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       editDataHora.value = localDate.toISOString().slice(0, 16);
@@ -774,17 +954,16 @@
       editModal.classList.remove('hidden');
     }
 
-    // --- FECHAR MODAL ---
+    // --- FECHAR MODAL AGENDAMENTO ---
     btnCancelEdit.addEventListener('click', () => {
       editModal.classList.add('hidden');
       currentEditId = null;
     });
 
-    // --- SALVAR EDIÇÃO ---
+    // --- SALVAR EDIÇÃO AGENDAMENTO ---
     btnSaveEdit.addEventListener('click', async () => {
       if (!currentEditId) return;
 
-      // Validação
       if (!editClienteNome.value.trim()) {
         editMsg.textContent = '❌ Digite o nome do cliente';
         editMsg.className = 'error-msg';
@@ -833,11 +1012,9 @@
           editMsg.textContent = '✅ Agendamento atualizado com sucesso!';
           editMsg.className = 'success-msg';
           
-          // Atualiza lista
           await refreshAgendamentos();
           await refreshMetrics();
           
-          // Fecha modal após 1 segundo
           setTimeout(() => {
             editModal.classList.add('hidden');
             currentEditId = null;
@@ -948,6 +1125,178 @@
       }
     });
 
+    // --- ABRIR MODAL DE EDIÇÃO VENDA ---
+    function openEditVendaModal(id, descricao, valor, barbeariaId) {
+      currentEditVendaId = id;
+      
+      editDescricaoVenda.value = descricao;
+      editValorVenda.value = parseFloat(valor);
+      editBarbeariaVenda.value = barbeariaId;
+      editVendaMsg.textContent = '';
+      editVendaMsg.className = '';
+      
+      editVendaModal.classList.remove('hidden');
+    }
+
+    // --- FECHAR MODAL VENDA ---
+    btnCancelEditVenda.addEventListener('click', () => {
+      editVendaModal.classList.add('hidden');
+      currentEditVendaId = null;
+    });
+
+    // --- SALVAR EDIÇÃO VENDA ---
+    btnSaveEditVenda.addEventListener('click', async () => {
+      if (!currentEditVendaId) return;
+
+      if (!editDescricaoVenda.value.trim()) {
+        editVendaMsg.textContent = '❌ Digite a descrição';
+        editVendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editValorVenda.value || parseFloat(editValorVenda.value) <= 0) {
+        editVendaMsg.textContent = '❌ Digite um valor válido';
+        editVendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editBarbeariaVenda.value) {
+        editVendaMsg.textContent = '❌ Selecione a barbearia';
+        editVendaMsg.className = 'error-msg';
+        return;
+      }
+
+      try {
+        editVendaMsg.textContent = 'Salvando...';
+        editVendaMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('vendas')
+          .update({
+            descricao: editDescricaoVenda.value.trim(),
+            total: parseFloat(editValorVenda.value),
+            barbearia_id: editBarbeariaVenda.value
+          })
+          .eq('id', currentEditVendaId)
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao atualizar venda:', error);
+          editVendaMsg.textContent = '❌ Erro: ' + error.message;
+          editVendaMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Venda atualizada:', data);
+          editVendaMsg.textContent = '✅ Venda atualizada com sucesso!';
+          editVendaMsg.className = 'success-msg';
+          
+          await refreshVendas();
+          await refreshMetricasVendas();
+          await refreshMetrics();
+          
+          setTimeout(() => {
+            editVendaModal.classList.add('hidden');
+            currentEditVendaId = null;
+          }, 1000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao atualizar venda:', err);
+        editVendaMsg.textContent = '❌ Erro ao atualizar venda';
+        editVendaMsg.className = 'error-msg';
+      }
+    });
+
+    // --- EXCLUIR VENDA ---
+    async function deleteVenda(id) {
+      if (!confirm("Tem certeza que deseja excluir esta venda?")) {
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from('vendas')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          alert("❌ Erro ao excluir: " + error.message);
+          console.error(error);
+          return;
+        }
+
+        console.log("✅ Venda excluída com sucesso!");
+
+        await refreshVendas();
+        await refreshMetricasVendas();
+        await refreshMetrics();
+
+      } catch (err) {
+        console.error("❌ Erro ao excluir venda:", err);
+        alert("❌ Erro inesperado ao excluir.");
+      }
+    }
+
+    // --- CRIAR VENDA ---
+    btnCriarVenda.addEventListener('click', async () => {
+      if (!descricaoVenda.value.trim()) {
+        vendaMsg.textContent = '❌ Digite a descrição';
+        vendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!valorVenda.value || parseFloat(valorVenda.value) <= 0) {
+        vendaMsg.textContent = '❌ Digite um valor válido';
+        vendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!selectBarbeariaVenda.value) {
+        vendaMsg.textContent = '❌ Selecione a barbearia';
+        vendaMsg.className = 'error-msg';
+        return;
+      }
+
+      try {
+        vendaMsg.textContent = 'Criando venda...';
+        vendaMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('vendas')
+          .insert([{
+            descricao: descricaoVenda.value.trim(),
+            total: parseFloat(valorVenda.value),
+            barbearia_id: selectBarbeariaVenda.value
+          }])
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao criar venda:', error);
+          vendaMsg.textContent = '❌ Erro: ' + error.message;
+          vendaMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Venda criada:', data);
+          vendaMsg.textContent = '✅ Venda criada com sucesso!';
+          vendaMsg.className = 'success-msg';
+          
+          descricaoVenda.value = '';
+          valorVenda.value = '';
+          selectBarbeariaVenda.value = '';
+          
+          await refreshVendas();
+          await refreshMetricasVendas();
+          await refreshMetrics();
+          
+          setTimeout(() => {
+            vendaMsg.textContent = '';
+            vendaMsg.className = '';
+          }, 3000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao criar venda:', err);
+        vendaMsg.textContent = '❌ Erro ao criar venda';
+        vendaMsg.className = 'error-msg';
+      }
+    });
+
     // --- NAVEGAÇÃO SIDEBAR ---
     document.querySelectorAll('nav.sidebar a').forEach(link => {
       link.addEventListener('click', (e) => {
@@ -957,6 +1306,19 @@
         link.classList.add('active');
         
         const section = link.getAttribute('data-section');
+        
+        // Esconde todas as seções
+        document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
+        
+        // Mostra a seção selecionada
+        if (section === 'dashboard') {
+          dashboardSection.classList.remove('hidden');
+        } else if (section === 'vendas') {
+          vendasSection.classList.remove('hidden');
+          refreshVendas();
+          refreshMetricasVendas();
+        }
+        
         console.log('📍 Navegando para:', section);
       });
     });
