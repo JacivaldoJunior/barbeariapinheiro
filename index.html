@@ -399,10 +399,52 @@
 
       console.log('✅ Usuário autenticado:', user.email);
 
+      // Inicializa barbearias padrão
+      await initializeBarbearias();
+
       // Carrega dados
       await loadBarbearias();
       await refreshAgendamentos();
       await refreshMetrics();
+    }
+
+    // --- INICIALIZAR BARBEARIAS PADRÃO ---
+    async function initializeBarbearias() {
+      try {
+        // Verifica se já existem barbearias
+        const { data: existing, error: checkError } = await supabaseClient
+          .from('barbearias')
+          .select('id')
+          .limit(1);
+
+        if (checkError) {
+          console.error('❌ Erro ao verificar barbearias:', checkError);
+          return;
+        }
+
+        // Se já existem barbearias, não faz nada
+        if (existing && existing.length > 0) {
+          console.log('✅ Barbearias já existem no banco');
+          return;
+        }
+
+        // Insere as duas barbearias padrão
+        const { data, error } = await supabaseClient
+          .from('barbearias')
+          .insert([
+            { nome: 'Barbearia Nova Cidade' },
+            { nome: 'Barbearia Centro' }
+          ])
+          .select();
+
+        if (error) {
+          console.error('❌ Erro ao criar barbearias padrão:', error);
+        } else {
+          console.log('✅ Barbearias padrão criadas:', data);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao inicializar barbearias:', err);
+      }
     }
 
     // --- LOGIN ---
