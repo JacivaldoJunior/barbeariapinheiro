@@ -103,6 +103,23 @@
       transform: translateY(-1px);
     }
 
+    .btn-edit {
+      background:#4a90e2;
+      color:#fff;
+      padding:4px 8px;
+      font-size:0.8rem;
+      border-radius:6px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      transition: all 0.3s ease;
+      margin-right: 4px;
+    }
+    .btn-edit:hover {
+      background:#5a9ff2;
+      transform: translateY(-1px);
+    }
+
     .btn-delete {
       background:#b33;
       color:#fff;
@@ -238,6 +255,69 @@
       border: 1px solid rgba(244, 67, 54, 0.3);
     }
 
+    /* MODAL DE EDIÇÃO */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-content {
+      background: #1a1a1a;
+      border: 1px solid rgba(200,160,69,0.3);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+
+    .modal-content h2 {
+      color: #C8A045;
+      margin-bottom: 16px;
+    }
+
+    .modal-content label {
+      display: block;
+      color: #a88c3a;
+      margin-top: 12px;
+      font-size: 0.9rem;
+    }
+
+    .modal-content input,
+    .modal-content select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 8px;
+      background: #0f0f0f;
+      border: 1px solid rgba(200,160,69,0.15);
+      color: #fff;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-buttons .btn {
+      flex: 1;
+    }
+
+    .btn-cancel {
+      background: transparent;
+      color: #C8A045;
+      border: 1px solid rgba(200,160,69,0.3);
+    }
+
     @media (max-width: 900px) {
       nav.sidebar { display:none; }
       body { flex-direction:column; }
@@ -333,6 +413,34 @@
     </section>
   </main>
 
+  <!-- MODAL DE EDIÇÃO -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2>Editar Agendamento</h2>
+      
+      <label for="editClienteNome">Nome do cliente</label>
+      <input id="editClienteNome" type="text" />
+      
+      <label for="editServico">Serviço</label>
+      <input id="editServico" type="text" />
+      
+      <label for="editDataHora">Data e Hora</label>
+      <input id="editDataHora" type="datetime-local" />
+      
+      <label for="editBarbearia">Barbearia</label>
+      <select id="editBarbearia">
+        <option value="">Selecione a barbearia</option>
+      </select>
+      
+      <div id="editMsg"></div>
+      
+      <div class="modal-buttons">
+        <button id="btnCancelEdit" class="btn btn-cancel">Cancelar</button>
+        <button id="btnSaveEdit" class="btn">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Carregamento do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -341,6 +449,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaHRkdHlsaGVscmd4ZGt2Z254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTY3MzgsImV4cCI6MjA3NjczMjczOH0.q3SDbmT6VPWyCdK6vm1R2d-9IUGksE8rprJPmlYl524';
 
     let supabaseClient = null;
+    let currentEditId = null;
 
     async function initApp() {
       try {
@@ -372,6 +481,16 @@
     const vendasHojeEl = document.getElementById('vendasHoje');
     const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
+
+    // Modal de edição
+    const editModal = document.getElementById('editModal');
+    const editClienteNome = document.getElementById('editClienteNome');
+    const editServico = document.getElementById('editServico');
+    const editDataHora = document.getElementById('editDataHora');
+    const editBarbearia = document.getElementById('editBarbearia');
+    const editMsg = document.getElementById('editMsg');
+    const btnCancelEdit = document.getElementById('btnCancelEdit');
+    const btnSaveEdit = document.getElementById('btnSaveEdit');
 
     function setSidebarEnabled(enabled) {
       const sidebar = document.querySelector('nav.sidebar');
@@ -433,7 +552,6 @@
     // --- INICIALIZAR BARBEARIAS PADRÃO ---
     async function initializeBarbearias() {
       try {
-        // Verifica se já existem barbearias
         const { data: existing, error: checkError } = await supabaseClient
           .from('barbearias')
           .select('id')
@@ -444,13 +562,11 @@
           return;
         }
 
-        // Se já existem barbearias, não faz nada
         if (existing && existing.length > 0) {
           console.log('✅ Barbearias já existem no banco');
           return;
         }
 
-        // Insere as duas barbearias padrão
         const { data, error } = await supabaseClient
           .from('barbearias')
           .insert([
@@ -528,15 +644,21 @@
         if (error) {
           console.error('❌ Erro ao carregar barbearias:', error);
           selectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
         
         if (data && data.length > 0) {
-          selectBarbearia.innerHTML = '<option value="">Selecione a barbearia</option>' +
+          const options = '<option value="">Selecione a barbearia</option>' +
             data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+          
+          selectBarbearia.innerHTML = options;
+          editBarbearia.innerHTML = options;
+          
           console.log('✅ Barbearias carregadas:', data.length);
         } else {
           selectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          editBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           console.warn('⚠️ Nenhuma barbearia encontrada');
         }
       } catch (err) {
@@ -547,7 +669,6 @@
     // --- MÉTRICAS ---
     async function refreshMetrics() {
       try {
-        // Vendas hoje
         const hoje = new Date().toISOString().split('T')[0];
         const { data: vendas, error: vendasError } = await supabaseClient
           .from('vendas')
@@ -562,7 +683,6 @@
           vendasHojeEl.textContent = 'R$ 0,00';
         }
 
-        // Agendamentos
         const { data: agendamentos, error: agendError } = await supabaseClient
           .from('agendamentos')
           .select('id', { count: 'exact' });
@@ -570,7 +690,6 @@
         if (!agendError && agendamentos) {
           countAgendamentosEl.textContent = agendamentos.length;
           
-          // Ticket médio
           if (vendas && vendas.length > 0 && agendamentos.length > 0) {
             const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
             const ticketMedio = total / agendamentos.length;
@@ -616,6 +735,9 @@
                 <td>${dataHora.toLocaleString('pt-BR')}</td>
                 <td>${barbeariaNome}</td>
                 <td>
+                  <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbearia_id}')">
+                    Editar
+                  </button>
                   <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
                     Excluir
                   </button>
@@ -632,6 +754,101 @@
         tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
+
+    // --- ABRIR MODAL DE EDIÇÃO ---
+    function openEditModal(id, clienteNome, servico, dataHora, barbeariaId) {
+      currentEditId = id;
+      
+      editClienteNome.value = clienteNome;
+      editServico.value = servico;
+      
+      // Converte data para formato local datetime
+      const date = new Date(dataHora);
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      editDataHora.value = localDate.toISOString().slice(0, 16);
+      
+      editBarbearia.value = barbeariaId;
+      editMsg.textContent = '';
+      editMsg.className = '';
+      
+      editModal.classList.remove('hidden');
+    }
+
+    // --- FECHAR MODAL ---
+    btnCancelEdit.addEventListener('click', () => {
+      editModal.classList.add('hidden');
+      currentEditId = null;
+    });
+
+    // --- SALVAR EDIÇÃO ---
+    btnSaveEdit.addEventListener('click', async () => {
+      if (!currentEditId) return;
+
+      // Validação
+      if (!editClienteNome.value.trim()) {
+        editMsg.textContent = '❌ Digite o nome do cliente';
+        editMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editServico.value.trim()) {
+        editMsg.textContent = '❌ Digite o serviço';
+        editMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editDataHora.value) {
+        editMsg.textContent = '❌ Selecione a data e hora';
+        editMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editBarbearia.value) {
+        editMsg.textContent = '❌ Selecione a barbearia';
+        editMsg.className = 'error-msg';
+        return;
+      }
+
+      try {
+        editMsg.textContent = 'Salvando...';
+        editMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .update({
+            cliente_nome: editClienteNome.value.trim(),
+            servico: editServico.value.trim(),
+            data_hora: new Date(editDataHora.value).toISOString(),
+            barbearia_id: editBarbearia.value
+          })
+          .eq('id', currentEditId)
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao atualizar agendamento:', error);
+          editMsg.textContent = '❌ Erro: ' + error.message;
+          editMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Agendamento atualizado:', data);
+          editMsg.textContent = '✅ Agendamento atualizado com sucesso!';
+          editMsg.className = 'success-msg';
+          
+          // Atualiza lista
+          await refreshAgendamentos();
+          await refreshMetrics();
+          
+          // Fecha modal após 1 segundo
+          setTimeout(() => {
+            editModal.classList.add('hidden');
+            currentEditId = null;
+          }, 1000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao atualizar agendamento:', err);
+        editMsg.textContent = '❌ Erro ao atualizar agendamento';
+        editMsg.className = 'error-msg';
+      }
+    });
 
     // --- EXCLUIR AGENDAMENTO ---
     async function deleteAgendamento(id) {
@@ -653,7 +870,6 @@
 
         console.log("✅ Agendamento excluído com sucesso!");
 
-        // Atualiza lista e métricas
         await refreshAgendamentos();
         await refreshMetrics();
 
@@ -665,7 +881,6 @@
 
     // --- CRIAR AGENDAMENTO ---
     btnCriarAgendamento.addEventListener('click', async () => {
-      // Validação
       if (!clienteNome.value.trim()) {
         agendamentoMsg.textContent = '❌ Digite o nome do cliente';
         agendamentoMsg.className = 'error-msg';
@@ -713,17 +928,14 @@
           agendamentoMsg.textContent = '✅ Agendamento criado com sucesso!';
           agendamentoMsg.className = 'success-msg';
           
-          // Limpa formulário
           clienteNome.value = '';
           servicoInput.value = '';
           dataHoraInput.value = '';
           selectBarbearia.value = '';
           
-          // Atualiza lista
           await refreshAgendamentos();
           await refreshMetrics();
           
-          // Remove mensagem após 3 segundos
           setTimeout(() => {
             agendamentoMsg.textContent = '';
             agendamentoMsg.className = '';
@@ -741,20 +953,14 @@
       link.addEventListener('click', (e) => {
         e.preventDefault();
         
-        // Remove active de todos
         document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
-        
-        // Adiciona active no clicado
         link.classList.add('active');
         
         const section = link.getAttribute('data-section');
         console.log('📍 Navegando para:', section);
-        
-        // Aqui você pode adicionar lógica para mostrar outras seções
       });
     });
 
-    // Inicia tudo
     initApp();
   </script>
 </body>
