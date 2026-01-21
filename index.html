@@ -88,6 +88,22 @@
       border-radius:8px;
       font-size:0.9rem;
     }
+    .role-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .role-gerente {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4CAF50;
+    }
+    .role-barbeiro {
+      background: rgba(33, 150, 243, 0.2);
+      color: #2196F3;
+    }
     .btn {
       background:#C8A045;
       color:#111;
@@ -101,6 +117,11 @@
     .btn:hover {
       background:#d4b05a;
       transform: translateY(-1px);
+    }
+    .btn:disabled {
+      background: #666;
+      cursor: not-allowed;
+      opacity: 0.5;
     }
 
     .btn-edit {
@@ -207,6 +228,11 @@
     }
     .form-row input[type="datetime-local"] { min-width:220px; }
     .form-row input[type="number"] { min-width:150px; }
+    .form-row input:disabled, .form-row select:disabled {
+      background: #1a1a1a;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
 
     #loginPanel {
       max-width:420px;
@@ -334,8 +360,8 @@
     <a href="#" data-section="agenda">Agenda</a>
     <a href="#" data-section="vendas">Vendas</a>
     <a href="#" data-section="fechamento">Fechamento de Caixa</a>
-    <a href="#" data-section="usuarios">Usuários</a>
-    <a href="#" data-section="config">Config</a>
+    <a href="#" data-section="usuarios" class="hidden">Usuários</a>
+    <a href="#" data-section="config" class="hidden">Config</a>
   </nav>
 
   <main class="content locked" role="main">
@@ -379,7 +405,7 @@
         </article>
       </section>
 
-      <section>
+      <section id="novoAgendamentoSection">
         <h2 class="muted">Novo agendamento</h2>
         <div class="form-row">
           <input id="clienteNome" placeholder="Nome do cliente" />
@@ -404,7 +430,7 @@
               <th>Serviço</th>
               <th>Data / Hora</th>
               <th>Barbearia</th>
-              <th>Ações</th>
+              <th id="acoesHeader">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -466,7 +492,7 @@
               <th>Forma de Pagamento</th>
               <th>Barbearia</th>
               <th>Data</th>
-              <th>Ações</th>
+              <th id="acoesHeaderVendas">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -547,6 +573,8 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaHRkdHlsaGVscmd4ZGt2Z254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTY3MzgsImV4cCI6MjA3NjczMjczOH0.q3SDbmT6VPWyCdK6vm1R2d-9IUGksE8rprJPmlYl524';
 
     let supabaseClient = null;
+    let currentUser = null;
+    let currentProfile = null;
     let currentEditId = null;
     let currentEditVendaId = null;
 
@@ -651,10 +679,13 @@
       btnLogout.classList.add('hidden');
       setSidebarEnabled(false);
       lockMain(true);
+      currentUser = null;
+      currentProfile = null;
     }
 
     async function handleSignedIn(user) {
-      userInfo.textContent = user.email;
+      currentUser = user;
+      userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
       btnLogout.classList.remove('hidden');
       loginPanel.classList.add('hidden');
       setSidebarEnabled(true);
@@ -663,12 +694,82 @@
 
       console.log('✅ Usuário autenticado:', user.email);
 
+      // Carregar profile do usuário
+      await carregarProfile(user.id);
+
       await initializeBarbearias();
       await loadBarbearias();
       await refreshAgendamentos();
       await refreshMetrics();
       await refreshVendas();
       await refreshMetricasVendas();
+    }
+
+    // --- CARREGAR PROFILE DO USUÁRIO ---
+    async function carregarProfile(userId) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('id, barbearia_id, role, barbearias(id, nome)')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error('❌ Erro ao carregar profile:', error);
+          alert('⚠️ Erro ao carregar perfil do usuário. Verifique se o profile existe na tabela profiles.');
+          return;
+        }
+
+        currentProfile = data;
+        console.log('✅ Profile carregado:', currentProfile);
+
+        // Atualizar UI baseado no role
+        atualizarUIporRole();
+
+      } catch (err) {
+        console.error('❌ Erro inesperado ao carregar profile:', err);
+      }
+    }
+
+    // --- ATUALIZAR UI CONFORME O ROLE ---
+    function atualizarUIporRole() {
+      if (!currentProfile) return;
+
+      const role = currentProfile.role || 'barbeiro';
+      const barbeariaId = currentProfile.barbearia_id;
+      const barbeariaNome = currentProfile.barbearias?.nome || 'N/A';
+
+      console.log(`👤 Role: ${role} | Barbearia: ${barbeariaNome} (${barbeariaId})`);
+
+      // Adicionar badge de role na topbar
+      const roleBadge = role === 'gerente' 
+        ? '<span class="role-badge role-gerente">📋 Gerente</span>'
+        : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>';
+      
+      userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
+
+      if (role === 'barbeiro') {
+        // Barbeiro: acesso restrito à sua barbearia
+        selectBarbearia.disabled = true;
+        selectBarbeariaVenda.disabled = true;
+        selectBarbearia.value = barbeariaId;
+        selectBarbeariaVenda.value = barbeariaId;
+
+        // Esconder seção de criar agendamento (só gerente cria)
+        document.getElementById('novoAgendamentoSection').classList.add('hidden');
+
+        // Esconder coluna de ações (barbeiro só visualiza)
+        document.getElementById('acoesHeader').classList.add('hidden');
+        document.getElementById('acoesHeaderVendas').classList.add('hidden');
+
+        console.log('🔒 Modo Barbeiro: acesso restrito à barbearia', barbeariaNome);
+      } else if (role === 'gerente') {
+        // Gerente: acesso total
+        selectBarbearia.disabled = false;
+        selectBarbeariaVenda.disabled = false;
+
+        console.log('🔓 Modo Gerente: acesso a todas as barbearias');
+      }
     }
 
     // --- INICIALIZAR BARBEARIAS PADRÃO ---
@@ -758,10 +859,17 @@
     // --- CARREGAR BARBEARIAS ---
     async function loadBarbearias() {
       try {
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
           .from('barbearias')
           .select('id, nome')
           .order('nome');
+
+        // Se for barbeiro, filtrar só sua barbearia
+        if (currentProfile && currentProfile.role === 'barbeiro') {
+          query = query.eq('id', currentProfile.barbearia_id);
+        }
+
+        const { data, error } = await query;
         
         if (error) {
           console.error('❌ Erro ao carregar barbearias:', error);
@@ -780,6 +888,12 @@
           selectBarbeariaVenda.innerHTML = options;
           editBarbearia.innerHTML = options;
           editBarbeariaVenda.innerHTML = options;
+
+          // Se for barbeiro, pré-selecionar sua barbearia
+          if (currentProfile && currentProfile.role === 'barbeiro') {
+            selectBarbearia.value = currentProfile.barbearia_id;
+            selectBarbeariaVenda.value = currentProfile.barbearia_id;
+          }
           
           console.log('✅ Barbearias carregadas:', data.length);
         } else {
@@ -875,9 +989,22 @@
         }
         
         if (data && data.length > 0) {
+          const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+          
           tableBody.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            
+            const acoesHtml = isBarbeiro ? '' : `
+              <td>
+                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbearia_id}')">
+                  Editar
+                </button>
+                <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
+                  Excluir
+                </button>
+              </td>
+            `;
             
             return `
               <tr>
@@ -885,14 +1012,7 @@
                 <td>${row.servico || 'N/A'}</td>
                 <td>${dataHora.toLocaleString('pt-BR')}</td>
                 <td>${barbeariaNome}</td>
-                <td>
-                  <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbearia_id}')">
-                    Editar
-                  </button>
-                  <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
-                    Excluir
-                  </button>
-                </td>
+                ${acoesHtml}
               </tr>
             `;
           }).join('');
@@ -924,9 +1044,22 @@
         }
         
         if (data && data.length > 0) {
+          const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+          
           tableVendas.innerHTML = data.map(row => {
             const data_criacao = new Date(row.created_at);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            
+            const acoesHtml = isBarbeiro ? '' : `
+              <td>
+                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}')">
+                  Editar
+                </button>
+                <button class="btn-delete" onclick="deleteVenda('${row.id}')">
+                  Excluir
+                </button>
+              </td>
+            `;
             
             return `
               <tr>
@@ -935,14 +1068,7 @@
                 <td>${row.forma_pagamento || 'N/A'}</td>
                 <td>${barbeariaNome}</td>
                 <td>${data_criacao.toLocaleString('pt-BR')}</td>
-                <td>
-                  <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}')">
-                    Editar
-                  </button>
-                  <button class="btn-delete" onclick="deleteVenda('${row.id}')">
-                    Excluir
-                  </button>
-                </td>
+                ${acoesHtml}
               </tr>
             `;
           }).join('');
