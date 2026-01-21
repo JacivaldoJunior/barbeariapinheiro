@@ -319,29 +319,6 @@
       border: 1px solid rgba(200,160,69,0.3);
     }
 
-    .role-badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .role-admin {
-      background: rgba(244, 67, 54, 0.2);
-      color: #f44336;
-    }
-
-    .role-gerente {
-      background: rgba(76, 175, 80, 0.2);
-      color: #4CAF50;
-    }
-
-    .role-barbeiro {
-      background: rgba(33, 150, 243, 0.2);
-      color: #2196F3;
-    }
-
     @media (max-width: 900px) {
       nav.sidebar { display:none; }
       body { flex-direction:column; }
@@ -498,47 +475,6 @@
         </table>
       </section>
     </section>
-
-    <!-- USUÁRIOS -->
-    <section id="usuarios" class="section hidden">
-      <h1>Usuários</h1>
-      <p class="subtitle">Gerenciar usuários — Barbearia</p>
-
-      <section>
-        <h2 class="muted">Novo usuário</h2>
-        <div class="form-row">
-          <input id="novoUserEmail" type="email" placeholder="E-mail do novo usuário" />
-          <input id="novoUserSenha" type="password" placeholder="Senha (mínimo 6 caracteres)" />
-        </div>
-        <div class="form-row">
-          <select id="novoUserRole">
-            <option value="">Selecione o role</option>
-            <option value="admin">👑 Admin</option>
-            <option value="gerente">📋 Gerente</option>
-            <option value="barbeiro">✂️ Barbeiro</option>
-          </select>
-        </div>
-        <button id="btnCriarUsuario" class="btn" style="margin-top:10px;">Criar Usuário</button>
-        <div id="usuarioMsg"></div>
-      </section>
-
-      <section style="margin-top:18px;">
-        <h2 class="muted">Lista de usuários</h2>
-        <table id="tableUsuarios">
-          <thead>
-            <tr>
-              <th>E-mail</th>
-              <th>Role</th>
-              <th>Data de Criação</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>
-          </tbody>
-        </table>
-      </section>
-    </section>
   </main>
 
   <!-- MODAL DE EDIÇÃO AGENDAMENTO -->
@@ -603,31 +539,6 @@
     </div>
   </div>
 
-  <!-- MODAL DE EDIÇÃO USUÁRIO -->
-  <div id="editUsuarioModal" class="modal-overlay hidden">
-    <div class="modal-content">
-      <h2>Editar Usuário</h2>
-      
-      <label for="editUsuarioEmail">E-mail</label>
-      <input id="editUsuarioEmail" type="email" disabled />
-      
-      <label for="editUsuarioRole">Role</label>
-      <select id="editUsuarioRole">
-        <option value="">Selecione o role</option>
-        <option value="admin">👑 Admin</option>
-        <option value="gerente">📋 Gerente</option>
-        <option value="barbeiro">✂️ Barbeiro</option>
-      </select>
-      
-      <div id="editUsuarioMsg"></div>
-      
-      <div class="modal-buttons">
-        <button id="btnCancelEditUsuario" class="btn btn-cancel">Cancelar</button>
-        <button id="btnSaveEditUsuario" class="btn">Salvar</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Carregamento do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -638,7 +549,6 @@
     let supabaseClient = null;
     let currentEditId = null;
     let currentEditVendaId = null;
-    let currentEditUsuarioId = null;
 
     async function initApp() {
       try {
@@ -661,7 +571,6 @@
     const btnLogout = document.getElementById('btnLogout');
     const dashboardSection = document.getElementById('dashboard');
     const vendasSection = document.getElementById('vendas');
-    const usuariosSection = document.getElementById('usuarios');
     const tableBody = document.querySelector('#tableAgendamentos tbody');
     const selectBarbearia = document.getElementById('selectBarbearia');
     const clienteNome = document.getElementById('clienteNome');
@@ -685,14 +594,6 @@
     const countVendasEl = document.getElementById('countVendas');
     const ticketMedioVendasEl = document.getElementById('ticketMedioVendas');
 
-    // Usuários
-    const novoUserEmail = document.getElementById('novoUserEmail');
-    const novoUserSenha = document.getElementById('novoUserSenha');
-    const novoUserRole = document.getElementById('novoUserRole');
-    const btnCriarUsuario = document.getElementById('btnCriarUsuario');
-    const usuarioMsg = document.getElementById('usuarioMsg');
-    const tableUsuarios = document.querySelector('#tableUsuarios tbody');
-
     // Modal de edição agendamento
     const editModal = document.getElementById('editModal');
     const editClienteNome = document.getElementById('editClienteNome');
@@ -713,14 +614,6 @@
     const btnCancelEditVenda = document.getElementById('btnCancelEditVenda');
     const btnSaveEditVenda = document.getElementById('btnSaveEditVenda');
 
-    // Modal de edição usuário
-    const editUsuarioModal = document.getElementById('editUsuarioModal');
-    const editUsuarioEmail = document.getElementById('editUsuarioEmail');
-    const editUsuarioRole = document.getElementById('editUsuarioRole');
-    const editUsuarioMsg = document.getElementById('editUsuarioMsg');
-    const btnCancelEditUsuario = document.getElementById('btnCancelEditUsuario');
-    const btnSaveEditUsuario = document.getElementById('btnSaveEditUsuario');
-
     function setSidebarEnabled(enabled) {
       const sidebar = document.querySelector('nav.sidebar');
       if (enabled) sidebar.classList.remove('hidden');
@@ -731,16 +624,6 @@
       const main = document.querySelector('main.content');
       if (locked) main.classList.add('locked');
       else main.classList.remove('locked');
-    }
-
-    function getRoleBadge(role) {
-      const roleMap = {
-        'admin': { class: 'role-admin', text: '👑 Admin' },
-        'gerente': { class: 'role-gerente', text: '📋 Gerente' },
-        'barbeiro': { class: 'role-barbeiro', text: '✂️ Barbeiro' }
-      };
-      const roleData = roleMap[role] || { class: '', text: role };
-      return `<span class="role-badge ${roleData.class}">${roleData.text}</span>`;
     }
 
     async function initAuth() {
@@ -764,7 +647,6 @@
       loginPanel.classList.remove('hidden');
       dashboardSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
-      usuariosSection.classList.add('hidden');
       userInfo.textContent = 'Não autenticado';
       btnLogout.classList.add('hidden');
       setSidebarEnabled(false);
@@ -787,7 +669,6 @@
       await refreshMetrics();
       await refreshVendas();
       await refreshMetricasVendas();
-      await refreshUsuarios();
     }
 
     // --- INICIALIZAR BARBEARIAS PADRÃO ---
@@ -1072,48 +953,6 @@
       } catch (err) {
         console.error('❌ Erro ao carregar vendas:', err);
         tableVendas.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
-      }
-    }
-
-    // --- USUÁRIOS ---
-    async function refreshUsuarios() {
-      try {
-        const { data, error } = await supabaseClient.auth.admin.listUsers();
-        
-        if (error) {
-          console.error('❌ Erro ao carregar usuários:', error);
-          tableUsuarios.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#f44336;">Erro ao carregar usuários</td></tr>';
-          return;
-        }
-        
-        if (data && data.users && data.users.length > 0) {
-          tableUsuarios.innerHTML = data.users.map(user => {
-            const role = user.user_metadata?.role || 'N/A';
-            const dataCriacao = new Date(user.created_at);
-            
-            return `
-              <tr>
-                <td>${user.email}</td>
-                <td>${getRoleBadge(role)}</td>
-                <td>${dataCriacao.toLocaleString('pt-BR')}</td>
-                <td>
-                  <button class="btn-edit" onclick="openEditUsuarioModal('${user.id}', '${user.email}', '${role}')">
-                    Editar
-                  </button>
-                  <button class="btn-delete" onclick="deleteUsuario('${user.id}', '${user.email}')">
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            `;
-          }).join('');
-          console.log('✅ Usuários carregados:', data.users.length);
-        } else {
-          tableUsuarios.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum usuário encontrado</td></tr>';
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar usuários:', err);
-        tableUsuarios.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
@@ -1469,3 +1308,58 @@
           vendaMsg.textContent = '❌ Erro: ' + error.message;
           vendaMsg.className = 'error-msg';
         } else {
+          console.log('✅ Venda criada:', data);
+          vendaMsg.textContent = '✅ Venda criada com sucesso!';
+          vendaMsg.className = 'success-msg';
+          
+          descricaoVenda.value = '';
+          valorVenda.value = '';
+          selectFormaPagamento.value = '';
+          selectBarbeariaVenda.value = '';
+          
+          await refreshVendas();
+          await refreshMetricasVendas();
+          await refreshMetrics();
+          
+          setTimeout(() => {
+            vendaMsg.textContent = '';
+            vendaMsg.className = '';
+          }, 3000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao criar venda:', err);
+        vendaMsg.textContent = '❌ Erro ao criar venda';
+        vendaMsg.className = 'error-msg';
+      }
+    });
+
+    // --- NAVEGAÇÃO SIDEBAR ---
+    document.querySelectorAll('nav.sidebar a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        
+        const section = link.getAttribute('data-section');
+        
+        // Esconde todas as seções
+        document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
+        
+        // Mostra a seção selecionada
+        if (section === 'dashboard') {
+          dashboardSection.classList.remove('hidden');
+        } else if (section === 'vendas') {
+          vendasSection.classList.remove('hidden');
+          refreshVendas();
+          refreshMetricasVendas();
+        }
+        
+        console.log('📍 Navegando para:', section);
+      });
+    });
+
+    initApp();
+  </script>
+</body>
+</html>
