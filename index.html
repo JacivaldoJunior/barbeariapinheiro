@@ -372,29 +372,6 @@
       font-weight: 600;
     }
 
-    /* CONTAINER DO HISTÓRICO DE VENDAS (3 linhas + scroll) */
-    .historico-vendas-container {
-      max-height: 180px; /* altura aproximada para ~3 linhas */
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-
-    /* Estilo da barra de rolagem */
-    .historico-vendas-container::-webkit-scrollbar {
-      width: 8px;
-    }
-    .historico-vendas-container::-webkit-scrollbar-track {
-      background: #202020;
-      border-radius: 4px;
-    }
-    .historico-vendas-container::-webkit-scrollbar-thumb {
-      background: #C8A045;
-      border-radius: 4px;
-    }
-    .historico-vendas-container::-webkit-scrollbar-thumb:hover {
-      background: #e0c15a;
-    }
-
     @media (max-width: 900px) {
       nav.sidebar { display:none; }
       body { flex-direction:column; }
@@ -543,25 +520,22 @@
 
       <section style="margin-top:18px;">
         <h2 class="muted">Histórico de vendas</h2>
-        <!-- CONTAINER COM SCROLL -->
-        <div class="historico-vendas-container">
-          <table id="tableVendas">
-            <thead>
-              <tr>
-                <th>Descrição</th>
-                <th>Valor</th>
-                <th>Forma de Pagamento</th>
-                <th>Barbeiro</th>
-                <th>Barbearia</th>
-                <th>Data</th>
-                <th id="acoesHeaderVendas">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <table id="tableVendas">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Valor</th>
+              <th>Forma de Pagamento</th>
+              <th>Barbeiro</th>
+              <th>Barbearia</th>
+              <th>Data</th>
+              <th id="acoesHeaderVendas">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
+          </tbody>
+        </table>
       </section>
     </section>
   </main>
@@ -810,7 +784,7 @@
 
       const roleBadge = role === 'gerente' 
         ? '<span class="role-badge role-gerente">📋 Gerente</span>'
-        : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>`;
+        : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>';
       
       userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
 
@@ -1150,11 +1124,8 @@
         
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-
-          // SOMENTE OS 3 ÚLTIMOS REGISTROS VISÍVEIS
-          const ultimasTres = data.slice(0, 3);
           
-          tableVendas.innerHTML = ultimasTres.map(row => {
+          tableVendas.innerHTML = data.map(row => {
             const data_criacao = new Date(row.created_at);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.barbeiro_nome || 'N/A';
@@ -1182,7 +1153,7 @@
               </tr>
             `;
           }).join('');
-          console.log('✅ Vendas carregadas:', data.length, ' | Renderizando as últimas 3');
+          console.log('✅ Vendas carregadas:', data.length);
         } else {
           tableVendas.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
         }
