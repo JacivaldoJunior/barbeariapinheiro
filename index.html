@@ -345,6 +345,33 @@
       border: 1px solid rgba(200,160,69,0.3);
     }
 
+    /* RESUMO POR BARBEIRO */
+    .barbeiro-stats {
+      background: rgba(200,160,69,0.05);
+      border: 1px solid rgba(200,160,69,0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .barbeiro-stats .name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #C8A045;
+    }
+    .barbeiro-stats .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 0.9rem;
+      color: #a88c3a;
+    }
+    .barbeiro-stats .stats span {
+      color: #fff;
+      font-weight: 600;
+    }
+
     @media (max-width: 900px) {
       nav.sidebar { display:none; }
       body { flex-direction:column; }
@@ -460,6 +487,12 @@
         </article>
       </section>
 
+      <!-- RESUMO POR BARBEIRO -->
+      <section id="resumoBarbeiros" style="margin-bottom:24px;">
+        <h2 class="muted">Resumo por barbeiro</h2>
+        <div id="barbeirosStats"></div>
+      </section>
+
       <section>
         <h2 class="muted">Nova venda</h2>
         <div class="form-row">
@@ -478,6 +511,11 @@
             <option value="">Selecione a barbearia</option>
           </select>
         </div>
+        <div class="form-row">
+          <select id="selectBarbeiroVenda">
+            <option value="">Selecione o barbeiro</option>
+          </select>
+        </div>
         <button id="btnCriarVenda" class="btn" style="margin-top:10px;">Criar Venda</button>
         <div id="vendaMsg"></div>
       </section>
@@ -490,13 +528,14 @@
               <th>Descrição</th>
               <th>Valor</th>
               <th>Forma de Pagamento</th>
+              <th>Barbeiro</th>
               <th>Barbearia</th>
               <th>Data</th>
               <th id="acoesHeaderVendas">Ações</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td colspan="6" style="text-align:center;">Carregando...</td></tr>
+            <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
           </tbody>
         </table>
       </section>
@@ -555,6 +594,11 @@
       <select id="editBarbeariaVenda">
         <option value="">Selecione a barbearia</option>
       </select>
+
+      <label for="editBarbeiroVenda">Barbeiro</label>
+      <select id="editBarbeiroVenda">
+        <option value="">Selecione o barbeiro</option>
+      </select>
       
       <div id="editVendaMsg"></div>
       
@@ -577,6 +621,7 @@
     let currentProfile = null;
     let currentEditId = null;
     let currentEditVendaId = null;
+    let allBarbeiros = [];
 
     async function initApp() {
       try {
@@ -615,12 +660,14 @@
     const valorVenda = document.getElementById('valorVenda');
     const selectFormaPagamento = document.getElementById('selectFormaPagamento');
     const selectBarbeariaVenda = document.getElementById('selectBarbeariaVenda');
+    const selectBarbeiroVenda = document.getElementById('selectBarbeiroVenda');
     const btnCriarVenda = document.getElementById('btnCriarVenda');
     const vendaMsg = document.getElementById('vendaMsg');
     const tableVendas = document.querySelector('#tableVendas tbody');
     const totalVendasEl = document.getElementById('totalVendas');
     const countVendasEl = document.getElementById('countVendas');
     const ticketMedioVendasEl = document.getElementById('ticketMedioVendas');
+    const barbeirosStatsEl = document.getElementById('barbeirosStats');
 
     // Modal de edição agendamento
     const editModal = document.getElementById('editModal');
@@ -638,6 +685,7 @@
     const editValorVenda = document.getElementById('editValorVenda');
     const editFormaPagamentoVenda = document.getElementById('editFormaPagamentoVenda');
     const editBarbeariaVenda = document.getElementById('editBarbeariaVenda');
+    const editBarbeiroVenda = document.getElementById('editBarbeiroVenda');
     const editVendaMsg = document.getElementById('editVendaMsg');
     const btnCancelEditVenda = document.getElementById('btnCancelEditVenda');
     const btnSaveEditVenda = document.getElementById('btnSaveEditVenda');
@@ -694,15 +742,15 @@
 
       console.log('✅ Usuário autenticado:', user.email);
 
-      // Carregar profile do usuário
       await carregarProfile(user.id);
-
       await initializeBarbearias();
       await loadBarbearias();
+      await loadBarbeiros();
       await refreshAgendamentos();
       await refreshMetrics();
       await refreshVendas();
       await refreshMetricasVendas();
+      await refreshResumoBarbeiros();
     }
 
     // --- CARREGAR PROFILE DO USUÁRIO ---
@@ -723,7 +771,6 @@
         currentProfile = data;
         console.log('✅ Profile carregado:', currentProfile);
 
-        // Atualizar UI baseado no role
         atualizarUIporRole();
 
       } catch (err) {
@@ -741,7 +788,6 @@
 
       console.log(`👤 Role: ${role} | Barbearia: ${barbeariaNome} (${barbeariaId})`);
 
-      // Adicionar badge de role na topbar
       const roleBadge = role === 'gerente' 
         ? '<span class="role-badge role-gerente">📋 Gerente</span>'
         : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>';
@@ -749,22 +795,17 @@
       userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
 
       if (role === 'barbeiro') {
-        // Barbeiro: acesso restrito à sua barbearia
         selectBarbearia.disabled = true;
         selectBarbeariaVenda.disabled = true;
         selectBarbearia.value = barbeariaId;
         selectBarbeariaVenda.value = barbeariaId;
 
-        // Esconder seção de criar agendamento (só gerente cria)
         document.getElementById('novoAgendamentoSection').classList.add('hidden');
-
-        // Esconder coluna de ações (barbeiro só visualiza)
         document.getElementById('acoesHeader').classList.add('hidden');
         document.getElementById('acoesHeaderVendas').classList.add('hidden');
 
         console.log('🔒 Modo Barbeiro: acesso restrito à barbearia', barbeariaNome);
       } else if (role === 'gerente') {
-        // Gerente: acesso total
         selectBarbearia.disabled = false;
         selectBarbeariaVenda.disabled = false;
 
@@ -864,7 +905,6 @@
           .select('id, nome')
           .order('nome');
 
-        // Se for barbeiro, filtrar só sua barbearia
         if (currentProfile && currentProfile.role === 'barbeiro') {
           query = query.eq('id', currentProfile.barbearia_id);
         }
@@ -889,7 +929,6 @@
           editBarbearia.innerHTML = options;
           editBarbeariaVenda.innerHTML = options;
 
-          // Se for barbeiro, pré-selecionar sua barbearia
           if (currentProfile && currentProfile.role === 'barbeiro') {
             selectBarbearia.value = currentProfile.barbearia_id;
             selectBarbeariaVenda.value = currentProfile.barbearia_id;
@@ -906,6 +945,42 @@
       } catch (err) {
         console.error('❌ Erro ao carregar barbearias:', err);
       }
+    }
+
+    // --- CARREGAR BARBEIROS ---
+    async function loadBarbeiros() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('id, barbearia_id, role, barbearias(nome)')
+          .eq('role', 'barbeiro')
+          .order('id');
+
+        if (error) {
+          console.error('❌ Erro ao carregar barbeiros:', error);
+          return;
+        }
+
+        allBarbeiros = data || [];
+        console.log('✅ Barbeiros carregados:', allBarbeiros.length);
+
+        updateBarbeiroDropdowns();
+
+      } catch (err) {
+        console.error('❌ Erro ao carregar barbeiros:', err);
+      }
+    }
+
+    // --- ATUALIZAR DROPDOWNS DE BARBEIROS ---
+    function updateBarbeiroDropdowns() {
+      const options = '<option value="">Selecione o barbeiro</option>' +
+        allBarbeiros.map(b => {
+          const barbeariaNome = b.barbearias?.nome || 'N/A';
+          return `<option value="${b.id}">${b.id.substring(0, 8)}... (${barbeariaNome})</option>`;
+        }).join('');
+
+      selectBarbeiroVenda.innerHTML = options;
+      editBarbeiroVenda.innerHTML = options;
     }
 
     // --- MÉTRICAS DASHBOARD ---
@@ -968,6 +1043,58 @@
         }
       } catch (err) {
         console.error('❌ Erro ao carregar métricas de vendas:', err);
+      }
+    }
+
+    // --- RESUMO POR BARBEIRO ---
+    async function refreshResumoBarbeiros() {
+      try {
+        const { data: vendas, error } = await supabaseClient
+          .from('vendas')
+          .select('barbeiro_id, total');
+
+        if (error) {
+          console.error('❌ Erro ao carregar vendas para resumo:', error);
+          return;
+        }
+
+        const resumo = {};
+
+        vendas.forEach(v => {
+          const barbeiroId = v.barbeiro_id || 'sem_barbeiro';
+          if (!resumo[barbeiroId]) {
+            resumo[barbeiroId] = { count: 0, total: 0 };
+          }
+          resumo[barbeiroId].count++;
+          resumo[barbeiroId].total += parseFloat(v.total || 0);
+        });
+
+        let html = '';
+
+        Object.keys(resumo).forEach(barbeiroId => {
+          const stats = resumo[barbeiroId];
+          let nome = 'Sem barbeiro';
+
+          if (barbeiroId !== 'sem_barbeiro') {
+            const barbeiro = allBarbeiros.find(b => b.id === barbeiroId);
+            nome = barbeiro ? `${barbeiroId.substring(0, 8)}...` : 'Barbeiro desconhecido';
+          }
+
+          html += `
+            <div class="barbeiro-stats">
+              <div class="name">✂️ ${nome}</div>
+              <div class="stats">
+                <div>Cortes: <span>${stats.count}</span></div>
+                <div>Total: <span>R$ ${stats.total.toFixed(2)}</span></div>
+              </div>
+            </div>
+          `;
+        });
+
+        barbeirosStatsEl.innerHTML = html || '<p class="muted">Nenhuma venda registrada ainda.</p>';
+
+      } catch (err) {
+        console.error('❌ Erro ao gerar resumo por barbeiro:', err);
       }
     }
 
@@ -1039,7 +1166,7 @@
         
         if (error) {
           console.error('❌ Erro ao carregar vendas:', error);
-          tableVendas.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
+          tableVendas.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
           return;
         }
         
@@ -1050,9 +1177,15 @@
             const data_criacao = new Date(row.created_at);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             
+            let barbeiroNome = 'N/A';
+            if (row.barbeiro_id) {
+              const barbeiro = allBarbeiros.find(b => b.id === row.barbeiro_id);
+              barbeiroNome = barbeiro ? `${row.barbeiro_id.substring(0, 8)}...` : 'Desconhecido';
+            }
+            
             const acoesHtml = isBarbeiro ? '' : `
               <td>
-                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}')">
+                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_id || ''}')">
                   Editar
                 </button>
                 <button class="btn-delete" onclick="deleteVenda('${row.id}')">
@@ -1066,6 +1199,7 @@
                 <td>${row.descricao || 'N/A'}</td>
                 <td>R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
                 <td>${row.forma_pagamento || 'N/A'}</td>
+                <td>${barbeiroNome}</td>
                 <td>${barbeariaNome}</td>
                 <td>${data_criacao.toLocaleString('pt-BR')}</td>
                 ${acoesHtml}
@@ -1074,11 +1208,11 @@
           }).join('');
           console.log('✅ Vendas carregadas:', data.length);
         } else {
-          tableVendas.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
+          tableVendas.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar vendas:', err);
-        tableVendas.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+        tableVendas.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
@@ -1272,13 +1406,14 @@
     });
 
     // --- ABRIR MODAL DE EDIÇÃO VENDA ---
-    function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId) {
+    function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroId) {
       currentEditVendaId = id;
       
       editDescricaoVenda.value = descricao;
       editValorVenda.value = parseFloat(valor);
       editFormaPagamentoVenda.value = formaPagamento;
       editBarbeariaVenda.value = barbeariaId;
+      editBarbeiroVenda.value = barbeiroId || '';
       editVendaMsg.textContent = '';
       editVendaMsg.className = '';
       
@@ -1329,7 +1464,8 @@
             descricao: editDescricaoVenda.value.trim(),
             total: parseFloat(editValorVenda.value),
             forma_pagamento: editFormaPagamentoVenda.value,
-            barbearia_id: editBarbeariaVenda.value
+            barbearia_id: editBarbeariaVenda.value,
+            barbeiro_id: editBarbeiroVenda.value || null
           })
           .eq('id', currentEditVendaId)
           .select();
@@ -1346,6 +1482,7 @@
           await refreshVendas();
           await refreshMetricasVendas();
           await refreshMetrics();
+          await refreshResumoBarbeiros();
           
           setTimeout(() => {
             editVendaModal.classList.add('hidden');
@@ -1382,6 +1519,7 @@
         await refreshVendas();
         await refreshMetricasVendas();
         await refreshMetrics();
+        await refreshResumoBarbeiros();
 
       } catch (err) {
         console.error("❌ Erro ao excluir venda:", err);
@@ -1425,7 +1563,8 @@
             descricao: descricaoVenda.value.trim(),
             total: parseFloat(valorVenda.value),
             forma_pagamento: selectFormaPagamento.value,
-            barbearia_id: selectBarbeariaVenda.value
+            barbearia_id: selectBarbeariaVenda.value,
+            barbeiro_id: selectBarbeiroVenda.value || null
           }])
           .select();
         
@@ -1442,10 +1581,12 @@
           valorVenda.value = '';
           selectFormaPagamento.value = '';
           selectBarbeariaVenda.value = '';
+          selectBarbeiroVenda.value = '';
           
           await refreshVendas();
           await refreshMetricasVendas();
           await refreshMetrics();
+          await refreshResumoBarbeiros();
           
           setTimeout(() => {
             vendaMsg.textContent = '';
@@ -1469,16 +1610,15 @@
         
         const section = link.getAttribute('data-section');
         
-        // Esconde todas as seções
         document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
         
-        // Mostra a seção selecionada
         if (section === 'dashboard') {
           dashboardSection.classList.remove('hidden');
         } else if (section === 'vendas') {
           vendasSection.classList.remove('hidden');
           refreshVendas();
           refreshMetricasVendas();
+          refreshResumoBarbeiros();
         }
         
         console.log('📍 Navegando para:', section);
