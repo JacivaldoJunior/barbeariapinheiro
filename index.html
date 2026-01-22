@@ -512,9 +512,7 @@
           </select>
         </div>
         <div class="form-row">
-          <select id="selectBarbeiroVenda">
-            <option value="">Selecione o barbeiro</option>
-          </select>
+          <input id="inputBarbeiroNome" placeholder="Nome do barbeiro" />
         </div>
         <button id="btnCriarVenda" class="btn" style="margin-top:10px;">Criar Venda</button>
         <div id="vendaMsg"></div>
@@ -595,10 +593,8 @@
         <option value="">Selecione a barbearia</option>
       </select>
 
-      <label for="editBarbeiroVenda">Barbeiro</label>
-      <select id="editBarbeiroVenda">
-        <option value="">Selecione o barbeiro</option>
-      </select>
+      <label for="editBarbeiroNomeVenda">Nome do Barbeiro</label>
+      <input id="editBarbeiroNomeVenda" type="text" placeholder="Nome do barbeiro" />
       
       <div id="editVendaMsg"></div>
       
@@ -621,7 +617,6 @@
     let currentProfile = null;
     let currentEditId = null;
     let currentEditVendaId = null;
-    let allBarbeiros = [];
 
     async function initApp() {
       try {
@@ -660,7 +655,7 @@
     const valorVenda = document.getElementById('valorVenda');
     const selectFormaPagamento = document.getElementById('selectFormaPagamento');
     const selectBarbeariaVenda = document.getElementById('selectBarbeariaVenda');
-    const selectBarbeiroVenda = document.getElementById('selectBarbeiroVenda');
+    const inputBarbeiroNome = document.getElementById('inputBarbeiroNome');
     const btnCriarVenda = document.getElementById('btnCriarVenda');
     const vendaMsg = document.getElementById('vendaMsg');
     const tableVendas = document.querySelector('#tableVendas tbody');
@@ -685,7 +680,7 @@
     const editValorVenda = document.getElementById('editValorVenda');
     const editFormaPagamentoVenda = document.getElementById('editFormaPagamentoVenda');
     const editBarbeariaVenda = document.getElementById('editBarbeariaVenda');
-    const editBarbeiroVenda = document.getElementById('editBarbeiroVenda');
+    const editBarbeiroNomeVenda = document.getElementById('editBarbeiroNomeVenda');
     const editVendaMsg = document.getElementById('editVendaMsg');
     const btnCancelEditVenda = document.getElementById('btnCancelEditVenda');
     const btnSaveEditVenda = document.getElementById('btnSaveEditVenda');
@@ -745,7 +740,6 @@
       await carregarProfile(user.id);
       await initializeBarbearias();
       await loadBarbearias();
-      await loadBarbeiros();
       await refreshAgendamentos();
       await refreshMetrics();
       await refreshVendas();
@@ -947,42 +941,6 @@
       }
     }
 
-    // --- CARREGAR BARBEIROS ---
-    async function loadBarbeiros() {
-      try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('id, barbearia_id, role, barbearias(nome)')
-          .eq('role', 'barbeiro')
-          .order('id');
-
-        if (error) {
-          console.error('❌ Erro ao carregar barbeiros:', error);
-          return;
-        }
-
-        allBarbeiros = data || [];
-        console.log('✅ Barbeiros carregados:', allBarbeiros.length);
-
-        updateBarbeiroDropdowns();
-
-      } catch (err) {
-        console.error('❌ Erro ao carregar barbeiros:', err);
-      }
-    }
-
-    // --- ATUALIZAR DROPDOWNS DE BARBEIROS ---
-    function updateBarbeiroDropdowns() {
-      const options = '<option value="">Selecione o barbeiro</option>' +
-        allBarbeiros.map(b => {
-          const barbeariaNome = b.barbearias?.nome || 'N/A';
-          return `<option value="${b.id}">${b.id.substring(0, 8)}... (${barbeariaNome})</option>`;
-        }).join('');
-
-      selectBarbeiroVenda.innerHTML = options;
-      editBarbeiroVenda.innerHTML = options;
-    }
-
     // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
       try {
@@ -1051,7 +1009,7 @@
       try {
         const { data: vendas, error } = await supabaseClient
           .from('vendas')
-          .select('barbeiro_id, total');
+          .select('barbeiro_nome, total');
 
         if (error) {
           console.error('❌ Erro ao carregar vendas para resumo:', error);
@@ -1061,24 +1019,18 @@
         const resumo = {};
 
         vendas.forEach(v => {
-          const barbeiroId = v.barbeiro_id || 'sem_barbeiro';
-          if (!resumo[barbeiroId]) {
-            resumo[barbeiroId] = { count: 0, total: 0 };
+          const barbeiroNome = v.barbeiro_nome || 'Sem barbeiro';
+          if (!resumo[barbeiroNome]) {
+            resumo[barbeiroNome] = { count: 0, total: 0 };
           }
-          resumo[barbeiroId].count++;
-          resumo[barbeiroId].total += parseFloat(v.total || 0);
+          resumo[barbeiroNome].count++;
+          resumo[barbeiroNome].total += parseFloat(v.total || 0);
         });
 
         let html = '';
 
-        Object.keys(resumo).forEach(barbeiroId => {
-          const stats = resumo[barbeiroId];
-          let nome = 'Sem barbeiro';
-
-          if (barbeiroId !== 'sem_barbeiro') {
-            const barbeiro = allBarbeiros.find(b => b.id === barbeiroId);
-            nome = barbeiro ? `${barbeiroId.substring(0, 8)}...` : 'Barbeiro desconhecido';
-          }
+        Object.keys(resumo).forEach(nome => {
+          const stats = resumo[nome];
 
           html += `
             <div class="barbeiro-stats">
@@ -1176,16 +1128,11 @@
           tableVendas.innerHTML = data.map(row => {
             const data_criacao = new Date(row.created_at);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
-            
-            let barbeiroNome = 'N/A';
-            if (row.barbeiro_id) {
-              const barbeiro = allBarbeiros.find(b => b.id === row.barbeiro_id);
-              barbeiroNome = barbeiro ? `${row.barbeiro_id.substring(0, 8)}...` : 'Desconhecido';
-            }
+            const barbeiroNome = row.barbeiro_nome || 'N/A';
             
             const acoesHtml = isBarbeiro ? '' : `
               <td>
-                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_id || ''}')">
+                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_nome || ''}')">
                   Editar
                 </button>
                 <button class="btn-delete" onclick="deleteVenda('${row.id}')">
@@ -1406,14 +1353,14 @@
     });
 
     // --- ABRIR MODAL DE EDIÇÃO VENDA ---
-    function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroId) {
+    function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
       currentEditVendaId = id;
       
       editDescricaoVenda.value = descricao;
       editValorVenda.value = parseFloat(valor);
       editFormaPagamentoVenda.value = formaPagamento;
       editBarbeariaVenda.value = barbeariaId;
-      editBarbeiroVenda.value = barbeiroId || '';
+      editBarbeiroNomeVenda.value = barbeiroNome || '';
       editVendaMsg.textContent = '';
       editVendaMsg.className = '';
       
@@ -1465,7 +1412,7 @@
             total: parseFloat(editValorVenda.value),
             forma_pagamento: editFormaPagamentoVenda.value,
             barbearia_id: editBarbeariaVenda.value,
-            barbeiro_id: editBarbeiroVenda.value || null
+            barbeiro_nome: editBarbeiroNomeVenda.value.trim() || null
           })
           .eq('id', currentEditVendaId)
           .select();
@@ -1564,7 +1511,7 @@
             total: parseFloat(valorVenda.value),
             forma_pagamento: selectFormaPagamento.value,
             barbearia_id: selectBarbeariaVenda.value,
-            barbeiro_id: selectBarbeiroVenda.value || null
+            barbeiro_nome: inputBarbeiroNome.value.trim() || null
           }])
           .select();
         
@@ -1581,7 +1528,7 @@
           valorVenda.value = '';
           selectFormaPagamento.value = '';
           selectBarbeariaVenda.value = '';
-          selectBarbeiroVenda.value = '';
+          inputBarbeiroNome.value = '';
           
           await refreshVendas();
           await refreshMetricasVendas();
