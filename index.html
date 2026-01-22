@@ -373,42 +373,53 @@
     }
 
     /* SCROLL NA TABELA DE VENDAS */
-    .table-scroll-container {
-      max-height: 400px;
+    #tableVendas {
+      display: block;
+      max-height: 300px;
       overflow-y: auto;
-      border: 1px solid rgba(200,160,69,0.2);
+      border: 1px solid rgba(200,160,69,0.1);
       border-radius: 8px;
-      margin-top: 12px;
     }
 
-    .table-scroll-container table {
-      margin: 0;
-    }
-
-    .table-scroll-container thead th {
+    #tableVendas thead {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
       position: sticky;
       top: 0;
       background: #1a1a1a;
       z-index: 10;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    #tableVendas tbody {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    #tableVendas thead tr,
+    #tableVendas tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
     }
 
     /* Estilizar a barra de rolagem */
-    .table-scroll-container::-webkit-scrollbar {
+    #tableVendas::-webkit-scrollbar {
       width: 8px;
     }
 
-    .table-scroll-container::-webkit-scrollbar-track {
+    #tableVendas::-webkit-scrollbar-track {
       background: rgba(200,160,69,0.05);
       border-radius: 4px;
     }
 
-    .table-scroll-container::-webkit-scrollbar-thumb {
+    #tableVendas::-webkit-scrollbar-thumb {
       background: rgba(200,160,69,0.3);
       border-radius: 4px;
     }
 
-    .table-scroll-container::-webkit-scrollbar-thumb:hover {
+    #tableVendas::-webkit-scrollbar-thumb:hover {
       background: rgba(200,160,69,0.5);
     }
 
@@ -560,24 +571,22 @@
 
       <section style="margin-top:18px;">
         <h2 class="muted">Histórico de vendas</h2>
-        <div class="table-scroll-container">
-          <table id="tableVendas">
-            <thead>
-              <tr>
-                <th>Descrição</th>
-                <th>Valor</th>
-                <th>Forma de Pagamento</th>
-                <th>Barbeiro</th>
-                <th>Barbearia</th>
-                <th>Data</th>
-                <th id="acoesHeaderVendas">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <table id="tableVendas">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Valor</th>
+              <th>Forma de Pagamento</th>
+              <th>Barbeiro</th>
+              <th>Barbearia</th>
+              <th>Data</th>
+              <th id="acoesHeaderVendas">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
+          </tbody>
+        </table>
       </section>
     </section>
   </main>
