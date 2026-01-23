@@ -203,17 +203,25 @@
     table {
       width:100%;
       border-collapse: collapse;
-      margin-top:12px;
       color:#fff;
     }
     th, td {
-      padding:8px 10px;
+      padding:12px 10px;
       border-bottom:1px solid rgba(200,160,69,0.08);
       text-align:left;
       font-size:0.95rem;
       color:#ddd;
     }
-    th { color:#a88c3a; font-weight:700; text-transform:uppercase; font-size:0.8rem; }
+    th { 
+      color:#a88c3a; 
+      font-weight:700; 
+      text-transform:uppercase; 
+      font-size:0.8rem;
+      position: sticky;
+      top: 0;
+      background: #1a1a1a;
+      z-index: 2;
+    }
     .muted { color:#a88c3a; font-size:0.9rem; }
 
     .form-row { display:flex; gap:10px; margin-top:8px; flex-wrap: wrap; }
@@ -372,46 +380,34 @@
       font-weight: 600;
     }
 
-    /* WRAPPER COM SCROLL HORIZONTAL E VERTICAL PARA VENDAS */
-    .tableVendasWrapper {
-      max-height: 300px;
-      overflow-y: auto;   /* scroll vertical */
-      overflow-x: auto;   /* scroll horizontal */
-      border: 1px solid rgba(200,160,69,0.1);
-      border-radius: 8px;
+    /* CONTAINER COM SCROLL PARA TABELAS */
+    .table-container {
+      margin-top: 12px;
+      border: 1px solid rgba(200,160,69,0.2);
+      border-radius: 12px;
+      background: rgba(0,0,0,0.2);
+      max-height: 400px;
+      overflow-y: auto;
+      overflow-x: auto;
     }
 
-    #tableVendas {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 800px; /* garante que a tabela seja larga o suficiente para scroll horizontal */
-    }
-
-    #tableVendas thead {
-      position: sticky;
-      top: 0;
-      background: #1a1a1a;
-      z-index: 10;
-    }
-
-    /* Estilizar a barra de rolagem vertical */
-    .tableVendasWrapper::-webkit-scrollbar {
+    .table-container::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
 
-    .tableVendasWrapper::-webkit-scrollbar-track {
-      background: rgba(200,160,69,0.05);
-      border-radius: 4px;
+    .table-container::-webkit-scrollbar-track {
+      background: #121212;
+      border-radius: 10px;
     }
 
-    .tableVendasWrapper::-webkit-scrollbar-thumb {
-      background: rgba(200,160,69,0.3);
-      border-radius: 4px;
+    .table-container::-webkit-scrollbar-thumb {
+      background: #C8A045;
+      border-radius: 10px;
     }
 
-    .tableVendasWrapper::-webkit-scrollbar-thumb:hover {
-      background: rgba(200,160,69,0.5);
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: #d4b05a;
     }
 
     @media (max-width: 900px) {
@@ -492,20 +488,22 @@
 
       <section style="margin-top:18px;">
         <h2 class="muted">Próximos agendamentos</h2>
-        <table id="tableAgendamentos">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>Serviço</th>
-              <th>Data / Hora</th>
-              <th>Barbearia</th>
-              <th id="acoesHeader">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5" style="text-align:center;">Carregando...</td></tr>
-          </tbody>
-        </table>
+        <div class="table-container">
+          <table id="tableAgendamentos">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Serviço</th>
+                <th>Data / Hora</th>
+                <th>Barbearia</th>
+                <th id="acoesHeader">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
 
@@ -562,7 +560,7 @@
 
       <section style="margin-top:18px;">
         <h2 class="muted">Histórico de vendas</h2>
-        <div class="tableVendasWrapper">
+        <div class="table-container">
           <table id="tableVendas">
             <thead>
               <tr>
