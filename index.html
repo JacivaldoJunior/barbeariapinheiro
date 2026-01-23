@@ -728,6 +728,34 @@
     </div>
   </div>
 
+  <!-- MODAL DE NOVO AGENDAMENTO -->
+  <div id="novoAgendamentoModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2>Novo Agendamento</h2>
+      
+      <label for="novoClienteNome">Nome do cliente</label>
+      <input id="novoClienteNome" type="text" placeholder="Digite o nome do cliente" />
+      
+      <label for="novoServico">Serviço</label>
+      <input id="novoServico" type="text" placeholder="Ex: Corte, Barba, Corte + Barba" />
+      
+      <label for="novoDataHora">Data e Hora</label>
+      <input id="novoDataHora" type="datetime-local" />
+      
+      <label for="novoBarbearia">Barbearia</label>
+      <select id="novoBarbearia">
+        <option value="">Selecione a barbearia</option>
+      </select>
+      
+      <div id="novoAgendamentoModalMsg"></div>
+      
+      <div class="modal-buttons">
+        <button id="btnCancelNovoAgendamento" class="btn btn-cancel">Cancelar</button>
+        <button id="btnSalvarNovoAgendamento" class="btn">Criar Agendamento</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Carregamento do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -814,6 +842,16 @@
     const editVendaMsg = document.getElementById('editVendaMsg');
     const btnCancelEditVenda = document.getElementById('btnCancelEditVenda');
     const btnSaveEditVenda = document.getElementById('btnSaveEditVenda');
+
+    // Modal de novo agendamento
+    const novoAgendamentoModal = document.getElementById('novoAgendamentoModal');
+    const novoClienteNome = document.getElementById('novoClienteNome');
+    const novoServico = document.getElementById('novoServico');
+    const novoDataHora = document.getElementById('novoDataHora');
+    const novoBarbearia = document.getElementById('novoBarbearia');
+    const novoAgendamentoModalMsg = document.getElementById('novoAgendamentoModalMsg');
+    const btnCancelNovoAgendamento = document.getElementById('btnCancelNovoAgendamento');
+    const btnSalvarNovoAgendamento = document.getElementById('btnSalvarNovoAgendamento');
 
     function setSidebarEnabled(enabled) {
       const sidebar = document.querySelector('nav.sidebar');
@@ -1048,6 +1086,7 @@
           selectBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
           editBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           editBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
+          novoBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
         
@@ -1059,6 +1098,7 @@
           selectBarbeariaVenda.innerHTML = options;
           editBarbearia.innerHTML = options;
           editBarbeariaVenda.innerHTML = options;
+          novoBarbearia.innerHTML = options;
 
           if (currentProfile && currentProfile.role === 'barbeiro') {
             selectBarbearia.value = currentProfile.barbearia_id;
@@ -1071,6 +1111,7 @@
           selectBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           editBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           editBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          novoBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           console.warn('⚠️ Nenhuma barbearia encontrada');
         }
       } catch (err) {
@@ -1255,13 +1296,12 @@
 
         // Filtro por data
         if (agendaFiltroData.value) {
-          const dataInicio = new Date(agendaFiltroData.value);
-          const dataFim = new Date(agendaFiltroData.value);
-          dataFim.setDate(dataFim.getDate() + 1);
+          const dataInicio = `${agendaFiltroData.value}T00:00:00`;
+          const dataFim = `${agendaFiltroData.value}T23:59:59`;
           
           query = query
-            .gte('data_hora', dataInicio.toISOString())
-            .lt('data_hora', dataFim.toISOString());
+            .gte('data_hora', dataInicio)
+            .lte('data_hora', dataFim);
         }
 
         const { data, error } = await query;
@@ -1279,7 +1319,7 @@
             const dataHora = new Date(row.data_hora);
             const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
-            const barbeiroNome = row.barbeiro_nome || 'N/A';
+            const barbeiroNome = row.barbeiro_id || 'Não atribuído';
             const status = row.status || 'Pendente';
             
             const statusClass = status === 'Confirmado' ? 'status-confirmado' : 'status-pendente';
@@ -1321,17 +1361,97 @@
     agendaFiltroData.addEventListener('change', refreshAgenda);
     agendaFiltroBarbeiro.addEventListener('change', refreshAgenda);
 
-    // --- BOTÃO NOVO AGENDAMENTO NA AGENDA ---
+    // --- ABRIR MODAL DE NOVO AGENDAMENTO ---
     btnNovoAgendamentoAgenda.addEventListener('click', () => {
-      // Navegar para o dashboard onde está o formulário
-      document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
-      document.querySelector('nav.sidebar a[data-section="dashboard"]').classList.add('active');
+      // Limpar campos
+      novoClienteNome.value = '';
+      novoServico.value = '';
+      novoDataHora.value = '';
+      novoBarbearia.value = '';
+      novoAgendamentoModalMsg.textContent = '';
+      novoAgendamentoModalMsg.className = '';
       
-      document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
-      dashboardSection.classList.remove('hidden');
+      // Se for barbeiro, pré-selecionar a barbearia
+      if (currentProfile && currentProfile.role === 'barbeiro') {
+        novoBarbearia.value = currentProfile.barbearia_id;
+        novoBarbearia.disabled = true;
+      } else {
+        novoBarbearia.disabled = false;
+      }
       
-      // Scroll para o formulário
-      document.getElementById('novoAgendamentoSection').scrollIntoView({ behavior: 'smooth' });
+      // Abrir modal
+      novoAgendamentoModal.classList.remove('hidden');
+    });
+
+    // --- FECHAR MODAL DE NOVO AGENDAMENTO ---
+    btnCancelNovoAgendamento.addEventListener('click', () => {
+      novoAgendamentoModal.classList.add('hidden');
+    });
+
+    // --- SALVAR NOVO AGENDAMENTO ---
+    btnSalvarNovoAgendamento.addEventListener('click', async () => {
+      if (!novoClienteNome.value.trim()) {
+        novoAgendamentoModalMsg.textContent = '❌ Digite o nome do cliente';
+        novoAgendamentoModalMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!novoServico.value.trim()) {
+        novoAgendamentoModalMsg.textContent = '❌ Digite o serviço';
+        novoAgendamentoModalMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!novoDataHora.value) {
+        novoAgendamentoModalMsg.textContent = '❌ Selecione a data e hora';
+        novoAgendamentoModalMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!novoBarbearia.value) {
+        novoAgendamentoModalMsg.textContent = '❌ Selecione a barbearia';
+        novoAgendamentoModalMsg.className = 'error-msg';
+        return;
+      }
+
+      try {
+        novoAgendamentoModalMsg.textContent = 'Criando agendamento...';
+        novoAgendamentoModalMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .insert([{
+            cliente_nome: novoClienteNome.value.trim(),
+            servico: novoServico.value.trim(),
+            data_hora: new Date(novoDataHora.value).toISOString(),
+            barbearia_id: novoBarbearia.value,
+            barbeiro_id: null,
+            status: 'Pendente'
+          }])
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao criar agendamento:', error);
+          novoAgendamentoModalMsg.textContent = '❌ Erro: ' + error.message;
+          novoAgendamentoModalMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Agendamento criado:', data);
+          novoAgendamentoModalMsg.textContent = '✅ Agendamento criado com sucesso!';
+          novoAgendamentoModalMsg.className = 'success-msg';
+          
+          await refreshAgendamentos();
+          await refreshAgenda();
+          await refreshMetrics();
+          
+          setTimeout(() => {
+            novoAgendamentoModal.classList.add('hidden');
+          }, 1000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao criar agendamento:', err);
+        novoAgendamentoModalMsg.textContent = '❌ Erro ao criar agendamento';
+        novoAgendamentoModalMsg.className = 'error-msg';
+      }
     });
 
     // --- VENDAS ---
@@ -1454,7 +1574,8 @@
             cliente_nome: editClienteNome.value.trim(),
             servico: editServico.value.trim(),
             data_hora: new Date(editDataHora.value).toISOString(),
-            barbearia_id: editBarbearia.value
+            barbearia_id: editBarbearia.value,
+            barbeiro_id: null
           })
           .eq('id', currentEditId)
           .select();
@@ -1514,7 +1635,7 @@
       }
     }
 
-    // --- CRIAR AGENDAMENTO ---
+    // --- CRIAR AGENDAMENTO (DASHBOARD) ---
     btnCriarAgendamento.addEventListener('click', async () => {
       if (!clienteNome.value.trim()) {
         agendamentoMsg.textContent = '❌ Digite o nome do cliente';
@@ -1551,6 +1672,7 @@
             servico: servicoInput.value.trim(),
             data_hora: new Date(dataHoraInput.value).toISOString(),
             barbearia_id: selectBarbearia.value,
+            barbeiro_id: null,
             status: 'Pendente'
           }])
           .select();
