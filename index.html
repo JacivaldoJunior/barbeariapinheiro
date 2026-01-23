@@ -235,6 +235,7 @@
       min-width: 200px;
     }
     .form-row input[type="datetime-local"] { min-width:220px; }
+    .form-row input[type="date"] { min-width:180px; }
     .form-row input[type="number"] { min-width:150px; }
     .form-row input:disabled, .form-row select:disabled {
       background: #1a1a1a;
@@ -410,11 +411,50 @@
       background: #d4b05a;
     }
 
+    /* FILTROS DA AGENDA */
+    .agenda-controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-group label {
+      font-size: 0.85rem;
+      color: #a88c3a;
+    }
+
+    /* STATUS BADGES */
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-confirmado { 
+      background: rgba(46, 204, 113, 0.2); 
+      color: #2ecc71; 
+    }
+    
+    .status-pendente { 
+      background: rgba(241, 196, 15, 0.2); 
+      color: #f1c40f; 
+    }
+
     @media (max-width: 900px) {
       nav.sidebar { display:none; }
       body { flex-direction:column; }
       main.content { padding:16px; }
       .form-row { flex-direction: column; }
+      .agenda-controls { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
@@ -505,6 +545,47 @@
           </table>
         </div>
       </section>
+    </section>
+
+    <!-- AGENDA -->
+    <section id="agenda" class="section hidden">
+      <h1>Agenda</h1>
+      <p class="subtitle">Gerenciar agendamentos — Barbearia</p>
+
+      <!-- Filtros e Novo Agendamento -->
+      <div class="agenda-controls">
+        <div class="control-group">
+          <label>Data</label>
+          <input id="agendaFiltroData" type="date" />
+        </div>
+        <div class="control-group">
+          <label>Barbeiro</label>
+          <select id="agendaFiltroBarbeiro">
+            <option value="">Todos os Barbeiros</option>
+          </select>
+        </div>
+        <button id="btnNovoAgendamentoAgenda" class="btn">+ Novo Agendamento</button>
+      </div>
+
+      <!-- Tabela de Horários -->
+      <div class="table-container">
+        <table id="tableAgenda">
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>Barbeiro</th>
+              <th>Barbearia</th>
+              <th>Status</th>
+              <th id="acoesHeaderAgenda">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <!-- VENDAS -->
@@ -680,6 +761,7 @@
     const userInfo = document.getElementById('userInfo');
     const btnLogout = document.getElementById('btnLogout');
     const dashboardSection = document.getElementById('dashboard');
+    const agendaSection = document.getElementById('agenda');
     const vendasSection = document.getElementById('vendas');
     const tableBody = document.querySelector('#tableAgendamentos tbody');
     const selectBarbearia = document.getElementById('selectBarbearia');
@@ -691,6 +773,12 @@
     const vendasHojeEl = document.getElementById('vendasHoje');
     const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
+
+    // Agenda
+    const tableAgenda = document.querySelector('#tableAgenda tbody');
+    const agendaFiltroData = document.getElementById('agendaFiltroData');
+    const agendaFiltroBarbeiro = document.getElementById('agendaFiltroBarbeiro');
+    const btnNovoAgendamentoAgenda = document.getElementById('btnNovoAgendamentoAgenda');
 
     // Vendas
     const descricaoVenda = document.getElementById('descricaoVenda');
@@ -759,6 +847,7 @@
     function setUnauthenticated() {
       loginPanel.classList.remove('hidden');
       dashboardSection.classList.add('hidden');
+      agendaSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
       userInfo.textContent = 'Não autenticado';
       btnLogout.classList.add('hidden');
@@ -787,6 +876,11 @@
       await refreshVendas();
       await refreshMetricasVendas();
       await refreshResumoBarbeiros();
+      await refreshAgenda();
+      
+      // Definir data de hoje no filtro
+      const hoje = new Date().toISOString().split('T')[0];
+      agendaFiltroData.value = hoje;
     }
 
     // --- CARREGAR PROFILE DO USUÁRIO ---
@@ -839,6 +933,7 @@
         document.getElementById('novoAgendamentoSection').classList.add('hidden');
         document.getElementById('acoesHeader').classList.add('hidden');
         document.getElementById('acoesHeaderVendas').classList.add('hidden');
+        document.getElementById('acoesHeaderAgenda').classList.add('hidden');
 
         console.log('🔒 Modo Barbeiro: acesso restrito à barbearia', barbeariaNome);
       } else if (role === 'gerente') {
@@ -1147,6 +1242,98 @@
       }
     }
 
+    // --- AGENDA ---
+    async function refreshAgenda() {
+      try {
+        let query = supabaseClient
+          .from('agendamentos')
+          .select(`
+            *,
+            barbearias (nome)
+          `)
+          .order('data_hora', { ascending: true });
+
+        // Filtro por data
+        if (agendaFiltroData.value) {
+          const dataInicio = new Date(agendaFiltroData.value);
+          const dataFim = new Date(agendaFiltroData.value);
+          dataFim.setDate(dataFim.getDate() + 1);
+          
+          query = query
+            .gte('data_hora', dataInicio.toISOString())
+            .lt('data_hora', dataFim.toISOString());
+        }
+
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('❌ Erro ao carregar agenda:', error);
+          tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>';
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+          
+          tableAgenda.innerHTML = data.map(row => {
+            const dataHora = new Date(row.data_hora);
+            const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            const barbeiroNome = row.barbeiro_nome || 'N/A';
+            const status = row.status || 'Pendente';
+            
+            const statusClass = status === 'Confirmado' ? 'status-confirmado' : 'status-pendente';
+            
+            const acoesHtml = isBarbeiro ? '' : `
+              <td>
+                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbearia_id}')">
+                  Editar
+                </button>
+                <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
+                  Excluir
+                </button>
+              </td>
+            `;
+            
+            return `
+              <tr>
+                <td>${horario}</td>
+                <td>${row.cliente_nome || 'N/A'}</td>
+                <td>${row.servico || 'N/A'}</td>
+                <td>${barbeiroNome}</td>
+                <td>${barbeariaNome}</td>
+                <td><span class="status-badge ${statusClass}">${status}</span></td>
+                ${acoesHtml}
+              </tr>
+            `;
+          }).join('');
+          console.log('✅ Agenda carregada:', data.length);
+        } else {
+          tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum agendamento encontrado para esta data</td></tr>';
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar agenda:', err);
+        tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+      }
+    }
+
+    // --- FILTROS DA AGENDA ---
+    agendaFiltroData.addEventListener('change', refreshAgenda);
+    agendaFiltroBarbeiro.addEventListener('change', refreshAgenda);
+
+    // --- BOTÃO NOVO AGENDAMENTO NA AGENDA ---
+    btnNovoAgendamentoAgenda.addEventListener('click', () => {
+      // Navegar para o dashboard onde está o formulário
+      document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
+      document.querySelector('nav.sidebar a[data-section="dashboard"]').classList.add('active');
+      
+      document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
+      dashboardSection.classList.remove('hidden');
+      
+      // Scroll para o formulário
+      document.getElementById('novoAgendamentoSection').scrollIntoView({ behavior: 'smooth' });
+    });
+
     // --- VENDAS ---
     async function refreshVendas() {
       try {
@@ -1282,6 +1469,7 @@
           editMsg.className = 'success-msg';
           
           await refreshAgendamentos();
+          await refreshAgenda();
           await refreshMetrics();
           
           setTimeout(() => {
@@ -1317,6 +1505,7 @@
         console.log("✅ Agendamento excluído com sucesso!");
 
         await refreshAgendamentos();
+        await refreshAgenda();
         await refreshMetrics();
 
       } catch (err) {
@@ -1361,7 +1550,8 @@
             cliente_nome: clienteNome.value.trim(),
             servico: servicoInput.value.trim(),
             data_hora: new Date(dataHoraInput.value).toISOString(),
-            barbearia_id: selectBarbearia.value
+            barbearia_id: selectBarbearia.value,
+            status: 'Pendente'
           }])
           .select();
         
@@ -1380,6 +1570,7 @@
           selectBarbearia.value = '';
           
           await refreshAgendamentos();
+          await refreshAgenda();
           await refreshMetrics();
           
           setTimeout(() => {
@@ -1603,6 +1794,9 @@
         
         if (section === 'dashboard') {
           dashboardSection.classList.remove('hidden');
+        } else if (section === 'agenda') {
+          agendaSection.classList.remove('hidden');
+          refreshAgenda();
         } else if (section === 'vendas') {
           vendasSection.classList.remove('hidden');
           refreshVendas();
