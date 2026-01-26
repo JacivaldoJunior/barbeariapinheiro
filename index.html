@@ -449,6 +449,17 @@
       color: #f1c40f; 
     }
 
+    /* BADGE AGENDADO */
+    .agendado-sim {
+      background: rgba(46, 204, 113, 0.2);
+      color: #2ecc71;
+    }
+
+    .agendado-nao {
+      background: rgba(149, 165, 166, 0.2);
+      color: #95a5a6;
+    }
+
     @media (max-width: 900px) {
       nav.sidebar { display:none; }
       body { flex-direction:column; }
@@ -651,11 +662,12 @@
                 <th>Barbeiro</th>
                 <th>Barbearia</th>
                 <th>Data</th>
+                <th>Agendado</th>
                 <th id="acoesHeaderVendas">Ações</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
+              <tr><td colspan="8" style="text-align:center;">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1467,17 +1479,42 @@
         
         if (error) {
           console.error('❌ Erro ao carregar vendas:', error);
-          tableVendas.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
+          tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
           return;
         }
         
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
           
+          // Buscar todos os agendamentos para verificar se a venda foi agendada
+          const { data: agendamentos, error: agendError } = await supabaseClient
+            .from('agendamentos')
+            .select('cliente_nome, servico, data_hora');
+          
           tableVendas.innerHTML = data.map(row => {
             const data_criacao = new Date(row.created_at);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.barbeiro_nome || 'N/A';
+            
+            // Verificar se existe um agendamento correspondente
+            let foiAgendado = false;
+            if (agendamentos && !agendError) {
+              foiAgendado = agendamentos.some(ag => {
+                const agDataHora = new Date(ag.data_hora);
+                const vendaData = new Date(row.created_at);
+                
+                // Verifica se o serviço é similar e se a data é próxima (mesmo dia)
+                const mesmoServico = ag.servico && row.descricao && 
+                  ag.servico.toLowerCase().includes(row.descricao.toLowerCase());
+                const mesmoDia = agDataHora.toDateString() === vendaData.toDateString();
+                
+                return mesmoServico && mesmoDia;
+              });
+            }
+            
+            const agendadoBadge = foiAgendado 
+              ? '<span class="status-badge agendado-sim">✓ Sim</span>'
+              : '<span class="status-badge agendado-nao">✗ Não</span>';
             
             const acoesHtml = isBarbeiro ? '' : `
               <td>
@@ -1498,17 +1535,18 @@
                 <td>${barbeiroNome}</td>
                 <td>${barbeariaNome}</td>
                 <td>${data_criacao.toLocaleString('pt-BR')}</td>
+                <td>${agendadoBadge}</td>
                 ${acoesHtml}
               </tr>
             `;
           }).join('');
           console.log('✅ Vendas carregadas:', data.length);
         } else {
-          tableVendas.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
+          tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar vendas:', err);
-        tableVendas.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+        tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
