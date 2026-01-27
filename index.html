@@ -734,14 +734,14 @@
       <label for="editDataHora">Data e Hora</label>
       <input id="editDataHora" type="datetime-local" />
       
-      <label for="editBarbearia">Barbearia</label>
-      <select id="editBarbearia">
-        <option value="">Selecione a barbearia</option>
-      </select>
-
       <label for="editBarbeiro">Barbeiro</label>
       <select id="editBarbeiro">
         <option value="">Selecione o barbeiro (opcional)</option>
+      </select>
+      
+      <label for="editBarbearia">Barbearia</label>
+      <select id="editBarbearia">
+        <option value="">Selecione a barbearia</option>
       </select>
       
       <div id="editMsg"></div>
@@ -804,14 +804,14 @@
       <label for="novoDataHora">Data e Hora</label>
       <input id="novoDataHora" type="datetime-local" />
       
-      <label for="novoBarbearia">Barbearia</label>
-      <select id="novoBarbearia">
-        <option value="">Selecione a barbearia</option>
-      </select>
-
       <label for="novoBarbeiro">Barbeiro</label>
       <select id="novoBarbeiro">
         <option value="">Selecione o barbeiro (opcional)</option>
+      </select>
+      
+      <label for="novoBarbearia">Barbearia</label>
+      <select id="novoBarbearia">
+        <option value="">Selecione a barbearia</option>
       </select>
       
       <div id="novoAgendamentoModalMsg"></div>
@@ -835,7 +835,6 @@
     let currentProfile = null;
     let currentEditId = null;
     let currentEditVendaId = null;
-    let allBarbeiros = []; // Cache para filtrar barbeiros localmente
 
     async function initApp() {
       try {
@@ -1154,6 +1153,11 @@
         
         if (error) {
           console.error('❌ Erro ao carregar barbearias:', error);
+          selectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
+          selectBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
+          novoBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
         
@@ -1173,6 +1177,13 @@
           }
           
           console.log('✅ Barbearias carregadas:', data.length);
+        } else {
+          selectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          selectBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          editBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          editBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          novoBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          console.warn('⚠️ Nenhuma barbearia encontrada');
         }
       } catch (err) {
         console.error('❌ Erro ao carregar barbearias:', err);
@@ -1182,44 +1193,57 @@
     // --- CARREGAR BARBEIROS ---
     async function loadBarbeiros() {
       try {
-        // Buscamos os perfis que têm o papel de barbeiro e o nome do cliente (ou e-mail)
-        const { data, error } = await supabaseClient
+        let query = supabaseClient
           .from('profiles')
-          .select('id, cliente_nome, barbearia_id')
-          .eq('role', 'barbeiro');
+          .select('id, barbearia_id, barbearias(nome)')
+          .eq('role', 'barbeiro')
+          .order('barbearia_id');
+
+        if (currentProfile && currentProfile.role === 'barbeiro') {
+          query = query.eq('barbearia_id', currentProfile.barbearia_id);
+        }
+
+        const { data, error } = await query;
         
         if (error) {
           console.error('❌ Erro ao carregar barbeiros:', error);
+          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
           return;
         }
         
-        allBarbeiros = data || [];
-        console.log('✅ Barbeiros carregados no cache:', allBarbeiros.length);
-        
-        // Preencher o filtro da agenda inicialmente com todos
-        atualizarSelectBarbeiros(agendaFiltroBarbeiro, null, "Todos os Barbeiros");
+        if (data && data.length > 0) {
+          const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
+            data.map(b => {
+              const barbeariaNome = b.barbearias?.nome || 'N/A';
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
+            }).join('');
+          
+          const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
+            data.map(b => {
+              const barbeariaNome = b.barbearias?.nome || 'N/A';
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
+            }).join('');
+          
+          selectBarbeiro.innerHTML = options;
+          editBarbeiro.innerHTML = options;
+          novoBarbeiro.innerHTML = options;
+          agendaFiltroBarbeiro.innerHTML = filtroOptions;
+          
+          console.log('✅ Barbeiros carregados:', data.length);
+        } else {
+          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          console.warn('⚠️ Nenhum barbeiro encontrado');
+        }
       } catch (err) {
         console.error('❌ Erro ao carregar barbeiros:', err);
       }
     }
-
-    // Função auxiliar para preencher selects de barbeiros filtrados por barbearia
-    function atualizarSelectBarbeiros(selectElement, barbeariaId, defaultText = "Selecione o barbeiro (opcional)") {
-      let filtrados = allBarbeiros;
-      if (barbeariaId) {
-        filtrados = allBarbeiros.filter(b => b.barbearia_id === barbeariaId);
-      }
-
-      const options = `<option value="">${defaultText}</option>` +
-        filtrados.map(b => `<option value="${b.id}">${b.cliente_nome || 'Barbeiro sem nome'}</option>`).join('');
-      
-      selectElement.innerHTML = options;
-    }
-
-    // Eventos para filtrar barbeiros quando a barbearia mudar
-    selectBarbearia.addEventListener('change', () => atualizarSelectBarbeiros(selectBarbeiro, selectBarbearia.value));
-    novoBarbearia.addEventListener('change', () => atualizarSelectBarbeiros(novoBarbeiro, novoBarbearia.value));
-    editBarbearia.addEventListener('change', () => atualizarSelectBarbeiros(editBarbeiro, editBarbearia.value));
 
     // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
@@ -1233,6 +1257,7 @@
         if (!vendasError && vendas) {
           const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
           vendasHojeEl.textContent = `R$ ${total.toFixed(2)}`;
+          console.log('✅ Vendas hoje:', total);
         } else {
           vendasHojeEl.textContent = 'R$ 0,00';
         }
@@ -1243,6 +1268,7 @@
         
         if (!agendError && agendamentos) {
           countAgendamentosEl.textContent = agendamentos.length;
+          
           if (vendas && vendas.length > 0 && agendamentos.length > 0) {
             const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
             const ticketMedio = total / agendamentos.length;
@@ -1274,6 +1300,8 @@
           totalVendasEl.textContent = `R$ ${total.toFixed(2)}`;
           countVendasEl.textContent = quantidade;
           ticketMedioVendasEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
+          
+          console.log('✅ Métricas de vendas atualizadas');
         }
       } catch (err) {
         console.error('❌ Erro ao carregar métricas de vendas:', err);
@@ -1287,19 +1315,27 @@
           .from('vendas')
           .select('barbeiro_nome, total');
 
-        if (error) return;
+        if (error) {
+          console.error('❌ Erro ao carregar vendas para resumo:', error);
+          return;
+        }
 
         const resumo = {};
+
         vendas.forEach(v => {
           const barbeiroNome = v.barbeiro_nome || 'Sem barbeiro';
-          if (!resumo[barbeiroNome]) resumo[barbeiroNome] = { count: 0, total: 0 };
+          if (!resumo[barbeiroNome]) {
+            resumo[barbeiroNome] = { count: 0, total: 0 };
+          }
           resumo[barbeiroNome].count++;
           resumo[barbeiroNome].total += parseFloat(v.total || 0);
         });
 
         let html = '';
+
         Object.keys(resumo).forEach(nome => {
           const stats = resumo[nome];
+
           html += `
             <div class="barbeiro-stats">
               <div class="name">✂️ ${nome}</div>
@@ -1310,7 +1346,9 @@
             </div>
           `;
         });
+
         barbeirosStatsEl.innerHTML = html || '<p class="muted">Nenhuma venda registrada ainda.</p>';
+
       } catch (err) {
         console.error('❌ Erro ao gerar resumo por barbeiro:', err);
       }
@@ -1324,21 +1362,23 @@
           .select(`
             *,
             barbearias (nome),
-            profiles!agendamentos_barbeiro_id_fkey (cliente_nome)
+            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
           `)
           .order('data_hora', { ascending: true });
         
         if (error) {
+          console.error('❌ Erro ao carregar agendamentos:', error);
           tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
           return;
         }
         
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+          
           tableBody.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
-            const barbeariaNome = row.barbearias?.nome || 'N/A';
-            const barbeiroNome = row.profiles?.cliente_nome || 'Não atribuído';
+            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
             
             const acoesHtml = isBarbeiro ? '' : `
               <td>
@@ -1362,11 +1402,13 @@
               </tr>
             `;
           }).join('');
+          console.log('✅ Agendamentos carregados:', data.length);
         } else {
           tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar agendamentos:', err);
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
@@ -1378,16 +1420,21 @@
           .select(`
             *,
             barbearias (nome),
-            profiles!agendamentos_barbeiro_id_fkey (cliente_nome)
+            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
           `)
           .order('data_hora', { ascending: true });
 
+        // Filtro por data
         if (agendaFiltroData.value) {
           const dataInicio = `${agendaFiltroData.value}T00:00:00`;
           const dataFim = `${agendaFiltroData.value}T23:59:59`;
-          query = query.gte('data_hora', dataInicio).lte('data_hora', dataFim);
+          
+          query = query
+            .gte('data_hora', dataInicio)
+            .lte('data_hora', dataFim);
         }
 
+        // Filtro por barbeiro
         if (agendaFiltroBarbeiro.value) {
           query = query.eq('barbeiro_id', agendaFiltroBarbeiro.value);
         }
@@ -1395,17 +1442,19 @@
         const { data, error } = await query;
         
         if (error) {
+          console.error('❌ Erro ao carregar agenda:', error);
           tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>';
           return;
         }
         
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+          
           tableAgenda.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
             const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            const barbeariaNome = row.barbearias?.nome || 'N/A';
-            const barbeiroNome = row.profiles?.cliente_nome || 'Não atribuído';
+            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
             const status = row.status || 'Pendente';
             
             let statusClass = 'status-pendente';
@@ -1414,10 +1463,18 @@
             
             const acoesHtml = isBarbeiro ? '' : `
               <td>
-                <button class="btn-confirmar" onclick="confirmarAgendamento('${row.id}')">✓ Confirmar</button>
-                <button class="btn-cancelar" onclick="cancelarAgendamento('${row.id}')">✗ Cancelar</button>
-                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">Editar</button>
-                <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">Excluir</button>
+                <button class="btn-confirmar" onclick="confirmarAgendamento('${row.id}')">
+                  ✓ Confirmar
+                </button>
+                <button class="btn-cancelar" onclick="cancelarAgendamento('${row.id}')">
+                  ✗ Cancelar
+                </button>
+                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
+                  Editar
+                </button>
+                <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
+                  Excluir
+                </button>
               </td>
             `;
             
@@ -1433,37 +1490,64 @@
               </tr>
             `;
           }).join('');
+          console.log('✅ Agenda carregada:', data.length);
         } else {
-          tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
+          tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum agendamento encontrado para esta data</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar agenda:', err);
+        tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
     // --- CONFIRMAR AGENDAMENTO ---
-    window.confirmarAgendamento = async function(id) {
+    async function confirmarAgendamento(id) {
       try {
-        const { error } = await supabaseClient.from('agendamentos').update({ status: 'Confirmado' }).eq('id', id);
-        if (error) throw error;
+        const { error } = await supabaseClient
+          .from('agendamentos')
+          .update({ status: 'Confirmado' })
+          .eq('id', id);
+
+        if (error) {
+          console.error('❌ Erro ao confirmar agendamento:', error);
+          alert('❌ Erro ao confirmar agendamento');
+          return;
+        }
+
+        console.log('✅ Agendamento confirmado');
         await refreshAgenda();
         await refreshAgendamentos();
         await refreshMetrics();
       } catch (err) {
+        console.error('❌ Erro ao confirmar agendamento:', err);
         alert('❌ Erro ao confirmar agendamento');
       }
     }
 
     // --- CANCELAR AGENDAMENTO ---
-    window.cancelarAgendamento = async function(id) {
-      if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
+    async function cancelarAgendamento(id) {
+      if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+        return;
+      }
+
       try {
-        const { error } = await supabaseClient.from('agendamentos').update({ status: 'Cancelado' }).eq('id', id);
-        if (error) throw error;
+        const { error } = await supabaseClient
+          .from('agendamentos')
+          .update({ status: 'Cancelado' })
+          .eq('id', id);
+
+        if (error) {
+          console.error('❌ Erro ao cancelar agendamento:', error);
+          alert('❌ Erro ao cancelar agendamento');
+          return;
+        }
+
+        console.log('✅ Agendamento cancelado');
         await refreshAgenda();
         await refreshAgendamentos();
         await refreshMetrics();
       } catch (err) {
+        console.error('❌ Erro ao cancelar agendamento:', err);
         alert('❌ Erro ao cancelar agendamento');
       }
     }
@@ -1474,52 +1558,94 @@
 
     // --- ABRIR MODAL DE NOVO AGENDAMENTO ---
     btnNovoAgendamentoAgenda.addEventListener('click', () => {
+      // Limpar campos
       novoClienteNome.value = '';
       novoServico.value = '';
       novoDataHora.value = '';
+      novoBarbeiro.value = '';
+      novoBarbearia.value = '';
       novoAgendamentoModalMsg.textContent = '';
+      novoAgendamentoModalMsg.className = '';
       
+      // Se for barbeiro, pré-selecionar a barbearia
       if (currentProfile && currentProfile.role === 'barbeiro') {
         novoBarbearia.value = currentProfile.barbearia_id;
         novoBarbearia.disabled = true;
-        atualizarSelectBarbeiros(novoBarbeiro, currentProfile.barbearia_id);
       } else {
         novoBarbearia.disabled = false;
-        novoBarbearia.value = '';
-        novoBarbeiro.innerHTML = '<option value="">Selecione a barbearia primeiro</option>';
       }
+      
+      // Abrir modal
       novoAgendamentoModal.classList.remove('hidden');
     });
 
-    btnCancelNovoAgendamento.addEventListener('click', () => novoAgendamentoModal.classList.add('hidden'));
+    // --- FECHAR MODAL DE NOVO AGENDAMENTO ---
+    btnCancelNovoAgendamento.addEventListener('click', () => {
+      novoAgendamentoModal.classList.add('hidden');
+    });
 
     // --- SALVAR NOVO AGENDAMENTO ---
     btnSalvarNovoAgendamento.addEventListener('click', async () => {
-      if (!novoClienteNome.value.trim() || !novoServico.value.trim() || !novoDataHora.value || !novoBarbearia.value) {
-        novoAgendamentoModalMsg.textContent = '❌ Preencha todos os campos obrigatórios';
+      if (!novoClienteNome.value.trim()) {
+        novoAgendamentoModalMsg.textContent = '❌ Digite o nome do cliente';
+        novoAgendamentoModalMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!novoServico.value.trim()) {
+        novoAgendamentoModalMsg.textContent = '❌ Digite o serviço';
+        novoAgendamentoModalMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!novoDataHora.value) {
+        novoAgendamentoModalMsg.textContent = '❌ Selecione a data e hora';
+        novoAgendamentoModalMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!novoBarbearia.value) {
+        novoAgendamentoModalMsg.textContent = '❌ Selecione a barbearia';
         novoAgendamentoModalMsg.className = 'error-msg';
         return;
       }
 
       try {
-        const { error } = await supabaseClient.from('agendamentos').insert([{
-          cliente_nome: novoClienteNome.value.trim(),
-          servico: novoServico.value.trim(),
-          data_hora: new Date(novoDataHora.value).toISOString(),
-          barbearia_id: novoBarbearia.value,
-          barbeiro_id: novoBarbeiro.value || null,
-          status: 'Pendente'
-        }]);
+        novoAgendamentoModalMsg.textContent = 'Criando agendamento...';
+        novoAgendamentoModalMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .insert([{
+            cliente_nome: novoClienteNome.value.trim(),
+            servico: novoServico.value.trim(),
+            data_hora: new Date(novoDataHora.value).toISOString(),
+            barbearia_id: novoBarbearia.value,
+            barbeiro_id: novoBarbeiro.value || null,
+            status: 'Pendente'
+          }])
+          .select();
         
-        if (error) throw error;
-        novoAgendamentoModalMsg.textContent = '✅ Agendamento criado!';
-        novoAgendamentoModalMsg.className = 'success-msg';
-        await refreshAgendamentos();
-        await refreshAgenda();
-        await refreshMetrics();
-        setTimeout(() => novoAgendamentoModal.classList.add('hidden'), 1000);
+        if (error) {
+          console.error('❌ Erro ao criar agendamento:', error);
+          novoAgendamentoModalMsg.textContent = '❌ Erro: ' + error.message;
+          novoAgendamentoModalMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Agendamento criado:', data);
+          novoAgendamentoModalMsg.textContent = '✅ Agendamento criado com sucesso!';
+          novoAgendamentoModalMsg.className = 'success-msg';
+          
+          await refreshAgendamentos();
+          await refreshAgenda();
+          await refreshMetrics();
+          
+          setTimeout(() => {
+            novoAgendamentoModal.classList.add('hidden');
+          }, 1000);
+        }
       } catch (err) {
-        novoAgendamentoModalMsg.textContent = '❌ Erro: ' + err.message;
+        console.error('❌ Erro ao criar agendamento:', err);
+        novoAgendamentoModalMsg.textContent = '❌ Erro ao criar agendamento';
         novoAgendamentoModalMsg.className = 'error-msg';
       }
     });
@@ -1527,185 +1653,504 @@
     // --- VENDAS ---
     async function refreshVendas() {
       try {
-        const { data, error } = await supabaseClient.from('vendas').select(`*, barbearias (nome)`).order('created_at', { ascending: false });
-        if (error) throw error;
+        const { data, error } = await supabaseClient
+          .from('vendas')
+          .select(`
+            *,
+            barbearias (nome)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('❌ Erro ao carregar vendas:', error);
+          tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
+          return;
+        }
         
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+          
+          // Buscar todos os agendamentos para verificar se a venda foi agendada
+          const { data: agendamentos, error: agendError } = await supabaseClient
+            .from('agendamentos')
+            .select('cliente_nome, servico, data_hora');
+          
           tableVendas.innerHTML = data.map(row => {
             const data_criacao = new Date(row.created_at);
-            const barbeariaNome = row.barbearias?.nome || 'N/A';
+            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            const barbeiroNome = row.barbeiro_nome || 'N/A';
+            
+            // Verificar se existe um agendamento correspondente
+            let foiAgendado = false;
+            if (agendamentos && !agendError) {
+              foiAgendado = agendamentos.some(ag => {
+                const agDataHora = new Date(ag.data_hora);
+                const vendaData = new Date(row.created_at);
+                
+                // Verifica se o serviço é similar e se a data é próxima (mesmo dia)
+                const mesmoServico = ag.servico && row.descricao && 
+                  ag.servico.toLowerCase().includes(row.descricao.toLowerCase());
+                const mesmoDia = agDataHora.toDateString() === vendaData.toDateString();
+                
+                return mesmoServico && mesmoDia;
+              });
+            }
+            
+            const agendadoBadge = foiAgendado 
+              ? '<span class="status-badge agendado-sim">✓ Sim</span>'
+              : '<span class="status-badge agendado-nao">✗ Não</span>';
+            
             const acoesHtml = isBarbeiro ? '' : `
               <td>
-                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_nome || ''}')">Editar</button>
-                <button class="btn-delete" onclick="deleteVenda('${row.id}')">Excluir</button>
+                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_nome || ''}')">
+                  Editar
+                </button>
+                <button class="btn-delete" onclick="deleteVenda('${row.id}')">
+                  Excluir
+                </button>
               </td>
             `;
+            
             return `
               <tr>
                 <td>${row.descricao || 'N/A'}</td>
                 <td>R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
                 <td>${row.forma_pagamento || 'N/A'}</td>
-                <td>${row.barbeiro_nome || 'N/A'}</td>
+                <td>${barbeiroNome}</td>
                 <td>${barbeariaNome}</td>
                 <td>${data_criacao.toLocaleString('pt-BR')}</td>
-                <td><span class="status-badge agendado-nao">N/A</span></td>
+                <td>${agendadoBadge}</td>
                 ${acoesHtml}
               </tr>
             `;
           }).join('');
+          console.log('✅ Vendas carregadas:', data.length);
         } else {
           tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar vendas:', err);
+        tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
     // --- ABRIR MODAL DE EDIÇÃO AGENDAMENTO ---
-    window.openEditModal = function(id, clienteNome, servico, dataHora, barbeiroId, barbeariaId) {
+    function openEditModal(id, clienteNome, servico, dataHora, barbeiroId, barbeariaId) {
       currentEditId = id;
+      
       editClienteNome.value = clienteNome;
       editServico.value = servico;
+      
       const date = new Date(dataHora);
       const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       editDataHora.value = localDate.toISOString().slice(0, 16);
       
-      editBarbearia.value = barbeariaId;
-      atualizarSelectBarbeiros(editBarbeiro, barbeariaId);
       editBarbeiro.value = barbeiroId || '';
-      
+      editBarbearia.value = barbeariaId;
       editMsg.textContent = '';
+      editMsg.className = '';
+      
       editModal.classList.remove('hidden');
     }
 
-    btnCancelEdit.addEventListener('click', () => editModal.classList.add('hidden'));
+    // --- FECHAR MODAL AGENDAMENTO ---
+    btnCancelEdit.addEventListener('click', () => {
+      editModal.classList.add('hidden');
+      currentEditId = null;
+    });
 
+    // --- SALVAR EDIÇÃO AGENDAMENTO ---
     btnSaveEdit.addEventListener('click', async () => {
       if (!currentEditId) return;
+
+      if (!editClienteNome.value.trim()) {
+        editMsg.textContent = '❌ Digite o nome do cliente';
+        editMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editServico.value.trim()) {
+        editMsg.textContent = '❌ Digite o serviço';
+        editMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editDataHora.value) {
+        editMsg.textContent = '❌ Selecione a data e hora';
+        editMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editBarbearia.value) {
+        editMsg.textContent = '❌ Selecione a barbearia';
+        editMsg.className = 'error-msg';
+        return;
+      }
+
       try {
-        const { error } = await supabaseClient.from('agendamentos').update({
-          cliente_nome: editClienteNome.value.trim(),
-          servico: editServico.value.trim(),
-          data_hora: new Date(editDataHora.value).toISOString(),
-          barbearia_id: editBarbearia.value,
-          barbeiro_id: editBarbeiro.value || null
-        }).eq('id', currentEditId);
+        editMsg.textContent = 'Salvando...';
+        editMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .update({
+            cliente_nome: editClienteNome.value.trim(),
+            servico: editServico.value.trim(),
+            data_hora: new Date(editDataHora.value).toISOString(),
+            barbearia_id: editBarbearia.value,
+            barbeiro_id: editBarbeiro.value || null
+          })
+          .eq('id', currentEditId)
+          .select();
         
-        if (error) throw error;
-        editMsg.textContent = '✅ Atualizado!';
-        editMsg.className = 'success-msg';
-        await refreshAgendamentos();
-        await refreshAgenda();
-        await refreshMetrics();
-        setTimeout(() => editModal.classList.add('hidden'), 1000);
+        if (error) {
+          console.error('❌ Erro ao atualizar agendamento:', error);
+          editMsg.textContent = '❌ Erro: ' + error.message;
+          editMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Agendamento atualizado:', data);
+          editMsg.textContent = '✅ Agendamento atualizado com sucesso!';
+          editMsg.className = 'success-msg';
+          
+          await refreshAgendamentos();
+          await refreshAgenda();
+          await refreshMetrics();
+          
+          setTimeout(() => {
+            editModal.classList.add('hidden');
+            currentEditId = null;
+          }, 1000);
+        }
       } catch (err) {
-        editMsg.textContent = '❌ Erro: ' + err.message;
+        console.error('❌ Erro ao atualizar agendamento:', err);
+        editMsg.textContent = '❌ Erro ao atualizar agendamento';
         editMsg.className = 'error-msg';
       }
     });
 
-    window.deleteAgendamento = async function(id) {
-      if (!confirm("Excluir agendamento?")) return;
-      await supabaseClient.from('agendamentos').delete().eq('id', id);
-      await refreshAgendamentos();
-      await refreshAgenda();
-      await refreshMetrics();
+    // --- EXCLUIR AGENDAMENTO ---
+    async function deleteAgendamento(id) {
+      if (!confirm("Tem certeza que deseja excluir este agendamento?")) {
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from('agendamentos')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          alert("❌ Erro ao excluir: " + error.message);
+          console.error(error);
+          return;
+        }
+
+        console.log("✅ Agendamento excluído com sucesso!");
+
+        await refreshAgendamentos();
+        await refreshAgenda();
+        await refreshMetrics();
+
+      } catch (err) {
+        console.error("❌ Erro ao excluir agendamento:", err);
+        alert("❌ Erro inesperado ao excluir.");
+      }
     }
 
     // --- CRIAR AGENDAMENTO (DASHBOARD) ---
     btnCriarAgendamento.addEventListener('click', async () => {
-      if (!clienteNome.value.trim() || !servicoInput.value.trim() || !dataHoraInput.value || !selectBarbearia.value) {
-        agendamentoMsg.textContent = '❌ Preencha os campos';
+      if (!clienteNome.value.trim()) {
+        agendamentoMsg.textContent = '❌ Digite o nome do cliente';
         agendamentoMsg.className = 'error-msg';
         return;
       }
+      
+      if (!servicoInput.value.trim()) {
+        agendamentoMsg.textContent = '❌ Digite o serviço';
+        agendamentoMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!dataHoraInput.value) {
+        agendamentoMsg.textContent = '❌ Selecione a data e hora';
+        agendamentoMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!selectBarbearia.value) {
+        agendamentoMsg.textContent = '❌ Selecione a barbearia';
+        agendamentoMsg.className = 'error-msg';
+        return;
+      }
+
       try {
-        const { error } = await supabaseClient.from('agendamentos').insert([{
-          cliente_nome: clienteNome.value.trim(),
-          servico: servicoInput.value.trim(),
-          data_hora: new Date(dataHoraInput.value).toISOString(),
-          barbearia_id: selectBarbearia.value,
-          barbeiro_id: selectBarbeiro.value || null,
-          status: 'Pendente'
-        }]);
-        if (error) throw error;
-        agendamentoMsg.textContent = '✅ Criado!';
-        agendamentoMsg.className = 'success-msg';
-        await refreshAgendamentos();
-        await refreshAgenda();
-        await refreshMetrics();
+        agendamentoMsg.textContent = 'Criando agendamento...';
+        agendamentoMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .insert([{
+            cliente_nome: clienteNome.value.trim(),
+            servico: servicoInput.value.trim(),
+            data_hora: new Date(dataHoraInput.value).toISOString(),
+            barbearia_id: selectBarbearia.value,
+            barbeiro_id: selectBarbeiro.value || null,
+            status: 'Pendente'
+          }])
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao criar agendamento:', error);
+          agendamentoMsg.textContent = '❌ Erro: ' + error.message;
+          agendamentoMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Agendamento criado:', data);
+          agendamentoMsg.textContent = '✅ Agendamento criado com sucesso!';
+          agendamentoMsg.className = 'success-msg';
+          
+          clienteNome.value = '';
+          servicoInput.value = '';
+          dataHoraInput.value = '';
+          selectBarbearia.value = '';
+          selectBarbeiro.value = '';
+          
+          await refreshAgendamentos();
+          await refreshAgenda();
+          await refreshMetrics();
+          
+          setTimeout(() => {
+            agendamentoMsg.textContent = '';
+            agendamentoMsg.className = '';
+          }, 3000);
+        }
       } catch (err) {
-        agendamentoMsg.textContent = '❌ Erro';
+        console.error('❌ Erro ao criar agendamento:', err);
+        agendamentoMsg.textContent = '❌ Erro ao criar agendamento';
+        agendamentoMsg.className = 'error-msg';
       }
     });
 
-    // --- VENDAS MODAL ---
-    window.openEditVendaModal = function(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
+    // --- ABRIR MODAL DE EDIÇÃO VENDA ---
+    function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
       currentEditVendaId = id;
+      
       editDescricaoVenda.value = descricao;
       editValorVenda.value = parseFloat(valor);
       editFormaPagamentoVenda.value = formaPagamento;
       editBarbeariaVenda.value = barbeariaId;
       editBarbeiroNomeVenda.value = barbeiroNome || '';
+      editVendaMsg.textContent = '';
+      editVendaMsg.className = '';
+      
       editVendaModal.classList.remove('hidden');
     }
 
-    btnCancelEditVenda.addEventListener('click', () => editVendaModal.classList.add('hidden'));
-
-    btnSaveEditVenda.addEventListener('click', async () => {
-      try {
-        const { error } = await supabaseClient.from('vendas').update({
-          descricao: editDescricaoVenda.value.trim(),
-          total: parseFloat(editValorVenda.value),
-          forma_pagamento: editFormaPagamentoVenda.value,
-          barbearia_id: editBarbeariaVenda.value,
-          barbeiro_nome: editBarbeiroNomeVenda.value.trim() || null
-        }).eq('id', currentEditVendaId);
-        if (error) throw error;
-        await refreshVendas();
-        await refreshMetricasVendas();
-        await refreshResumoBarbeiros();
-        editVendaModal.classList.add('hidden');
-      } catch (err) { alert('Erro ao salvar'); }
+    // --- FECHAR MODAL VENDA ---
+    btnCancelEditVenda.addEventListener('click', () => {
+      editVendaModal.classList.add('hidden');
+      currentEditVendaId = null;
     });
 
-    window.deleteVenda = async function(id) {
-      if (!confirm("Excluir venda?")) return;
-      await supabaseClient.from('vendas').delete().eq('id', id);
-      await refreshVendas();
-      await refreshMetricasVendas();
-      await refreshResumoBarbeiros();
-    }
+    // --- SALVAR EDIÇÃO VENDA ---
+    btnSaveEditVenda.addEventListener('click', async () => {
+      if (!currentEditVendaId) return;
 
-    btnCriarVenda.addEventListener('click', async () => {
-      if (!descricaoVenda.value.trim() || !valorVenda.value || !selectFormaPagamento.value || !selectBarbeariaVenda.value) return;
+      if (!editDescricaoVenda.value.trim()) {
+        editVendaMsg.textContent = '❌ Digite a descrição';
+        editVendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editValorVenda.value || parseFloat(editValorVenda.value) <= 0) {
+        editVendaMsg.textContent = '❌ Digite um valor válido';
+        editVendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editFormaPagamentoVenda.value) {
+        editVendaMsg.textContent = '❌ Selecione a forma de pagamento';
+        editVendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!editBarbeariaVenda.value) {
+        editVendaMsg.textContent = '❌ Selecione a barbearia';
+        editVendaMsg.className = 'error-msg';
+        return;
+      }
+
       try {
-        const { error } = await supabaseClient.from('vendas').insert([{
-          descricao: descricaoVenda.value.trim(),
-          total: parseFloat(valorVenda.value),
-          forma_pagamento: selectFormaPagamento.value,
-          barbearia_id: selectBarbeariaVenda.value,
-          barbeiro_nome: inputBarbeiroNome.value.trim() || null
-        }]);
-        if (error) throw error;
+        editVendaMsg.textContent = 'Salvando...';
+        editVendaMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('vendas')
+          .update({
+            descricao: editDescricaoVenda.value.trim(),
+            total: parseFloat(editValorVenda.value),
+            forma_pagamento: editFormaPagamentoVenda.value,
+            barbearia_id: editBarbeariaVenda.value,
+            barbeiro_nome: editBarbeiroNomeVenda.value.trim() || null
+          })
+          .eq('id', currentEditVendaId)
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao atualizar venda:', error);
+          editVendaMsg.textContent = '❌ Erro: ' + error.message;
+          editVendaMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Venda atualizada:', data);
+          editVendaMsg.textContent = '✅ Venda atualizada com sucesso!';
+          editVendaMsg.className = 'success-msg';
+          
+          await refreshVendas();
+          await refreshMetricasVendas();
+          await refreshMetrics();
+          await refreshResumoBarbeiros();
+          
+          setTimeout(() => {
+            editVendaModal.classList.add('hidden');
+            currentEditVendaId = null;
+          }, 1000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao atualizar venda:', err);
+        editVendaMsg.textContent = '❌ Erro ao atualizar venda';
+        editVendaMsg.className = 'error-msg';
+      }
+    });
+
+    // --- EXCLUIR VENDA ---
+    async function deleteVenda(id) {
+      if (!confirm("Tem certeza que deseja excluir esta venda?")) {
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from('vendas')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          alert("❌ Erro ao excluir: " + error.message);
+          console.error(error);
+          return;
+        }
+
+        console.log("✅ Venda excluída com sucesso!");
+
         await refreshVendas();
         await refreshMetricasVendas();
+        await refreshMetrics();
         await refreshResumoBarbeiros();
-      } catch (err) { console.error(err); }
+
+      } catch (err) {
+        console.error("❌ Erro ao excluir venda:", err);
+        alert("❌ Erro inesperado ao excluir.");
+      }
+    }
+
+    // --- CRIAR VENDA ---
+    btnCriarVenda.addEventListener('click', async () => {
+      if (!descricaoVenda.value.trim()) {
+        vendaMsg.textContent = '❌ Digite a descrição';
+        vendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!valorVenda.value || parseFloat(valorVenda.value) <= 0) {
+        vendaMsg.textContent = '❌ Digite um valor válido';
+        vendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!selectFormaPagamento.value) {
+        vendaMsg.textContent = '❌ Selecione a forma de pagamento';
+        vendaMsg.className = 'error-msg';
+        return;
+      }
+      
+      if (!selectBarbeariaVenda.value) {
+        vendaMsg.textContent = '❌ Selecione a barbearia';
+        vendaMsg.className = 'error-msg';
+        return;
+      }
+
+      try {
+        vendaMsg.textContent = 'Criando venda...';
+        vendaMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient
+          .from('vendas')
+          .insert([{
+            descricao: descricaoVenda.value.trim(),
+            total: parseFloat(valorVenda.value),
+            forma_pagamento: selectFormaPagamento.value,
+            barbearia_id: selectBarbeariaVenda.value,
+            barbeiro_nome: inputBarbeiroNome.value.trim() || null
+          }])
+          .select();
+        
+        if (error) {
+          console.error('❌ Erro ao criar venda:', error);
+          vendaMsg.textContent = '❌ Erro: ' + error.message;
+          vendaMsg.className = 'error-msg';
+        } else {
+          console.log('✅ Venda criada:', data);
+          vendaMsg.textContent = '✅ Venda criada com sucesso!';
+          vendaMsg.className = 'success-msg';
+          
+          descricaoVenda.value = '';
+          valorVenda.value = '';
+          selectFormaPagamento.value = '';
+          selectBarbeariaVenda.value = '';
+          inputBarbeiroNome.value = '';
+          
+          await refreshVendas();
+          await refreshMetricasVendas();
+          await refreshMetrics();
+          await refreshResumoBarbeiros();
+          
+          setTimeout(() => {
+            vendaMsg.textContent = '';
+            vendaMsg.className = '';
+          }, 3000);
+        }
+      } catch (err) {
+        console.error('❌ Erro ao criar venda:', err);
+        vendaMsg.textContent = '❌ Erro ao criar venda';
+        vendaMsg.className = 'error-msg';
+      }
     });
 
     // --- NAVEGAÇÃO SIDEBAR ---
     document.querySelectorAll('nav.sidebar a').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
+        
         document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
+        
         const section = link.getAttribute('data-section');
+        
         document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
-        if (section === 'dashboard') dashboardSection.classList.remove('hidden');
-        else if (section === 'agenda') { agendaSection.classList.remove('hidden'); refreshAgenda(); }
-        else if (section === 'vendas') { vendasSection.classList.remove('hidden'); refreshVendas(); refreshMetricasVendas(); refreshResumoBarbeiros(); }
+        
+        if (section === 'dashboard') {
+          dashboardSection.classList.remove('hidden');
+        } else if (section === 'agenda') {
+          agendaSection.classList.remove('hidden');
+          refreshAgenda();
+        } else if (section === 'vendas') {
+          vendasSection.classList.remove('hidden');
+          refreshVendas();
+          refreshMetricasVendas();
+          refreshResumoBarbeiros();
+        }
+        
+        console.log('📍 Navegando para:', section);
       });
     });
 
