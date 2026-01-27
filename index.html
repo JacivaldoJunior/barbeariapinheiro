@@ -572,6 +572,11 @@
           <input id="servico" placeholder="Serviço (ex: Corte, Barba)" />
           <input id="dataHora" type="datetime-local" />
         </div>
+        <div class="form-row">
+          <select id="selectBarbeiro">
+            <option value="">Selecione o barbeiro (opcional)</option>
+          </select>
+        </div>
         <button id="btnCriarAgendamento" class="btn" style="margin-top:10px;">Criar Agendamento</button>
         <div id="agendamentoMsg"></div>
       </section>
@@ -585,12 +590,13 @@
                 <th>Cliente</th>
                 <th>Serviço</th>
                 <th>Data / Hora</th>
+                <th>Barbeiro</th>
                 <th>Barbearia</th>
                 <th id="acoesHeader">Ações</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td colspan="5" style="text-align:center;">Carregando...</td></tr>
+              <tr><td colspan="6" style="text-align:center;">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -728,6 +734,11 @@
       <label for="editDataHora">Data e Hora</label>
       <input id="editDataHora" type="datetime-local" />
       
+      <label for="editBarbeiro">Barbeiro</label>
+      <select id="editBarbeiro">
+        <option value="">Selecione o barbeiro (opcional)</option>
+      </select>
+      
       <label for="editBarbearia">Barbearia</label>
       <select id="editBarbearia">
         <option value="">Selecione a barbearia</option>
@@ -793,6 +804,11 @@
       <label for="novoDataHora">Data e Hora</label>
       <input id="novoDataHora" type="datetime-local" />
       
+      <label for="novoBarbeiro">Barbeiro</label>
+      <select id="novoBarbeiro">
+        <option value="">Selecione o barbeiro (opcional)</option>
+      </select>
+      
       <label for="novoBarbearia">Barbearia</label>
       <select id="novoBarbearia">
         <option value="">Selecione a barbearia</option>
@@ -844,6 +860,7 @@
     const vendasSection = document.getElementById('vendas');
     const tableBody = document.querySelector('#tableAgendamentos tbody');
     const selectBarbearia = document.getElementById('selectBarbearia');
+    const selectBarbeiro = document.getElementById('selectBarbeiro');
     const clienteNome = document.getElementById('clienteNome');
     const servicoInput = document.getElementById('servico');
     const dataHoraInput = document.getElementById('dataHora');
@@ -878,6 +895,7 @@
     const editClienteNome = document.getElementById('editClienteNome');
     const editServico = document.getElementById('editServico');
     const editDataHora = document.getElementById('editDataHora');
+    const editBarbeiro = document.getElementById('editBarbeiro');
     const editBarbearia = document.getElementById('editBarbearia');
     const editMsg = document.getElementById('editMsg');
     const btnCancelEdit = document.getElementById('btnCancelEdit');
@@ -899,6 +917,7 @@
     const novoClienteNome = document.getElementById('novoClienteNome');
     const novoServico = document.getElementById('novoServico');
     const novoDataHora = document.getElementById('novoDataHora');
+    const novoBarbeiro = document.getElementById('novoBarbeiro');
     const novoBarbearia = document.getElementById('novoBarbearia');
     const novoAgendamentoModalMsg = document.getElementById('novoAgendamentoModalMsg');
     const btnCancelNovoAgendamento = document.getElementById('btnCancelNovoAgendamento');
@@ -960,6 +979,7 @@
       await carregarProfile(user.id);
       await initializeBarbearias();
       await loadBarbearias();
+      await loadBarbeiros();
       await refreshAgendamentos();
       await refreshMetrics();
       await refreshVendas();
@@ -1170,6 +1190,61 @@
       }
     }
 
+    // --- CARREGAR BARBEIROS ---
+    async function loadBarbeiros() {
+      try {
+        let query = supabaseClient
+          .from('profiles')
+          .select('id, barbearia_id, barbearias(nome)')
+          .eq('role', 'barbeiro')
+          .order('barbearia_id');
+
+        if (currentProfile && currentProfile.role === 'barbeiro') {
+          query = query.eq('barbearia_id', currentProfile.barbearia_id);
+        }
+
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('❌ Erro ao carregar barbeiros:', error);
+          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
+            data.map(b => {
+              const barbeariaNome = b.barbearias?.nome || 'N/A';
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
+            }).join('');
+          
+          const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
+            data.map(b => {
+              const barbeariaNome = b.barbearias?.nome || 'N/A';
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
+            }).join('');
+          
+          selectBarbeiro.innerHTML = options;
+          editBarbeiro.innerHTML = options;
+          novoBarbeiro.innerHTML = options;
+          agendaFiltroBarbeiro.innerHTML = filtroOptions;
+          
+          console.log('✅ Barbeiros carregados:', data.length);
+        } else {
+          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          console.warn('⚠️ Nenhum barbeiro encontrado');
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar barbeiros:', err);
+      }
+    }
+
     // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
       try {
@@ -1286,13 +1361,14 @@
           .from('agendamentos')
           .select(`
             *,
-            barbearias (nome)
+            barbearias (nome),
+            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
           `)
           .order('data_hora', { ascending: true });
         
         if (error) {
           console.error('❌ Erro ao carregar agendamentos:', error);
-          tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
           return;
         }
         
@@ -1302,10 +1378,11 @@
           tableBody.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
             
             const acoesHtml = isBarbeiro ? '' : `
               <td>
-                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbearia_id}')">
+                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
                   Editar
                 </button>
                 <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
@@ -1319,6 +1396,7 @@
                 <td>${row.cliente_nome || 'N/A'}</td>
                 <td>${row.servico || 'N/A'}</td>
                 <td>${dataHora.toLocaleString('pt-BR')}</td>
+                <td>${barbeiroNome}</td>
                 <td>${barbeariaNome}</td>
                 ${acoesHtml}
               </tr>
@@ -1326,11 +1404,11 @@
           }).join('');
           console.log('✅ Agendamentos carregados:', data.length);
         } else {
-          tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar agendamentos:', err);
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
 
@@ -1341,7 +1419,8 @@
           .from('agendamentos')
           .select(`
             *,
-            barbearias (nome)
+            barbearias (nome),
+            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
           `)
           .order('data_hora', { ascending: true });
 
@@ -1353,6 +1432,11 @@
           query = query
             .gte('data_hora', dataInicio)
             .lte('data_hora', dataFim);
+        }
+
+        // Filtro por barbeiro
+        if (agendaFiltroBarbeiro.value) {
+          query = query.eq('barbeiro_id', agendaFiltroBarbeiro.value);
         }
 
         const { data, error } = await query;
@@ -1370,7 +1454,7 @@
             const dataHora = new Date(row.data_hora);
             const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
-            const barbeiroNome = row.barbeiro_id || 'Não atribuído';
+            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
             const status = row.status || 'Pendente';
             
             let statusClass = 'status-pendente';
@@ -1385,7 +1469,7 @@
                 <button class="btn-cancelar" onclick="cancelarAgendamento('${row.id}')">
                   ✗ Cancelar
                 </button>
-                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbearia_id}')">
+                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
                   Editar
                 </button>
                 <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
@@ -1478,6 +1562,7 @@
       novoClienteNome.value = '';
       novoServico.value = '';
       novoDataHora.value = '';
+      novoBarbeiro.value = '';
       novoBarbearia.value = '';
       novoAgendamentoModalMsg.textContent = '';
       novoAgendamentoModalMsg.className = '';
@@ -1536,7 +1621,7 @@
             servico: novoServico.value.trim(),
             data_hora: new Date(novoDataHora.value).toISOString(),
             barbearia_id: novoBarbearia.value,
-            barbeiro_id: null,
+            barbeiro_id: novoBarbeiro.value || null,
             status: 'Pendente'
           }])
           .select();
@@ -1650,7 +1735,7 @@
     }
 
     // --- ABRIR MODAL DE EDIÇÃO AGENDAMENTO ---
-    function openEditModal(id, clienteNome, servico, dataHora, barbeariaId) {
+    function openEditModal(id, clienteNome, servico, dataHora, barbeiroId, barbeariaId) {
       currentEditId = id;
       
       editClienteNome.value = clienteNome;
@@ -1660,6 +1745,7 @@
       const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       editDataHora.value = localDate.toISOString().slice(0, 16);
       
+      editBarbeiro.value = barbeiroId || '';
       editBarbearia.value = barbeariaId;
       editMsg.textContent = '';
       editMsg.className = '';
@@ -1712,7 +1798,7 @@
             servico: editServico.value.trim(),
             data_hora: new Date(editDataHora.value).toISOString(),
             barbearia_id: editBarbearia.value,
-            barbeiro_id: null
+            barbeiro_id: editBarbeiro.value || null
           })
           .eq('id', currentEditId)
           .select();
@@ -1809,7 +1895,7 @@
             servico: servicoInput.value.trim(),
             data_hora: new Date(dataHoraInput.value).toISOString(),
             barbearia_id: selectBarbearia.value,
-            barbeiro_id: null,
+            barbeiro_id: selectBarbeiro.value || null,
             status: 'Pendente'
           }])
           .select();
@@ -1827,6 +1913,7 @@
           servicoInput.value = '';
           dataHoraInput.value = '';
           selectBarbearia.value = '';
+          selectBarbeiro.value = '';
           
           await refreshAgendamentos();
           await refreshAgenda();
