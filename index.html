@@ -157,6 +157,40 @@
       transform: translateY(-1px);
     }
 
+    /* BOTÕES DE STATUS */
+    .btn-confirmar {
+      background:#2ecc71;
+      color:#fff;
+      padding:4px 8px;
+      font-size:0.75rem;
+      border-radius:6px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      transition: all 0.3s ease;
+      margin-right: 4px;
+    }
+    .btn-confirmar:hover {
+      background:#27ae60;
+      transform: translateY(-1px);
+    }
+
+    .btn-cancelar {
+      background:#e74c3c;
+      color:#fff;
+      padding:4px 8px;
+      font-size:0.75rem;
+      border-radius:6px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      transition: all 0.3s ease;
+    }
+    .btn-cancelar:hover {
+      background:#c0392b;
+      transform: translateY(-1px);
+    }
+
     main.content {
       flex-grow: 1;
       padding: 24px 32px;
@@ -447,6 +481,11 @@
     .status-pendente { 
       background: rgba(241, 196, 15, 0.2); 
       color: #f1c40f; 
+    }
+
+    .status-cancelado {
+      background: rgba(231, 76, 60, 0.2);
+      color: #e74c3c;
     }
 
     /* BADGE AGENDADO */
@@ -1334,10 +1373,18 @@
             const barbeiroNome = row.barbeiro_id || 'Não atribuído';
             const status = row.status || 'Pendente';
             
-            const statusClass = status === 'Confirmado' ? 'status-confirmado' : 'status-pendente';
+            let statusClass = 'status-pendente';
+            if (status === 'Confirmado') statusClass = 'status-confirmado';
+            if (status === 'Cancelado') statusClass = 'status-cancelado';
             
             const acoesHtml = isBarbeiro ? '' : `
               <td>
+                <button class="btn-confirmar" onclick="confirmarAgendamento('${row.id}')">
+                  ✓ Confirmar
+                </button>
+                <button class="btn-cancelar" onclick="cancelarAgendamento('${row.id}')">
+                  ✗ Cancelar
+                </button>
                 <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbearia_id}')">
                   Editar
                 </button>
@@ -1366,6 +1413,58 @@
       } catch (err) {
         console.error('❌ Erro ao carregar agenda:', err);
         tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+      }
+    }
+
+    // --- CONFIRMAR AGENDAMENTO ---
+    async function confirmarAgendamento(id) {
+      try {
+        const { error } = await supabaseClient
+          .from('agendamentos')
+          .update({ status: 'Confirmado' })
+          .eq('id', id);
+
+        if (error) {
+          console.error('❌ Erro ao confirmar agendamento:', error);
+          alert('❌ Erro ao confirmar agendamento');
+          return;
+        }
+
+        console.log('✅ Agendamento confirmado');
+        await refreshAgenda();
+        await refreshAgendamentos();
+        await refreshMetrics();
+      } catch (err) {
+        console.error('❌ Erro ao confirmar agendamento:', err);
+        alert('❌ Erro ao confirmar agendamento');
+      }
+    }
+
+    // --- CANCELAR AGENDAMENTO ---
+    async function cancelarAgendamento(id) {
+      if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from('agendamentos')
+          .update({ status: 'Cancelado' })
+          .eq('id', id);
+
+        if (error) {
+          console.error('❌ Erro ao cancelar agendamento:', error);
+          alert('❌ Erro ao cancelar agendamento');
+          return;
+        }
+
+        console.log('✅ Agendamento cancelado');
+        await refreshAgenda();
+        await refreshAgendamentos();
+        await refreshMetrics();
+      } catch (err) {
+        console.error('❌ Erro ao cancelar agendamento:', err);
+        alert('❌ Erro ao cancelar agendamento');
       }
     }
 
@@ -1972,4 +2071,3 @@
   </script>
 </body>
 </html>
-
