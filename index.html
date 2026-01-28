@@ -718,6 +718,98 @@
         </div>
       </section>
     </section>
+
+    <!-- FECHAMENTO DE CAIXA -->
+    <section id="fechamento" class="section hidden">
+      <h1>Fechamento de Caixa</h1>
+      <p class="subtitle">Conferência e finalização das vendas por período</p>
+
+      <div class="agenda-controls">
+        <div class="control-group">
+          <label>Barbearia</label>
+          <select id="fechamentoSelectBarbearia">
+            <option value="">Selecione a barbearia</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Início</label>
+          <input id="fechamentoInicio" type="datetime-local" />
+        </div>
+
+        <div class="control-group">
+          <label>Fim</label>
+          <input id="fechamentoFim" type="datetime-local" />
+        </div>
+
+        <button id="btnAtualizarFechamento" class="btn">Atualizar</button>
+      </div>
+
+      <section class="cards">
+        <article class="card">
+          <h2>Total no período (em aberto)</h2>
+          <div id="fechamentoTotal" class="value">R$ --</div>
+        </article>
+        <article class="card">
+          <h2>Quantidade</h2>
+          <div id="fechamentoQuantidade" class="value">--</div>
+        </article>
+        <article class="card">
+          <h2>Por forma de pagamento</h2>
+          <div id="fechamentoPorForma" class="muted" style="font-size:0.85rem;">--</div>
+        </article>
+      </section>
+
+      <section>
+        <h2 class="muted">Vendas em aberto no período</h2>
+        <div class="table-container">
+          <table id="tableFechamentoVendas">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Forma</th>
+                <th>Barbeiro</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section style="margin-top:16px;">
+        <h2 class="muted">Finalizar</h2>
+        <div class="form-row">
+          <input id="fechamentoObs" placeholder="Observação (opcional)" />
+        </div>
+        <button id="btnFecharCaixa" class="btn" style="margin-top:10px;">Fechar Caixa</button>
+        <div id="fechamentoMsg" style="margin-top:10px;"></div>
+      </section>
+
+      <section style="margin-top:18px;">
+        <h2 class="muted">Histórico de fechamentos</h2>
+        <div class="table-container">
+          <table id="tableHistoricoFechamentos">
+            <thead>
+              <tr>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Qtd</th>
+                <th>Total</th>
+                <th>Por forma</th>
+                <th>Data do fechamento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
   </main>
 
   <!-- MODAL DE EDIÇÃO AGENDAMENTO -->
@@ -923,6 +1015,21 @@
     const btnCancelNovoAgendamento = document.getElementById('btnCancelNovoAgendamento');
     const btnSalvarNovoAgendamento = document.getElementById('btnSalvarNovoAgendamento');
 
+    // ✅ FECHAMENTO DE CAIXA - Referências
+    const fechamentoSection = document.getElementById('fechamento');
+    const fechamentoSelectBarbearia = document.getElementById('fechamentoSelectBarbearia');
+    const fechamentoInicio = document.getElementById('fechamentoInicio');
+    const fechamentoFim = document.getElementById('fechamentoFim');
+    const btnAtualizarFechamento = document.getElementById('btnAtualizarFechamento');
+    const fechamentoTotalEl = document.getElementById('fechamentoTotal');
+    const fechamentoQuantidadeEl = document.getElementById('fechamentoQuantidade');
+    const fechamentoPorFormaEl = document.getElementById('fechamentoPorForma');
+    const tableFechamentoVendasBody = document.querySelector('#tableFechamentoVendas tbody');
+    const fechamentoObs = document.getElementById('fechamentoObs');
+    const btnFecharCaixa = document.getElementById('btnFecharCaixa');
+    const fechamentoMsg = document.getElementById('fechamentoMsg');
+    const tableHistoricoFechamentosBody = document.querySelector('#tableHistoricoFechamentos tbody');
+
     function setSidebarEnabled(enabled) {
       const sidebar = document.querySelector('nav.sidebar');
       if (enabled) sidebar.classList.remove('hidden');
@@ -957,6 +1064,7 @@
       dashboardSection.classList.add('hidden');
       agendaSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
+      fechamentoSection.classList.add('hidden'); // ✅ ADICIONADO
       userInfo.textContent = 'Não autenticado';
       btnLogout.classList.add('hidden');
       setSidebarEnabled(false);
@@ -990,6 +1098,11 @@
       // Definir data de hoje no filtro
       const hoje = new Date().toISOString().split('T')[0];
       agendaFiltroData.value = hoje;
+
+      // ✅ FECHAMENTO - Setup inicial
+      await setupFechamentoDefaults();
+      await refreshFechamento();
+      await refreshHistoricoFechamentos();
     }
 
     // --- CARREGAR PROFILE DO USUÁRIO ---
@@ -1044,10 +1157,18 @@
         document.getElementById('acoesHeaderVendas').classList.add('hidden');
         document.getElementById('acoesHeaderAgenda').classList.add('hidden');
 
+        // ✅ FECHAMENTO - Esconder para barbeiro
+        const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
+        if (linkFechamento) linkFechamento.classList.add('hidden');
+
         console.log('🔒 Modo Barbeiro: acesso restrito à barbearia', barbeariaNome);
       } else if (role === 'gerente') {
         selectBarbearia.disabled = false;
         selectBarbeariaVenda.disabled = false;
+
+        // ✅ FECHAMENTO - Mostrar para gerente
+        const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
+        if (linkFechamento) linkFechamento.classList.remove('hidden');
 
         console.log('🔓 Modo Gerente: acesso a todas as barbearias');
       }
@@ -1158,6 +1279,7 @@
           editBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           editBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
           novoBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
+          fechamentoSelectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>'; // ✅ ADICIONADO
           return;
         }
         
@@ -1170,10 +1292,15 @@
           editBarbearia.innerHTML = options;
           editBarbeariaVenda.innerHTML = options;
           novoBarbearia.innerHTML = options;
+          fechamentoSelectBarbearia.innerHTML = options; // ✅ ADICIONADO
 
           if (currentProfile && currentProfile.role === 'barbeiro') {
             selectBarbearia.value = currentProfile.barbearia_id;
             selectBarbeariaVenda.value = currentProfile.barbearia_id;
+            fechamentoSelectBarbearia.value = currentProfile.barbearia_id; // ✅ ADICIONADO
+            fechamentoSelectBarbearia.disabled = true; // ✅ ADICIONADO
+          } else {
+            fechamentoSelectBarbearia.disabled = false; // ✅ ADICIONADO
           }
           
           console.log('✅ Barbearias carregadas:', data.length);
@@ -1183,6 +1310,7 @@
           editBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           editBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           novoBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
+          fechamentoSelectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>'; // ✅ ADICIONADO
           console.warn('⚠️ Nenhuma barbearia encontrada');
         }
       } catch (err) {
@@ -2126,9 +2254,251 @@
       }
     });
 
+    // ✅ ========== FECHAMENTO DE CAIXA - FUNÇÕES ==========
+
+    function toLocalDatetimeValue(date) {
+      const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return local.toISOString().slice(0, 16);
+    }
+
+    function getFechamentoBarbeariaId() {
+      if (currentProfile && currentProfile.role === 'barbeiro') return currentProfile.barbearia_id;
+      return fechamentoSelectBarbearia.value || '';
+    }
+
+    async function getUltimoFechamentoFim(barbeariaId) {
+      const { data, error } = await supabaseClient
+        .from('fechamentos_caixa')
+        .select('fim_periodo')
+        .eq('barbearia_id', barbeariaId)
+        .order('fim_periodo', { ascending: false })
+        .limit(1);
+
+      if (error) return null;
+      return data && data[0] ? data[0].fim_periodo : null;
+    }
+
+    async function setupFechamentoDefaults() {
+      const barbeariaId = getFechamentoBarbeariaId();
+      if (!barbeariaId) return;
+
+      const now = new Date();
+      fechamentoFim.value = toLocalDatetimeValue(now);
+
+      const lastFim = await getUltimoFechamentoFim(barbeariaId);
+      if (lastFim) {
+        fechamentoInicio.value = toLocalDatetimeValue(new Date(lastFim));
+      } else {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        fechamentoInicio.value = toLocalDatetimeValue(start);
+      }
+    }
+
+    async function refreshFechamento() {
+      try {
+        const barbeariaId = getFechamentoBarbeariaId();
+        if (!barbeariaId) {
+          fechamentoTotalEl.textContent = 'R$ 0,00';
+          fechamentoQuantidadeEl.textContent = '0';
+          fechamentoPorFormaEl.textContent = '--';
+          tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Selecione a barbearia</td></tr>';
+          return;
+        }
+
+        if (!fechamentoInicio.value || !fechamentoFim.value) {
+          await setupFechamentoDefaults();
+        }
+
+        const inicioIso = new Date(fechamentoInicio.value).toISOString();
+        const fimIso = new Date(fechamentoFim.value).toISOString();
+
+        const { data: vendas, error } = await supabaseClient
+          .from('vendas')
+          .select('id, descricao, total, forma_pagamento, barbeiro_nome, created_at, fechamento_id')
+          .eq('barbearia_id', barbeariaId)
+          .is('fechamento_id', null)
+          .gte('created_at', inicioIso)
+          .lte('created_at', fimIso)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('❌ Erro ao carregar vendas do fechamento:', error);
+          tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+          return;
+        }
+
+        const total = (vendas || []).reduce((acc, v) => acc + parseFloat(v.total || 0), 0);
+        const qtd = (vendas || []).length;
+
+        const porForma = {};
+        (vendas || []).forEach(v => {
+          const forma = v.forma_pagamento || '(Sem forma)';
+          porForma[forma] = (porForma[forma] || 0) + parseFloat(v.total || 0);
+        });
+
+        fechamentoTotalEl.textContent = `R$ ${total.toFixed(2)}`;
+        fechamentoQuantidadeEl.textContent = String(qtd);
+
+        const porFormaHtml = Object.keys(porForma).length
+          ? Object.entries(porForma)
+              .map(([forma, soma]) => `<div>${forma}: <span style="color:#fff;font-weight:700;">R$ ${soma.toFixed(2)}</span></div>`)
+              .join('')
+          : '<span class="muted">—</span>';
+
+        fechamentoPorFormaEl.innerHTML = porFormaHtml;
+
+        if (vendas && vendas.length > 0) {
+          tableFechamentoVendasBody.innerHTML = vendas.map(v => {
+            const dt = new Date(v.created_at).toLocaleString('pt-BR');
+            return `
+              <tr>
+                <td>${v.descricao || 'N/A'}</td>
+                <td>R$ ${parseFloat(v.total || 0).toFixed(2)}</td>
+                <td>${v.forma_pagamento || 'N/A'}</td>
+                <td>${v.barbeiro_nome || 'N/A'}</td>
+                <td>${dt}</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sem vendas em aberto no período</td></tr>';
+        }
+      } catch (err) {
+        console.error('❌ Erro no refreshFechamento:', err);
+      }
+    }
+
+    async function refreshHistoricoFechamentos() {
+      try {
+        const barbeariaId = getFechamentoBarbeariaId();
+        if (!barbeariaId) {
+          tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Selecione a barbearia</td></tr>';
+          return;
+        }
+
+        const { data, error } = await supabaseClient
+          .from('fechamentos_caixa')
+          .select('inicio_periodo, fim_periodo, total, quantidade, totais_por_forma, created_at')
+          .eq('barbearia_id', barbeariaId)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (error) {
+          console.error('❌ Erro ao carregar histórico:', error);
+          tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+          return;
+        }
+
+        if (data && data.length > 0) {
+          tableHistoricoFechamentosBody.innerHTML = data.map(f => {
+            const ini = new Date(f.inicio_periodo).toLocaleString('pt-BR');
+            const fim = new Date(f.fim_periodo).toLocaleString('pt-BR');
+            const criado = new Date(f.created_at).toLocaleString('pt-BR');
+            const porForma = f.totais_por_forma
+              ? Object.entries(f.totais_por_forma).map(([k, v]) => `${k}: R$ ${Number(v).toFixed(2)}`).join(' | ')
+              : '';
+            return `
+              <tr>
+                <td>${ini}</td>
+                <td>${fim}</td>
+                <td>${f.quantidade ?? 0}</td>
+                <td>R$ ${parseFloat(f.total || 0).toFixed(2)}</td>
+                <td>${porForma || '—'}</td>
+                <td>${criado}</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum fechamento ainda</td></tr>';
+        }
+      } catch (err) {
+        console.error('❌ Erro no refreshHistoricoFechamentos:', err);
+      }
+    }
+
+    async function fecharCaixa() {
+      if (!currentProfile || currentProfile.role !== 'gerente') {
+        fechamentoMsg.textContent = '❌ Apenas gerente pode fechar o caixa';
+        fechamentoMsg.className = 'error-msg';
+        return;
+      }
+
+      const barbeariaId = getFechamentoBarbeariaId();
+      if (!barbeariaId) {
+        fechamentoMsg.textContent = '❌ Selecione a barbearia';
+        fechamentoMsg.className = 'error-msg';
+        return;
+      }
+
+      if (!fechamentoInicio.value || !fechamentoFim.value) {
+        fechamentoMsg.textContent = '❌ Informe início e fim';
+        fechamentoMsg.className = 'error-msg';
+        return;
+      }
+
+      const inicioIso = new Date(fechamentoInicio.value).toISOString();
+      const fimIso = new Date(fechamentoFim.value).toISOString();
+
+      if (!confirm('Confirmar fechamento de caixa? As vendas desse período serão finalizadas.')) {
+        return;
+      }
+
+      try {
+        fechamentoMsg.textContent = 'Fechando caixa...';
+        fechamentoMsg.className = 'muted';
+
+        const { data, error } = await supabaseClient.rpc('fechar_caixa', {
+          p_barbearia_id: barbeariaId,
+          p_inicio: inicioIso,
+          p_fim: fimIso,
+          p_observacao: fechamentoObs.value.trim() || null
+        });
+
+        if (error) {
+          console.error('❌ Erro ao fechar caixa:', error);
+          fechamentoMsg.textContent = '❌ ' + error.message;
+          fechamentoMsg.className = 'error-msg';
+          return;
+        }
+
+        fechamentoMsg.textContent = '✅ Caixa fechado com sucesso!';
+        fechamentoMsg.className = 'success-msg';
+
+        await refreshVendas();
+        await refreshMetricasVendas();
+        await refreshMetrics();
+        await refreshFechamento();
+        await refreshHistoricoFechamentos();
+
+        setTimeout(() => {
+          fechamentoMsg.textContent = '';
+          fechamentoMsg.className = '';
+        }, 3000);
+      } catch (err) {
+        console.error('❌ Erro inesperado ao fechar caixa:', err);
+        fechamentoMsg.textContent = '❌ Erro inesperado ao fechar caixa';
+        fechamentoMsg.className = 'error-msg';
+      }
+    }
+
+    // ✅ EVENT LISTENERS DO FECHAMENTO
+    btnAtualizarFechamento.addEventListener('click', async () => {
+      await refreshFechamento();
+      await refreshHistoricoFechamentos();
+    });
+
+    fechamentoSelectBarbearia.addEventListener('change', async () => {
+      await setupFechamentoDefaults();
+      await refreshFechamento();
+      await refreshHistoricoFechamentos();
+    });
+
+    btnFecharCaixa.addEventListener('click', fecharCaixa);
+
     // --- NAVEGAÇÃO SIDEBAR ---
     document.querySelectorAll('nav.sidebar a').forEach(link => {
-      link.addEventListener('click', (e) => {
+      link.addEventListener('click', async (e) => { // ✅ ADICIONADO async
         e.preventDefault();
         
         document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
@@ -2142,12 +2512,17 @@
           dashboardSection.classList.remove('hidden');
         } else if (section === 'agenda') {
           agendaSection.classList.remove('hidden');
-          refreshAgenda();
+          await refreshAgenda();
         } else if (section === 'vendas') {
           vendasSection.classList.remove('hidden');
-          refreshVendas();
-          refreshMetricasVendas();
-          refreshResumoBarbeiros();
+          await refreshVendas();
+          await refreshMetricasVendas();
+          await refreshResumoBarbeiros();
+        } else if (section === 'fechamento') { // ✅ ADICIONADO
+          fechamentoSection.classList.remove('hidden');
+          await setupFechamentoDefaults();
+          await refreshFechamento();
+          await refreshHistoricoFechamentos();
         }
         
         console.log('📍 Navegando para:', section);
