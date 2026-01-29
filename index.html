@@ -185,9 +185,28 @@
       cursor:pointer;
       font-weight:600;
       transition: all 0.3s ease;
+      margin-right: 4px;
     }
     .btn-cancelar:hover {
       background:#c0392b;
+      transform: translateY(-1px);
+    }
+
+    /* ✅ NOVO: BOTÃO FINALIZAR ATENDIMENTO */
+    .btn-finalizar {
+      background:#9b59b6;
+      color:#fff;
+      padding:4px 8px;
+      font-size:0.75rem;
+      border-radius:6px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      transition: all 0.3s ease;
+      margin-right: 4px;
+    }
+    .btn-finalizar:hover {
+      background:#8e44ad;
       transform: translateY(-1px);
     }
 
@@ -233,6 +252,72 @@
     }
     .card h2 { font-size: 0.9rem; color:#a88c3a; margin-bottom:8px; text-transform:uppercase; }
     .card .value { font-size:1.6rem; color:#fff; font-weight:700; }
+
+    /* ✅ NOVO: CARD AGENDA DE HOJE */
+    .agenda-hoje-card {
+      background: rgba(200,160,69,0.08);
+      border: 1px solid rgba(200,160,69,0.4);
+      border-radius: 12px;
+      padding: 16px;
+      max-height: 500px;
+      overflow-y: auto;
+      box-shadow: 0 0 15px rgba(200,160,69,0.2);
+    }
+    .agenda-hoje-card h3 {
+      color: #C8A045;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .agenda-hoje-item {
+      background: rgba(0,0,0,0.3);
+      border-left: 3px solid #C8A045;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    .agenda-hoje-item:hover {
+      background: rgba(200,160,69,0.1);
+      transform: translateX(4px);
+    }
+    .agenda-hoje-item .horario {
+      color: #C8A045;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .agenda-hoje-item .cliente {
+      color: #fff;
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+    .agenda-hoje-item .servico {
+      color: #a88c3a;
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+    .agenda-hoje-vazio {
+      color: #a88c3a;
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+    }
+
+    /* ✅ NOVO: LAYOUT GRID PARA AGENDA */
+    .agenda-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 1200px) {
+      .agenda-layout {
+        grid-template-columns: 1fr;
+      }
+    }
 
     table {
       width:100%;
@@ -323,6 +408,19 @@
       border-radius: 8px;
       margin-top: 10px;
       border: 1px solid rgba(244, 67, 54, 0.3);
+    }
+
+    /* ✅ NOVO: AVISO DE CONFLITO */
+    .warning-msg {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     /* MODAL DE EDIÇÃO */
@@ -623,24 +721,36 @@
         <button id="btnNovoAgendamentoAgenda" class="btn">+ Novo Agendamento</button>
       </div>
 
-      <!-- Tabela de Horários -->
-      <div class="table-container">
-        <table id="tableAgenda">
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Cliente</th>
-              <th>Serviço</th>
-              <th>Barbeiro</th>
-              <th>Barbearia</th>
-              <th>Status</th>
-              <th id="acoesHeaderAgenda">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="7" style="text-align:center;">Carregando...</td></tr>
-          </tbody>
-        </table>
+      <!-- ✅ NOVO: LAYOUT GRID COM AGENDA DE HOJE -->
+      <div class="agenda-layout">
+        <!-- Tabela de Horários -->
+        <div class="table-container">
+          <table id="tableAgenda">
+            <thead>
+              <tr>
+                <th>Horário</th>
+                <th>Cliente</th>
+                <th>Serviço</th>
+                <th>Barbeiro</th>
+                <th>Barbearia</th>
+                <th>Status</th>
+                <th id="acoesHeaderAgenda">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="8" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ✅ NOVO: CARD AGENDA DE HOJE -->
+        <div class="agenda-hoje-card">
+          <h3>📅 Agenda de Hoje</h3>
+          <p class="muted" style="font-size:0.85rem; margin-bottom:12px;" id="agendaHojeData">--</p>
+          <div id="agendaHojeList">
+            <div class="agenda-hoje-vazio">Carregando...</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -915,6 +1025,42 @@
     </div>
   </div>
 
+  <!-- ✅ NOVO: MODAL DE FINALIZAR ATENDIMENTO -->
+  <div id="finalizarAtendimentoModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2>Finalizar Atendimento</h2>
+      <p class="muted" style="margin-bottom:16px;">Converter agendamento em venda</p>
+      
+      <label for="finalizarCliente">Cliente</label>
+      <input id="finalizarCliente" type="text" disabled />
+      
+      <label for="finalizarDescricao">Descrição do Serviço</label>
+      <input id="finalizarDescricao" type="text" />
+      
+      <label for="finalizarValor">Valor (R$)</label>
+      <input id="finalizarValor" type="number" step="0.01" min="0" placeholder="0.00" />
+      
+      <label for="finalizarFormaPagamento">Forma de Pagamento</label>
+      <select id="finalizarFormaPagamento">
+        <option value="">Selecione a forma de pagamento</option>
+        <option value="Débito">💳 Débito</option>
+        <option value="Crédito">💳 Crédito</option>
+        <option value="PIX">📱 PIX</option>
+        <option value="Dinheiro">💵 Dinheiro</option>
+      </select>
+      
+      <label for="finalizarBarbeiro">Barbeiro</label>
+      <input id="finalizarBarbeiro" type="text" />
+      
+      <div id="finalizarMsg"></div>
+      
+      <div class="modal-buttons">
+        <button id="btnCancelFinalizar" class="btn btn-cancel">Cancelar</button>
+        <button id="btnConfirmarFinalizar" class="btn">Finalizar e Criar Venda</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Carregamento do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -927,6 +1073,7 @@
     let currentProfile = null;
     let currentEditId = null;
     let currentEditVendaId = null;
+    let currentFinalizarAgendamento = null; // ✅ NOVO
 
     async function initApp() {
       try {
@@ -967,6 +1114,8 @@
     const agendaFiltroData = document.getElementById('agendaFiltroData');
     const agendaFiltroBarbeiro = document.getElementById('agendaFiltroBarbeiro');
     const btnNovoAgendamentoAgenda = document.getElementById('btnNovoAgendamentoAgenda');
+    const agendaHojeList = document.getElementById('agendaHojeList'); // ✅ NOVO
+    const agendaHojeData = document.getElementById('agendaHojeData'); // ✅ NOVO
 
     // Vendas
     const descricaoVenda = document.getElementById('descricaoVenda');
@@ -1015,7 +1164,18 @@
     const btnCancelNovoAgendamento = document.getElementById('btnCancelNovoAgendamento');
     const btnSalvarNovoAgendamento = document.getElementById('btnSalvarNovoAgendamento');
 
-    // ✅ FECHAMENTO DE CAIXA - Referências
+    // ✅ NOVO: Modal de finalizar atendimento
+    const finalizarAtendimentoModal = document.getElementById('finalizarAtendimentoModal');
+    const finalizarCliente = document.getElementById('finalizarCliente');
+    const finalizarDescricao = document.getElementById('finalizarDescricao');
+    const finalizarValor = document.getElementById('finalizarValor');
+    const finalizarFormaPagamento = document.getElementById('finalizarFormaPagamento');
+    const finalizarBarbeiro = document.getElementById('finalizarBarbeiro');
+    const finalizarMsg = document.getElementById('finalizarMsg');
+    const btnCancelFinalizar = document.getElementById('btnCancelFinalizar');
+    const btnConfirmarFinalizar = document.getElementById('btnConfirmarFinalizar');
+
+    // FECHAMENTO DE CAIXA - Referências
     const fechamentoSection = document.getElementById('fechamento');
     const fechamentoSelectBarbearia = document.getElementById('fechamentoSelectBarbearia');
     const fechamentoInicio = document.getElementById('fechamentoInicio');
@@ -1064,7 +1224,7 @@
       dashboardSection.classList.add('hidden');
       agendaSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
-      fechamentoSection.classList.add('hidden'); // ✅ ADICIONADO
+      fechamentoSection.classList.add('hidden');
       userInfo.textContent = 'Não autenticado';
       btnLogout.classList.add('hidden');
       setSidebarEnabled(false);
@@ -1094,12 +1254,13 @@
       await refreshMetricasVendas();
       await refreshResumoBarbeiros();
       await refreshAgenda();
+      await refreshAgendaHoje(); // ✅ NOVO
       
       // Definir data de hoje no filtro
       const hoje = new Date().toISOString().split('T')[0];
       agendaFiltroData.value = hoje;
 
-      // ✅ FECHAMENTO - Setup inicial
+      // FECHAMENTO - Setup inicial
       await setupFechamentoDefaults();
       await refreshFechamento();
       await refreshHistoricoFechamentos();
@@ -1157,7 +1318,6 @@
         document.getElementById('acoesHeaderVendas').classList.add('hidden');
         document.getElementById('acoesHeaderAgenda').classList.add('hidden');
 
-        // ✅ FECHAMENTO - Esconder para barbeiro
         const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
         if (linkFechamento) linkFechamento.classList.add('hidden');
 
@@ -1166,7 +1326,6 @@
         selectBarbearia.disabled = false;
         selectBarbeariaVenda.disabled = false;
 
-        // ✅ FECHAMENTO - Mostrar para gerente
         const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
         if (linkFechamento) linkFechamento.classList.remove('hidden');
 
@@ -1279,7 +1438,7 @@
           editBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           editBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
           novoBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
-          fechamentoSelectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>'; // ✅ ADICIONADO
+          fechamentoSelectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
         
@@ -1292,15 +1451,15 @@
           editBarbearia.innerHTML = options;
           editBarbeariaVenda.innerHTML = options;
           novoBarbearia.innerHTML = options;
-          fechamentoSelectBarbearia.innerHTML = options; // ✅ ADICIONADO
+          fechamentoSelectBarbearia.innerHTML = options;
 
           if (currentProfile && currentProfile.role === 'barbeiro') {
             selectBarbearia.value = currentProfile.barbearia_id;
             selectBarbeariaVenda.value = currentProfile.barbearia_id;
-            fechamentoSelectBarbearia.value = currentProfile.barbearia_id; // ✅ ADICIONADO
-            fechamentoSelectBarbearia.disabled = true; // ✅ ADICIONADO
+            fechamentoSelectBarbearia.value = currentProfile.barbearia_id;
+            fechamentoSelectBarbearia.disabled = true;
           } else {
-            fechamentoSelectBarbearia.disabled = false; // ✅ ADICIONADO
+            fechamentoSelectBarbearia.disabled = false;
           }
           
           console.log('✅ Barbearias carregadas:', data.length);
@@ -1310,7 +1469,7 @@
           editBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           editBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           novoBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
-          fechamentoSelectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>'; // ✅ ADICIONADO
+          fechamentoSelectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           console.warn('⚠️ Nenhuma barbearia encontrada');
         }
       } catch (err) {
@@ -1370,6 +1529,30 @@
         }
       } catch (err) {
         console.error('❌ Erro ao carregar barbeiros:', err);
+      }
+    }
+
+    // ✅ NOVO: VERIFICAR CONFLITO DE HORÁRIO
+    async function verificarConflito(dataHora, barbeiroId) {
+      if (!barbeiroId) return false; // Se não tem barbeiro, não há conflito
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .select('id')
+          .eq('barbeiro_id', barbeiroId)
+          .eq('data_hora', dataHora)
+          .neq('status', 'Cancelado');
+
+        if (error) {
+          console.error('❌ Erro ao verificar conflito:', error);
+          return false;
+        }
+
+        return data && data.length > 0;
+      } catch (err) {
+        console.error('❌ Erro ao verificar conflito:', err);
+        return false;
       }
     }
 
@@ -1571,7 +1754,7 @@
         
         if (error) {
           console.error('❌ Erro ao carregar agenda:', error);
-          tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>';
+          tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>';
           return;
         }
         
@@ -1589,8 +1772,12 @@
             if (status === 'Confirmado') statusClass = 'status-confirmado';
             if (status === 'Cancelado') statusClass = 'status-cancelado';
             
+            // ✅ NOVO: Adicionar botão Finalizar Atendimento
             const acoesHtml = isBarbeiro ? '' : `
               <td>
+                <button class="btn-finalizar" onclick="abrirFinalizarAtendimento('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.barbearia_id}', '${row.barbeiro_id || ''}')">
+                  💰 Finalizar
+                </button>
                 <button class="btn-confirmar" onclick="confirmarAgendamento('${row.id}')">
                   ✓ Confirmar
                 </button>
@@ -1620,13 +1807,182 @@
           }).join('');
           console.log('✅ Agenda carregada:', data.length);
         } else {
-          tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum agendamento encontrado para esta data</td></tr>';
+          tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum agendamento encontrado para esta data</td></tr>';
         }
       } catch (err) {
         console.error('❌ Erro ao carregar agenda:', err);
-        tableAgenda.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+        tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
       }
     }
+
+    // ✅ NOVO: ATUALIZAR AGENDA DE HOJE (CARD LATERAL)
+    async function refreshAgendaHoje() {
+      try {
+        const hoje = new Date().toISOString().split('T')[0];
+        agendaHojeData.textContent = new Date().toLocaleDateString('pt-BR', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+
+        const dataInicio = `${hoje}T00:00:00`;
+        const dataFim = `${hoje}T23:59:59`;
+
+        const { data, error } = await supabaseClient
+          .from('agendamentos')
+          .select(`
+            *,
+            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
+          `)
+          .gte('data_hora', dataInicio)
+          .lte('data_hora', dataFim)
+          .neq('status', 'Cancelado')
+          .order('data_hora', { ascending: true });
+
+        if (error) {
+          console.error('❌ Erro ao carregar agenda de hoje:', error);
+          agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Erro ao carregar</div>';
+          return;
+        }
+
+        if (data && data.length > 0) {
+          agendaHojeList.innerHTML = data.map(row => {
+            const dataHora = new Date(row.data_hora);
+            const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
+
+            return `
+              <div class="agenda-hoje-item">
+                <div class="horario">${horario}</div>
+                <div class="cliente">${row.cliente_nome || 'N/A'}</div>
+                <div class="servico">${row.servico || 'N/A'} • ${barbeiroNome}</div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Nenhum agendamento para hoje</div>';
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar agenda de hoje:', err);
+        agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Erro ao carregar</div>';
+      }
+    }
+
+    // ✅ NOVO: ABRIR MODAL FINALIZAR ATENDIMENTO
+    async function abrirFinalizarAtendimento(id, clienteNome, servico, barbeariaId, barbeiroId) {
+      currentFinalizarAgendamento = { id, clienteNome, servico, barbeariaId, barbeiroId };
+      
+      finalizarCliente.value = clienteNome;
+      finalizarDescricao.value = servico;
+      finalizarValor.value = '';
+      finalizarFormaPagamento.value = '';
+      finalizarBarbeiro.value = '';
+      finalizarMsg.textContent = '';
+      finalizarMsg.className = '';
+
+      // Buscar nome do barbeiro se tiver ID
+      if (barbeiroId) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('barbearias(nome)')
+            .eq('id', barbeiroId)
+            .single();
+
+          if (!error && data) {
+            finalizarBarbeiro.value = data.barbearias?.nome || '';
+          }
+        } catch (err) {
+          console.error('❌ Erro ao buscar barbeiro:', err);
+        }
+      }
+
+      finalizarAtendimentoModal.classList.remove('hidden');
+    }
+
+    // ✅ NOVO: FECHAR MODAL FINALIZAR
+    btnCancelFinalizar.addEventListener('click', () => {
+      finalizarAtendimentoModal.classList.add('hidden');
+      currentFinalizarAgendamento = null;
+    });
+
+    // ✅ NOVO: CONFIRMAR FINALIZAR ATENDIMENTO
+    btnConfirmarFinalizar.addEventListener('click', async () => {
+      if (!currentFinalizarAgendamento) return;
+
+      if (!finalizarValor.value || parseFloat(finalizarValor.value) <= 0) {
+        finalizarMsg.textContent = '❌ Digite um valor válido';
+        finalizarMsg.className = 'error-msg';
+        return;
+      }
+
+      if (!finalizarFormaPagamento.value) {
+        finalizarMsg.textContent = '❌ Selecione a forma de pagamento';
+        finalizarMsg.className = 'error-msg';
+        return;
+      }
+
+      try {
+        finalizarMsg.textContent = 'Finalizando atendimento...';
+        finalizarMsg.className = 'muted';
+
+        // 1. Criar venda
+        const { data: vendaData, error: vendaError } = await supabaseClient
+          .from('vendas')
+          .insert([{
+            descricao: finalizarDescricao.value.trim(),
+            total: parseFloat(finalizarValor.value),
+            forma_pagamento: finalizarFormaPagamento.value,
+            barbearia_id: currentFinalizarAgendamento.barbeariaId,
+            barbeiro_nome: finalizarBarbeiro.value.trim() || null
+          }])
+          .select();
+
+        if (vendaError) {
+          console.error('❌ Erro ao criar venda:', vendaError);
+          finalizarMsg.textContent = '❌ Erro ao criar venda: ' + vendaError.message;
+          finalizarMsg.className = 'error-msg';
+          return;
+        }
+
+        // 2. Excluir agendamento
+        const { error: deleteError } = await supabaseClient
+          .from('agendamentos')
+          .delete()
+          .eq('id', currentFinalizarAgendamento.id);
+
+        if (deleteError) {
+          console.error('❌ Erro ao excluir agendamento:', deleteError);
+          finalizarMsg.textContent = '❌ Erro ao excluir agendamento: ' + deleteError.message;
+          finalizarMsg.className = 'error-msg';
+          return;
+        }
+
+        console.log('✅ Atendimento finalizado e convertido em venda');
+        finalizarMsg.textContent = '✅ Atendimento finalizado com sucesso!';
+        finalizarMsg.className = 'success-msg';
+
+        // Atualizar todas as views
+        await refreshAgendamentos();
+        await refreshAgenda();
+        await refreshAgendaHoje();
+        await refreshVendas();
+        await refreshMetrics();
+        await refreshMetricasVendas();
+        await refreshResumoBarbeiros();
+
+        setTimeout(() => {
+          finalizarAtendimentoModal.classList.add('hidden');
+          currentFinalizarAgendamento = null;
+        }, 1500);
+
+      } catch (err) {
+        console.error('❌ Erro ao finalizar atendimento:', err);
+        finalizarMsg.textContent = '❌ Erro ao finalizar atendimento';
+        finalizarMsg.className = 'error-msg';
+      }
+    });
 
     // --- CONFIRMAR AGENDAMENTO ---
     async function confirmarAgendamento(id) {
@@ -1644,6 +2000,7 @@
 
         console.log('✅ Agendamento confirmado');
         await refreshAgenda();
+        await refreshAgendaHoje(); // ✅ NOVO
         await refreshAgendamentos();
         await refreshMetrics();
       } catch (err) {
@@ -1672,6 +2029,7 @@
 
         console.log('✅ Agendamento cancelado');
         await refreshAgenda();
+        await refreshAgendaHoje(); // ✅ NOVO
         await refreshAgendamentos();
         await refreshMetrics();
       } catch (err) {
@@ -1681,7 +2039,10 @@
     }
 
     // --- FILTROS DA AGENDA ---
-    agendaFiltroData.addEventListener('change', refreshAgenda);
+    agendaFiltroData.addEventListener('change', async () => {
+      await refreshAgenda();
+      await refreshAgendaHoje(); // ✅ NOVO
+    });
     agendaFiltroBarbeiro.addEventListener('change', refreshAgenda);
 
     // --- ABRIR MODAL DE NOVO AGENDAMENTO ---
@@ -1738,6 +2099,16 @@
         return;
       }
 
+      // ✅ NOVO: Verificar conflito de horário
+      const dataHoraISO = new Date(novoDataHora.value).toISOString();
+      const temConflito = await verificarConflito(dataHoraISO, novoBarbeiro.value);
+
+      if (temConflito) {
+        novoAgendamentoModalMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!';
+        novoAgendamentoModalMsg.className = 'warning-msg';
+        return;
+      }
+
       try {
         novoAgendamentoModalMsg.textContent = 'Criando agendamento...';
         novoAgendamentoModalMsg.className = 'muted';
@@ -1747,7 +2118,7 @@
           .insert([{
             cliente_nome: novoClienteNome.value.trim(),
             servico: novoServico.value.trim(),
-            data_hora: new Date(novoDataHora.value).toISOString(),
+            data_hora: dataHoraISO,
             barbearia_id: novoBarbearia.value,
             barbeiro_id: novoBarbeiro.value || null,
             status: 'Pendente'
@@ -1765,6 +2136,7 @@
           
           await refreshAgendamentos();
           await refreshAgenda();
+          await refreshAgendaHoje(); // ✅ NOVO
           await refreshMetrics();
           
           setTimeout(() => {
@@ -1915,6 +2287,25 @@
         return;
       }
 
+      // ✅ NOVO: Verificar conflito ao editar (excluindo o próprio agendamento)
+      const dataHoraISO = new Date(editDataHora.value).toISOString();
+      
+      if (editBarbeiro.value) {
+        const { data: conflitos, error } = await supabaseClient
+          .from('agendamentos')
+          .select('id')
+          .eq('barbeiro_id', editBarbeiro.value)
+          .eq('data_hora', dataHoraISO)
+          .neq('id', currentEditId)
+          .neq('status', 'Cancelado');
+
+        if (!error && conflitos && conflitos.length > 0) {
+          editMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!';
+          editMsg.className = 'warning-msg';
+          return;
+        }
+      }
+
       try {
         editMsg.textContent = 'Salvando...';
         editMsg.className = 'muted';
@@ -1924,7 +2315,7 @@
           .update({
             cliente_nome: editClienteNome.value.trim(),
             servico: editServico.value.trim(),
-            data_hora: new Date(editDataHora.value).toISOString(),
+            data_hora: dataHoraISO,
             barbearia_id: editBarbearia.value,
             barbeiro_id: editBarbeiro.value || null
           })
@@ -1942,6 +2333,7 @@
           
           await refreshAgendamentos();
           await refreshAgenda();
+          await refreshAgendaHoje(); // ✅ NOVO
           await refreshMetrics();
           
           setTimeout(() => {
@@ -1978,6 +2370,7 @@
 
         await refreshAgendamentos();
         await refreshAgenda();
+        await refreshAgendaHoje(); // ✅ NOVO
         await refreshMetrics();
 
       } catch (err) {
@@ -2012,6 +2405,16 @@
         return;
       }
 
+      // ✅ NOVO: Verificar conflito de horário
+      const dataHoraISO = new Date(dataHoraInput.value).toISOString();
+      const temConflito = await verificarConflito(dataHoraISO, selectBarbeiro.value);
+
+      if (temConflito) {
+        agendamentoMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!';
+        agendamentoMsg.className = 'warning-msg';
+        return;
+      }
+
       try {
         agendamentoMsg.textContent = 'Criando agendamento...';
         agendamentoMsg.className = 'muted';
@@ -2021,7 +2424,7 @@
           .insert([{
             cliente_nome: clienteNome.value.trim(),
             servico: servicoInput.value.trim(),
-            data_hora: new Date(dataHoraInput.value).toISOString(),
+            data_hora: dataHoraISO,
             barbearia_id: selectBarbearia.value,
             barbeiro_id: selectBarbeiro.value || null,
             status: 'Pendente'
@@ -2045,6 +2448,7 @@
           
           await refreshAgendamentos();
           await refreshAgenda();
+          await refreshAgendaHoje(); // ✅ NOVO
           await refreshMetrics();
           
           setTimeout(() => {
@@ -2254,7 +2658,7 @@
       }
     });
 
-    // ✅ ========== FECHAMENTO DE CAIXA - FUNÇÕES ==========
+    // ========== FECHAMENTO DE CAIXA - FUNÇÕES ==========
 
     function toLocalDatetimeValue(date) {
       const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
