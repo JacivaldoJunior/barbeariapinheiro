@@ -731,37 +731,93 @@
     margin-top: 16px;
     font-weight: 600;
     font-size: 1rem;
+ 
+/* ===== ANIMAÇÃO DE ENTRADA ===== */
+.login-animate {
+  animation: fadeZoom 0.9s ease forwards;
+}
+
+@keyframes fadeZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
   }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== LINHA DOURADA ===== */
+.gold-line {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C8A045, transparent);
+  margin-bottom: 22px;
+  box-shadow: 0 0 12px #d4b05a;
+}
+
+/* ===== POSTE DE BARBEAR ===== */
+.barber-pole {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px auto;
+  border-radius: 50%;
+  border: 3px solid #C8A045;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(200,160,69,0.8);
+  position: relative;
+}
+
+.barber-pole span {
+  position: absolute;
+  inset: -40%;
+  background: repeating-linear-gradient(
+    45deg,
+    #C8A045 0px,
+    #C8A045 12px,
+    #121212 12px,
+    #121212 24px
+  );
+  animation: poleSpin 3s linear infinite;
+}
+
+@keyframes poleSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== MARCA ===== */
+.brand {
+  font-size: 2.6rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+  text-shadow: 0 0 12px #d4b05a;
+}
+
+.subtitle {
+  margin-bottom: 26px;
+  color: #a88c3a;
+}
+
+
 </style>
 
-<div id="loginPanel">
-  <!-- Ícone SVG inspirado nas imagens enviadas -->
-  <svg class="icon-barber" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-    <circle cx="32" cy="32" r="30" stroke="#C8A045" stroke-width="2" fill="none"/>
-    <rect x="28" y="12" width="8" height="40" fill="url(#barberStripe)"/>
-    <defs>
-      <linearGradient id="barberStripe" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#C8A045"/>
-        <stop offset="50%" stop-color="#121212"/>
-        <stop offset="100%" stop-color="#C8A045"/>
-      </linearGradient>
-    </defs>
-    <line x1="20" y1="20" x2="44" y2="44" stroke="#C8A045" stroke-width="3" stroke-linecap="round"/>
-    <line x1="44" y1="20" x2="20" y2="44" stroke="#C8A045" stroke-width="3" stroke-linecap="round"/>
-  </svg>
 
-  <h2>Na Régua!</h2>
-  <p class="muted">Use o e-mail e senha que você já criou no Supabase Auth.</p>
-  <form id="loginForm">
-    <label for="email">E-mail</label>
-    <input id="email" type="email" required placeholder="seu@exemplo.com" />
-    <label for="password">Senha</label>
-    <input id="password" type="password" required placeholder="sua senha" autocomplete="current-password" />
-    <button type="submit" class="btn">Entrar</button>
-    <button id="btnToRegister" type="button">Registrar</button>
-  </form>
-  <div id="loginMsg" class="muted"></div>
-</div>
+<div id="loginPanel" class="login-animate">
+
+  <!-- Linha dourada -->
+  <div class="gold-line"></div>
+
+  <!-- Poste de barbear animado -->
+  <div class="barber-pole">
+    <span></span>
+  </div>
+
+  <h2 class="brand">Na Régua</h2>
+  <p class="muted subtitle">Sistema profissional para barbearias</p>
+
 
     <!-- DASHBOARD -->
     <section id="dashboard" class="section hidden">
