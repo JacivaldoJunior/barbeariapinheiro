@@ -255,6 +255,68 @@
     <!-- DASHBOARD -->
     <section id="dashboard" class="section hidden">
       <h1>Dashboard</h1>
+      <p class="subtitle">Visão geral — Barbearia</p>
+      <section class="cards">
+        <article class="card">
+          <h2>Vendas hoje</h2>
+          <div id="vendasHoje" class="value">R$ --</div>
+        </article>
+        <article class="card">
+          <h2>Agendamentos</h2>
+          <div id="countAgendamentos" class="value">--</div>
+        </article>
+        <article class="card">
+          <h2>Ticket médio</h2>
+          <div id="ticketMedio" class="value">R$ --</div>
+        </article>
+      </section>
+
+      <section id="novoAgendamentoSection">
+        <h2 class="muted">Novo agendamento</h2>
+        <div class="form-row">
+          <input id="clienteNome" placeholder="Nome do cliente" />
+          <select id="selectBarbearia">
+            <option value="">Selecione a barbearia</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <input id="servico" placeholder="Serviço (ex: Corte, Barba)" />
+          <input id="dataHora" type="datetime-local" />
+        </div>
+        <div class="form-row">
+          <select id="selectBarbeiro">
+            <option value="">Selecione o barbeiro (opcional)</option>
+          </select>
+        </div>
+        <button id="btnCriarAgendamento" class="btn" style="margin-top:10px;">Criar Agendamento</button>
+        <div id="agendamentoMsg"></div>
+      </section>
+
+      <section style="margin-top:18px;">
+        <h2 class="muted">Próximos agendamentos</h2>
+        <div class="table-container">
+          <table id="tableAgendamentos">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Serviço</th>
+                <th>Data / Hora</th>
+                <th>Barbeiro</th>
+                <th>Barbearia</th>
+                <th id="acoesHeader">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="section hidden">
+      <h1>Dashboard</h1>
       <!-- O restante do seu código de Dashboard continua aqui... -->
 
     <!-- DASHBOARD -->
@@ -2555,3 +2617,4 @@
   </script>
 </body>
 </html>
+
