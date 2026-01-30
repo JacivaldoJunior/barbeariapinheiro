@@ -623,201 +623,21 @@
       <button id="btnLogout" class="btn hidden">Sair</button>
     </div>
 
-  <style>
-  /* Estilo para o painel de login com arte preta e dourada */
-  #loginPanel {
-    max-width: 420px;
-    margin: 60px auto;
-    background: linear-gradient(145deg, #1a1a1a, #121212);
-    border-radius: 16px;
-    padding: 30px 40px 40px 40px;
-    box-shadow: 0 0 20px 3px rgba(200, 160, 69, 0.7);
-    border: 2px solid #C8A045;
-    color: #C8A045;
-    text-align: center;
-    position: relative;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-
-  #loginPanel h2 {
-    font-size: 2.8rem;
-    font-weight: 900;
-    margin-bottom: 10px;
-    letter-spacing: 2px;
-    text-shadow: 0 0 8px #d4b05a;
-  }
-
-  #loginPanel p.muted {
-    font-size: 1rem;
-    color: #a88c3a;
-    margin-bottom: 30px;
-  }
-
-  /* Ícone estilizado no topo */
-  #loginPanel .icon-barber {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 20px auto;
-    fill: #C8A045;
-    filter: drop-shadow(0 0 4px #d4b05a);
-  }
-
-  #loginPanel label {
-    display: block;
-    color: #a88c3a;
-    margin-top: 12px;
-    font-size: 1rem;
-    text-align: left;
-  }
-
-  #loginPanel input {
-    width: 100%;
-    padding: 12px 14px;
-    margin-top: 6px;
-    border-radius: 10px;
-    background: #0f0f0f;
-    border: 1.5px solid #C8A045;
-    color: #fff;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
-  }
-
-  #loginPanel input:focus {
-    outline: none;
-    border-color: #d4b05a;
-    box-shadow: 0 0 8px #d4b05a;
-  }
-
-  #loginPanel button.btn {
-    margin-top: 24px;
-    width: 100%;
-    padding: 14px 0;
-    font-size: 1.2rem;
-    font-weight: 700;
-    border-radius: 12px;
-    background: linear-gradient(90deg, #C8A045, #d4b05a);
-    border: none;
-    color: #111;
-    cursor: pointer;
-    box-shadow: 0 0 12px #d4b05a;
-    transition: background 0.3s ease, transform 0.2s ease;
-  }
-
-  #loginPanel button.btn:hover {
-    background: linear-gradient(90deg, #d4b05a, #C8A045);
-    transform: translateY(-2px);
-  }
-
-  #loginPanel #btnToRegister {
-    margin-top: 12px;
-    background: transparent;
-    border: 1.5px solid #C8A045;
-    color: #C8A045;
-    font-weight: 600;
-    width: 100%;
-    padding: 12px 0;
-    border-radius: 12px;
-    box-shadow: 0 0 8px #C8A045 inset;
-    transition: background 0.3s ease, color 0.3s ease;
-  }
-
-  #loginPanel #btnToRegister:hover {
-    background: #C8A045;
-    color: #111;
-    box-shadow: 0 0 12px #d4b05a;
-  }
-
-  #loginMsg {
-    margin-top: 16px;
-    font-weight: 600;
-    font-size: 1rem;
- 
-/* ===== ANIMAÇÃO DE ENTRADA ===== */
-.login-animate {
-  animation: fadeZoom 0.9s ease forwards;
-}
-
-@keyframes fadeZoom {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* ===== LINHA DOURADA ===== */
-.gold-line {
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #C8A045, transparent);
-  margin-bottom: 22px;
-  box-shadow: 0 0 12px #d4b05a;
-}
-
-/* ===== POSTE DE BARBEAR ===== */
-.barber-pole {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 18px auto;
-  border-radius: 50%;
-  border: 3px solid #C8A045;
-  overflow: hidden;
-  box-shadow: 0 0 20px rgba(200,160,69,0.8);
-  position: relative;
-}
-
-.barber-pole span {
-  position: absolute;
-  inset: -40%;
-  background: repeating-linear-gradient(
-    45deg,
-    #C8A045 0px,
-    #C8A045 12px,
-    #121212 12px,
-    #121212 24px
-  );
-  animation: poleSpin 3s linear infinite;
-}
-
-@keyframes poleSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ===== MARCA ===== */
-.brand {
-  font-size: 2.6rem;
-  font-weight: 900;
-  letter-spacing: 3px;
-  margin-bottom: 4px;
-  text-shadow: 0 0 12px #d4b05a;
-}
-
-.subtitle {
-  margin-bottom: 26px;
-  color: #a88c3a;
-}
-
-
-</style>
-
-
-<div id="loginPanel" class="login-animate">
-
-  <!-- Linha dourada -->
-  <div class="gold-line"></div>
-
-  <!-- Poste de barbear animado -->
-  <div class="barber-pole">
-    <span></span>
-  </div>
-
-  <h2 class="brand">Na Régua</h2>
-  <p class="muted subtitle">Sistema profissional para barbearias</p>
-
+    <div id="loginPanel">
+      <h2>Entrar</h2>
+      <p class="muted">Use o e-mail e senha que você já criou no Supabase Auth.</p>
+      <form id="loginForm">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" required placeholder="seu@exemplo.com" />
+        <label for="password">Senha</label>
+        <input id="password" type="password" required placeholder="sua senha" autocomplete="current-password" />
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button type="submit" class="btn">Entrar</button>
+          <button id="btnToRegister" type="button" class="btn" style="background:transparent;color:#C8A045;border:1px solid rgba(200,160,69,0.15)">Registrar</button>
+        </div>
+      </form>
+      <div id="loginMsg" class="muted" style="margin-top:8px;"></div>
+    </div>
 
     <!-- DASHBOARD -->
     <section id="dashboard" class="section hidden">
@@ -3117,3 +2937,4 @@
   </script>
 </body>
 </html>
+
