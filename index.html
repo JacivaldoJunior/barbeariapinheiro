@@ -13,8 +13,16 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #C8A045;
     }
+    
+    /* FUNDO DA TELA DE LOGIN MELHORADO */
     body {
-      background-color: #121212;
+      background-color: #0a0a0a;
+      /* Imagem de fundo estilo barbearia/grafite dark */
+      background-image: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), 
+                        url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
       display: flex;
       min-height: 100vh;
       overflow: auto;
@@ -157,7 +165,6 @@
       transform: translateY(-1px);
     }
 
-    /* BOTÕES DE STATUS */
     .btn-confirmar {
       background:#2ecc71;
       color:#fff;
@@ -192,7 +199,6 @@
       transform: translateY(-1px);
     }
 
-    /* ✅ NOVO: BOTÃO FINALIZAR ATENDIMENTO */
     .btn-finalizar {
       background:#9b59b6;
       color:#fff;
@@ -214,9 +220,15 @@
       flex-grow: 1;
       padding: 24px 32px;
       overflow-y: auto;
-      background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+      background: transparent; /* Ajustado para mostrar o fundo do body no login */
       color: #C8A045;
     }
+
+    /* Quando logado, o fundo volta a ser escuro sólido para facilitar a leitura */
+    main.content:not(.locked) {
+      background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+    }
+
     main.content h1 {
       font-size: 2.2rem;
       font-weight: 700;
@@ -253,7 +265,6 @@
     .card h2 { font-size: 0.9rem; color:#a88c3a; margin-bottom:8px; text-transform:uppercase; }
     .card .value { font-size:1.6rem; color:#fff; font-weight:700; }
 
-    /* ✅ NOVO: CARD AGENDA DE HOJE */
     .agenda-hoje-card {
       background: rgba(200,160,69,0.08);
       border: 1px solid rgba(200,160,69,0.4);
@@ -305,7 +316,6 @@
       font-style: italic;
     }
 
-    /* ✅ NOVO: LAYOUT GRID PARA AGENDA */
     .agenda-layout {
       display: grid;
       grid-template-columns: 1fr 320px;
@@ -362,43 +372,39 @@
       opacity: 0.6;
     }
 
-    /* LOGIN PANEL COM IMAGEM DE FUNDO */
+    /* PAINEL DE LOGIN ESTILIZADO */
     #loginPanel {
-      max-width: 420px;
-      margin: 40px auto;
-      background: rgba(255,255,255,0.03);
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid rgba(200,160,69,0.12);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-      position: relative;
-      overflow: hidden;
-      z-index: 1;
-      color: #C8A045;
+      max-width:420px;
+      margin:80px auto;
+      background: rgba(20, 20, 20, 0.95);
+      padding:30px;
+      border-radius:16px;
+      border:1px solid rgba(200,160,69,0.3);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 15px rgba(200,160,69,0.1);
+      backdrop-filter: blur(10px);
     }
-    #loginPanel::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80') no-repeat center center;
-      background-size: cover;
-      opacity: 0.15;
-      filter: grayscale(100%) contrast(120%) brightness(60%);
-      z-index: -1;
-      border-radius: 12px;
+    #loginPanel h2 { 
+      color:#C8A045; 
+      margin-bottom:12px; 
+      font-size: 2rem;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
-    #loginPanel h2 { color: #C8A045; margin-bottom: 8px; text-shadow: 0 0 6px rgba(200,160,69,0.8); }
-    #loginPanel label { display: block; color: #a88c3a; margin-top: 8px; font-size: 0.9rem; }
+    #loginPanel label { display:block; color:#a88c3a; margin-top:15px; font-size:0.9rem; font-weight: 600; }
     #loginPanel input { 
-      width: 100%; 
-      padding: 10px; 
-      margin-top: 6px; 
-      border-radius: 8px; 
-      background: #0f0f0f; 
-      border: 1px solid rgba(200,160,69,0.12); 
-      color: #fff; 
-      position: relative;
-      z-index: 2;
+      width:100%; 
+      padding:12px; 
+      margin-top:6px; 
+      border-radius:8px; 
+      background:#0a0a0a; 
+      border:1px solid rgba(200,160,69,0.2); 
+      color:#fff; 
+      transition: border 0.3s;
+    }
+    #loginPanel input:focus {
+      border-color: #C8A045;
+      outline: none;
     }
 
     .section {
@@ -428,7 +434,6 @@
       border: 1px solid rgba(244, 67, 54, 0.3);
     }
 
-    /* ✅ NOVO: AVISO DE CONFLITO */
     .warning-msg {
       background: rgba(255, 193, 7, 0.2);
       color: #ffc107;
@@ -441,7 +446,6 @@
       gap: 8px;
     }
 
-    /* MODAL DE EDIÇÃO */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -504,7 +508,6 @@
       border: 1px solid rgba(200,160,69,0.3);
     }
 
-    /* RESUMO POR BARBEIRO */
     .barbeiro-stats {
       background: rgba(200,160,69,0.05);
       border: 1px solid rgba(200,160,69,0.2);
@@ -531,7 +534,6 @@
       font-weight: 600;
     }
 
-    /* CONTAINER COM SCROLL PARA TABELAS */
     .table-container {
       margin-top: 12px;
       border: 1px solid rgba(200,160,69,0.2);
@@ -561,7 +563,6 @@
       background: #d4b05a;
     }
 
-    /* FILTROS DA AGENDA */
     .agenda-controls {
       display: flex;
       gap: 15px;
@@ -581,7 +582,6 @@
       color: #a88c3a;
     }
 
-    /* STATUS BADGES */
     .status-badge {
       padding: 4px 10px;
       border-radius: 20px;
@@ -604,7 +604,6 @@
       color: #e74c3c;
     }
 
-    /* BADGE AGENDADO */
     .agendado-sim {
       background: rgba(46, 204, 113, 0.2);
       color: #2ecc71;
@@ -643,18 +642,18 @@
 
     <div id="loginPanel">
       <h2>Entrar</h2>
-      <p class="muted">Use o e-mail e senha que você já criou no Supabase Auth.</p>
+      <p class="muted" style="text-align: center;">Acesse o sistema da barbearia</p>
       <form id="loginForm">
         <label for="email">E-mail</label>
         <input id="email" type="email" required placeholder="seu@exemplo.com" />
         <label for="password">Senha</label>
         <input id="password" type="password" required placeholder="sua senha" autocomplete="current-password" />
-        <div style="margin-top:12px; display:flex; gap:8px;">
-          <button type="submit" class="btn">Entrar</button>
-          <button id="btnToRegister" type="button" class="btn" style="background:transparent;color:#C8A045;border:1px solid rgba(200,160,69,0.15)">Registrar</button>
+        <div style="margin-top:20px; display:flex; flex-direction: column; gap:10px;">
+          <button type="submit" class="btn" style="width: 100%; padding: 12px;">Entrar no Sistema</button>
+          <button id="btnToRegister" type="button" class="btn" style="background:transparent;color:#C8A045;border:1px solid rgba(200,160,69,0.3); width: 100%;">Criar Nova Conta</button>
         </div>
       </form>
-      <div id="loginMsg" class="muted" style="margin-top:8px;"></div>
+      <div id="loginMsg" class="muted" style="margin-top:15px; text-align: center;"></div>
     </div>
 
     <!-- DASHBOARD -->
@@ -2955,3 +2954,4 @@
   </script>
 </body>
 </html>
+
