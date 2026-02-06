@@ -1331,30 +1331,45 @@
       
       userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
 
-      if (role === 'barbeiro') {
-        selectBarbearia.disabled = true;
-        selectBarbeariaVenda.disabled = true;
-        selectBarbearia.value = barbeariaId;
-        selectBarbeariaVenda.value = barbeariaId;
+      const isGerente = (role === 'gerente');
 
-        document.getElementById('novoAgendamentoSection').classList.add('hidden');
-        document.getElementById('acoesHeader').classList.add('hidden');
-        document.getElementById('acoesHeaderVendas').classList.add('hidden');
-        document.getElementById('acoesHeaderAgenda').classList.add('hidden');
+      // Habilita ou desabilita os selects conforme o cargo
+      const selectsParaDesativar = [
+        'selectBarbeariaVenda',
+        'fechamentoSelectBarbearia',
+        'novoBarbearia'
+      ];
 
-        const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
-        if (linkFechamento) linkFechamento.classList.add('hidden');
+      selectsParaDesativar.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = !isGerente;
+      });
 
-        console.log('🔒 Modo Barbeiro: acesso restrito à barbearia', barbeariaNome);
-      } else if (role === 'gerente') {
-        selectBarbearia.disabled = false;
-        selectBarbeariaVenda.disabled = false;
-
-        const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
-        if (linkFechamento) linkFechamento.classList.remove('hidden');
-
-        console.log('🔓 Modo Gerente: acesso a todas as barbearias');
+      // Para barbeiros, define automaticamente a barbearia
+      if (!isGerente) {
+        const selectsParaFixar = [
+          'selectBarbeariaVenda',
+          'fechamentoSelectBarbearia'
+        ];
+        selectsParaFixar.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.value = barbeariaId;
+          }
+        });
       }
+
+      // Esconde menus e ações exclusivas de gerente
+      const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
+      if (linkFechamento) {
+        if (isGerente) {
+          linkFechamento.classList.remove('hidden');
+        } else {
+          linkFechamento.classList.add('hidden');
+        }
+      }
+
+      console.log(isGerente ? '🔓 Modo Gerente' : '🔒 Modo Barbeiro');
     }
 
     // --- INICIALIZAR BARBEARIAS PADRÃO ---
@@ -1393,54 +1408,6 @@
       }
     }
 
-    // --- LOGIN ---
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      loginMsg.textContent = 'Entrando...';
-      loginMsg.className = 'muted';
-      
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: emailInput.value,
-        password: passwordInput.value
-      });
-      
-      if (error) {
-        loginMsg.textContent = '❌ ' + error.message;
-        loginMsg.className = 'error-msg';
-      } else {
-        loginMsg.textContent = '✅ Login realizado com sucesso!';
-        loginMsg.className = 'success-msg';
-      }
-    });
-
-    // --- REGISTRO ---
-    btnToRegister.addEventListener('click', async () => {
-      const email = prompt('Digite seu e-mail:');
-      const password = prompt('Digite sua senha (mínimo 6 caracteres):');
-      
-      if (email && password) {
-        loginMsg.textContent = 'Registrando...';
-        const { data, error } = await supabaseClient.auth.signUp({
-          email: email,
-          password: password
-        });
-        
-        if (error) {
-          loginMsg.textContent = '❌ ' + error.message;
-          loginMsg.className = 'error-msg';
-        } else {
-          loginMsg.textContent = '✅ Registro realizado! Verifique seu e-mail.';
-          loginMsg.className = 'success-msg';
-        }
-      }
-    });
-
-    // --- LOGOUT ---
-    btnLogout.addEventListener('click', async () => {
-      await supabaseClient.auth.signOut();
-      console.log('✅ Logout realizado');
-    });
-
     // --- CARREGAR BARBEARIAS ---
     async function loadBarbearias() {
       try {
@@ -1449,20 +1416,10 @@
           .select('id, nome')
           .order('nome');
 
-        if (currentProfile && currentProfile.role === 'barbeiro') {
-          query = query.eq('id', currentProfile.barbearia_id);
-        }
-
         const { data, error } = await query;
         
         if (error) {
           console.error('❌ Erro ao carregar barbearias:', error);
-          selectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
-          selectBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
-          editBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
-          editBarbeariaVenda.innerHTML = '<option value="">Erro ao carregar</option>';
-          novoBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
-          fechamentoSelectBarbearia.innerHTML = '<option value="">Erro ao carregar</option>';
           return;
         }
         
@@ -1470,30 +1427,22 @@
           const options = '<option value="">Selecione a barbearia</option>' +
             data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
           
-          selectBarbearia.innerHTML = options;
-          selectBarbeariaVenda.innerHTML = options;
-          editBarbearia.innerHTML = options;
-          editBarbeariaVenda.innerHTML = options;
-          novoBarbearia.innerHTML = options;
-          fechamentoSelectBarbearia.innerHTML = options;
+          // Lista de selects que devem ser preenchidos
+          const selects = [
+            'selectBarbeariaVenda',
+            'editBarbeariaVenda',
+            'novoBarbearia',
+            'editBarbearia',
+            'fechamentoSelectBarbearia'
+          ];
 
-          if (currentProfile && currentProfile.role === 'barbeiro') {
-            selectBarbearia.value = currentProfile.barbearia_id;
-            selectBarbeariaVenda.value = currentProfile.barbearia_id;
-            fechamentoSelectBarbearia.value = currentProfile.barbearia_id;
-            fechamentoSelectBarbearia.disabled = true;
-          } else {
-            fechamentoSelectBarbearia.disabled = false;
-          }
-          
-          console.log('✅ Barbearias carregadas:', data.length);
+          selects.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = options;
+          });
+
+          console.log('✅ Barbearias carregadas em todos os selects:', data.length);
         } else {
-          selectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
-          selectBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
-          editBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
-          editBarbeariaVenda.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
-          novoBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
-          fechamentoSelectBarbearia.innerHTML = '<option value="">Nenhuma barbearia cadastrada</option>';
           console.warn('⚠️ Nenhuma barbearia encontrada');
         }
       } catch (err) {
@@ -1785,8 +1734,7 @@
       }
     }
 
-
-    // --- MÉTRICAS DASHBOARD ---
+ // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
       try {
         const hoje = new Date().toISOString().split('T')[0];
@@ -3050,7 +2998,7 @@
 
     // --- NAVEGAÇÃO SIDEBAR ---
     document.querySelectorAll('nav.sidebar a').forEach(link => {
-      link.addEventListener('click', async (e) => { // ✅ ADICIONADO async
+      link.addEventListener('click', async (e) => {
         e.preventDefault();
         
         document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
@@ -3062,7 +3010,7 @@
         
         if (section === 'dashboard') {
           dashboardSection.classList.remove('hidden');
-          await refreshDashboard(); // ✅ Garantir refresh ao voltar
+          await refreshDashboard();
         } else if (section === 'agenda') {
           agendaSection.classList.remove('hidden');
           await refreshAgenda();
@@ -3071,7 +3019,7 @@
           await refreshVendas();
           await refreshMetricasVendas();
           await refreshResumoBarbeiros();
-        } else if (section === 'fechamento') { // ✅ ADICIONADO
+        } else if (section === 'fechamento') {
           fechamentoSection.classList.remove('hidden');
           await setupFechamentoDefaults();
           await refreshFechamento();
