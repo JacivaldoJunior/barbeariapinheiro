@@ -699,6 +699,43 @@
     </div>
   </div>
 
+<section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 24px;">
+  <div class="card">
+    <h2>Faturamento por período</h2>
+    <div style="margin-bottom: 10px;">
+      <label for="filtroDataInicio">Início:</label>
+      <input type="date" id="filtroDataInicio" />
+      <label for="filtroDataFim" style="margin-left: 10px;">Fim:</label>
+      <input type="date" id="filtroDataFim" />
+      <button id="btnFiltrarFaturamento" class="btn" style="margin-left: 10px; padding: 4px 10px;">Filtrar</button>
+    </div>
+    <div style="height:220px;">
+      <canvas id="graficoFaturamento"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Serviços mais vendidos</h2>
+    <div style="margin-bottom: 10px;">
+      <label for="filtroServicoDataInicio">Início:</label>
+      <input type="date" id="filtroServicoDataInicio" />
+      <label for="filtroServicoDataFim" style="margin-left: 10px;">Fim:</label>
+      <input type="date" id="filtroServicoDataFim" />
+      <button id="btnFiltrarServicos" class="btn" style="margin-left: 10px; padding: 4px 10px;">Filtrar</button>
+    </div>
+    <div style="height:220px;">
+      <canvas id="graficoServicos"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Forma de pagamento</h2>
+    <div style="height:220px;">
+      <canvas id="graficoPagamento"></canvas>
+    </div>
+  </div>
+</section>
+
   <div class="card">
     <h2>Serviços mais vendidos</h2>
     <div style="height:220px;">
@@ -1685,6 +1722,116 @@ async function refreshDashboard() {
 }
 
     // --- Dashboard para Barbeiro ---
+
+// --- Início do ajuste 2: filtros e atualização de gráficos ---
+let graficoFaturamentoObj = null;
+let graficoServicosObj = null;
+
+async function atualizarGraficoFaturamentoComFiltro() {
+  try {
+    const inicio = document.getElementById('filtroDataInicio')?.value;
+    const fim = document.getElementById('filtroDataFim')?.value;
+    if (!inicio || !fim) return;
+
+    const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
+    const fimISO = new Date(fim + 'T23:59:59').toISOString();
+
+    const { data: vendas, error } = await supabaseClient
+      .from('vendas')
+      .select('total, created_at')
+      .gte('created_at', inicioISO)
+      .lte('created_at', fimISO);
+
+    if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
+
+    const faturamentoPorDia = {};
+    (vendas || []).forEach(v => {
+      const dia = new Date(v.created_at).toISOString().split('T')[0];
+      faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + parseFloat(v.total || 0);
+    });
+
+    const labels = Object.keys(faturamentoPorDia).sort();
+    const dataValues = labels.map(d => faturamentoPorDia[d] || 0);
+
+    const ctx = document.getElementById('graficoFaturamento');
+    if (!ctx) return;
+    if (graficoFaturamentoObj && graficoFaturamentoObj.destroy) graficoFaturamentoObj.destroy();
+
+    graficoFaturamentoObj = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'Faturamento', data: dataValues, backgroundColor: '#d4af37', borderColor: '#1a1a1a', borderWidth: 1 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar gráfico de faturamento:', err);
+  }
+}
+
+async function atualizarGraficoServicosComFiltro() {
+  try {
+    const inicio = document.getElementById('filtroServicoDataInicio')?.value;
+    const fim = document.getElementById('filtroServicoDataFim')?.value;
+    if (!inicio || !fim) return;
+
+    const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
+    const fimISO = new Date(fim + 'T23:59:59').toISOString();
+
+    const { data: vendas, error } = await supabaseClient
+      .from('vendas')
+      .select('descricao, created_at')
+      .gte('created_at', inicioISO)
+      .lte('created_at', fimISO);
+
+    if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
+
+    const servicosContagem = {};
+    (vendas || []).forEach(v => {
+      const serv = (v.descricao || 'Outros').trim();
+      servicosContagem[serv] = (servicosContagem[serv] || 0) + 1;
+    });
+
+    const labels = Object.keys(servicosContagem);
+    const dataValues = labels.map(s => servicosContagem[s]);
+
+    const ctx = document.getElementById('graficoServicos');
+    if (!ctx) return;
+    if (graficoServicosObj && graficoServicosObj.destroy) graficoServicosObj.destroy();
+
+    graficoServicosObj = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ label: 'Serviços', data: dataValues, backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], borderColor: '#1a1a1a', borderWidth: 1 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar gráfico de serviços:', err);
+  }
+}
+
+// Event listeners (verifica existência dos elementos antes)
+document.getElementById('btnFiltrarFaturamento')?.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
+document.getElementById('btnFiltrarServicos')?.addEventListener('click', atualizarGraficoServicosComFiltro);
+
+// Inicializa filtros com últimos 7 dias (se os inputs estiverem presentes)
+window.addEventListener('load', () => {
+  const hoje = new Date();
+  const seteDias = new Date();
+  seteDias.setDate(hoje.getDate() - 7);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  if (document.getElementById('filtroDataInicio') && document.getElementById('filtroDataFim')) {
+    document.getElementById('filtroDataInicio').value = fmt(seteDias);
+    document.getElementById('filtroDataFim').value = fmt(hoje);
+    atualizarGraficoFaturamentoComFiltro();
+  }
+
+  if (document.getElementById('filtroServicoDataInicio') && document.getElementById('filtroServicoDataFim')) {
+    document.getElementById('filtroServicoDataInicio').value = fmt(seteDias);
+    document.getElementById('filtroServicoDataFim').value = fmt(hoje);
+    atualizarGraficoServicosComFiltro();
+  }
+});
+// --- Fim do ajuste 2 ---
+
     async function refreshDashboardBarbeiro() {
       const barbeiroId = currentProfile?.id;
       const hoje = new Date().toISOString().split('T')[0];
@@ -3027,5 +3174,4 @@ async function refreshDashboard() {
   </script>
 </body>
 </html>
-
 
