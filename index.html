@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1714,14 +1715,15 @@ async function refreshDashboard() {
     // --- Dashboard para Barbeiro ---
 
 // --- Início do ajuste 2: filtros e atualização de gráficos ---
+
 // --- Início do ajuste 2: filtros e atualização de gráficos ---
 let graficoFaturamentoObj = null;
 let graficoServicosObj = null;
 
-// Função para calcular porcentagens
-function calcularPorcentagens(valores) {
-  const total = valores.reduce((acc, val) => acc + val, 0);
-  return valores.map(val => ((val / total) * 100).toFixed(1));
+// Função auxiliar para calcular porcentagens
+function calcularPorcentagem(valor, total) {
+    if (total === 0) return 0;
+    return ((valor / total) * 100).toFixed(1);
 }
 
 async function atualizarGraficoFaturamentoComFiltro() {
@@ -1742,9 +1744,12 @@ async function atualizarGraficoFaturamentoComFiltro() {
     if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
 
     const faturamentoPorDia = {};
+    let totalGeral = 0;
     (vendas || []).forEach(v => {
       const dia = new Date(v.created_at).toISOString().split('T')[0];
-      faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + parseFloat(v.total || 0);
+      const valor = parseFloat(v.total || 0);
+      faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + valor;
+      totalGeral += valor;
     });
 
     const labels = Object.keys(faturamentoPorDia).sort();
@@ -1756,45 +1761,22 @@ async function atualizarGraficoFaturamentoComFiltro() {
 
     graficoFaturamentoObj = new Chart(ctx, {
       type: 'bar',
-      data: { 
-        labels, 
-        datasets: [{
-          label: 'Faturamento', 
-          data: dataValues, 
-          backgroundColor: '#d4af37', 
-          borderColor: '#1a1a1a', 
-          borderWidth: 1
-        }] 
-      },
+      data: { labels, datasets: [{ label: 'Faturamento R$', data: dataValues, backgroundColor: '#d4af37' }] },
       options: { 
         responsive: true, 
         maintainAspectRatio: false, 
         plugins: { 
-          legend: { labels: { color: '#fff' } },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const valor = context.raw;
-                return `Faturamento: R$ ${parseFloat(valor).toFixed(2)}`;
-              }
+            legend: { labels: { color: '#fff' } },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const valor = context.raw;
+                        const pct = calcularPorcentagem(valor, totalGeral);
+                        return `R$ ${valor.toFixed(2)} (${pct}%)`;
+                    }
+                }
             }
-          }
-        },
-        scales: {
-          y: {
-            ticks: {
-              color: '#fff',
-              callback: function(value) {
-                return 'R$ ' + value;
-              }
-            }
-          },
-          x: {
-            ticks: {
-              color: '#fff'
-            }
-          }
-        }
+        } 
       }
     });
   } catch (err) {
@@ -1820,14 +1802,15 @@ async function atualizarGraficoServicosComFiltro() {
     if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
 
     const servicosContagem = {};
+    let totalServicos = 0;
     (vendas || []).forEach(v => {
       const serv = (v.descricao || 'Outros').trim();
       servicosContagem[serv] = (servicosContagem[serv] || 0) + 1;
+      totalServicos++;
     });
 
     const labels = Object.keys(servicosContagem);
     const dataValues = labels.map(s => servicosContagem[s]);
-    const porcentagens = calcularPorcentagens(dataValues);
 
     const ctx = document.getElementById('graficoServicos');
     if (!ctx) return;
@@ -1835,87 +1818,33 @@ async function atualizarGraficoServicosComFiltro() {
 
     graficoServicosObj = new Chart(ctx, {
       type: 'doughnut',
-      data: { 
-        labels, 
-        datasets: [{
-          label: 'Serviços', 
-          data: dataValues, 
-          backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], 
-          borderColor: '#1a1a1a', 
-          borderWidth: 1
-        }] 
-      },
+      data: { labels, datasets: [{ data: dataValues, backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'] }] },
       options: { 
         responsive: true, 
         maintainAspectRatio: false, 
         plugins: { 
-          legend: { 
-            labels: { 
-              color: '#fff',
-              font: {
-                size: 12
-              }
-            } 
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const label = context.label || '';
-                const valor = context.raw;
-                const porcentagem = porcentagens[context.dataIndex];
-                return `${label}: ${valor} (${porcentagem}%)`;
-              }
+            legend: { labels: { color: '#fff' } },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const valor = context.raw;
+                        const pct = calcularPorcentagem(valor, totalServicos);
+                        return `${context.label}: ${valor} atendimentos (${pct}%)`;
+                    }
+                }
             }
-          }
-        }
+        } 
       }
     });
   } catch (err) {
     console.error('Erro ao atualizar gráfico de serviços:', err);
   }
-}// --- Fim do ajuste 2 ---
+}
 
-    async function refreshDashboardBarbeiro() {
-      const barbeiroId = currentProfile?.id;
-      const hoje = new Date().toISOString().split('T')[0];
 
-      // Clientes hoje
-      const { count: clientesHoje } = await supabaseClient
-        .from('vendas')
-        .select('*', { count: 'exact' })
-        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      document.getElementById('clientesHojeBarbeiro').textContent = clientesHoje || 0;
 
-      // Faturamento hoje
-      const { data: vendasHoje } = await supabaseClient
-        .from('vendas')
-        .select('total')
-        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      const total = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-      document.getElementById('faturamentoHojeBarbeiro').textContent = `R$ ${total.toFixed(2)}`;
 
-      // Próximo horário
-      const { data: proximos } = await supabaseClient
-        .from('agendamentos')
-        .select('data_hora, cliente_nome')
-        .eq('barbeiro_id', barbeiroId)
-        .gte('data_hora', new Date().toISOString())
-        .order('data_hora', { ascending: true })
-        .limit(1);
-      if (proximos && proximos[0]) {
-        const data = new Date(proximos[0].data_hora);
-        document.getElementById('proximoHorarioBarbeiro').innerHTML = `
-          ${data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - 
-          <strong>${proximos[0].cliente_nome}</strong>
-        `;
-      } else {
-        document.getElementById('proximoHorarioBarbeiro').textContent = 'Nenhum agendamento';
-      }
-    }
+
 
  // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
