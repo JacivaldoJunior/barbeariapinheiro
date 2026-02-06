@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1713,8 +1714,15 @@ async function refreshDashboard() {
     // --- Dashboard para Barbeiro ---
 
 // --- Início do ajuste 2: filtros e atualização de gráficos ---
+// --- Início do ajuste 2: filtros e atualização de gráficos ---
 let graficoFaturamentoObj = null;
 let graficoServicosObj = null;
+
+// Função para calcular porcentagens
+function calcularPorcentagens(valores) {
+  const total = valores.reduce((acc, val) => acc + val, 0);
+  return valores.map(val => ((val / total) * 100).toFixed(1));
+}
 
 async function atualizarGraficoFaturamentoComFiltro() {
   try {
@@ -1748,8 +1756,46 @@ async function atualizarGraficoFaturamentoComFiltro() {
 
     graficoFaturamentoObj = new Chart(ctx, {
       type: 'bar',
-      data: { labels, datasets: [{ label: 'Faturamento', data: dataValues, backgroundColor: '#d4af37', borderColor: '#1a1a1a', borderWidth: 1 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+      data: { 
+        labels, 
+        datasets: [{
+          label: 'Faturamento', 
+          data: dataValues, 
+          backgroundColor: '#d4af37', 
+          borderColor: '#1a1a1a', 
+          borderWidth: 1
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+          legend: { labels: { color: '#fff' } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const valor = context.raw;
+                return `Faturamento: R$ ${parseFloat(valor).toFixed(2)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            ticks: {
+              color: '#fff',
+              callback: function(value) {
+                return 'R$ ' + value;
+              }
+            }
+          },
+          x: {
+            ticks: {
+              color: '#fff'
+            }
+          }
+        }
+      }
     });
   } catch (err) {
     console.error('Erro ao atualizar gráfico de faturamento:', err);
@@ -1781,6 +1827,7 @@ async function atualizarGraficoServicosComFiltro() {
 
     const labels = Object.keys(servicosContagem);
     const dataValues = labels.map(s => servicosContagem[s]);
+    const porcentagens = calcularPorcentagens(dataValues);
 
     const ctx = document.getElementById('graficoServicos');
     if (!ctx) return;
@@ -1788,37 +1835,44 @@ async function atualizarGraficoServicosComFiltro() {
 
     graficoServicosObj = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels, datasets: [{ label: 'Serviços', data: dataValues, backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], borderColor: '#1a1a1a', borderWidth: 1 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+      data: { 
+        labels, 
+        datasets: [{
+          label: 'Serviços', 
+          data: dataValues, 
+          backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], 
+          borderColor: '#1a1a1a', 
+          borderWidth: 1
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+          legend: { 
+            labels: { 
+              color: '#fff',
+              font: {
+                size: 12
+              }
+            } 
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const valor = context.raw;
+                const porcentagem = porcentagens[context.dataIndex];
+                return `${label}: ${valor} (${porcentagem}%)`;
+              }
+            }
+          }
+        }
+      }
     });
   } catch (err) {
     console.error('Erro ao atualizar gráfico de serviços:', err);
   }
-}
-
-// Event listeners (verifica existência dos elementos antes)
-document.getElementById('btnFiltrarFaturamento')?.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
-document.getElementById('btnFiltrarServicos')?.addEventListener('click', atualizarGraficoServicosComFiltro);
-
-// Inicializa filtros com últimos 7 dias (se os inputs estiverem presentes)
-window.addEventListener('load', () => {
-  const hoje = new Date();
-  const seteDias = new Date();
-  seteDias.setDate(hoje.getDate() - 7);
-  const fmt = d => d.toISOString().split('T')[0];
-
-  if (document.getElementById('filtroDataInicio') && document.getElementById('filtroDataFim')) {
-    document.getElementById('filtroDataInicio').value = fmt(seteDias);
-    document.getElementById('filtroDataFim').value = fmt(hoje);
-    atualizarGraficoFaturamentoComFiltro();
-  }
-
-  if (document.getElementById('filtroServicoDataInicio') && document.getElementById('filtroServicoDataFim')) {
-    document.getElementById('filtroServicoDataInicio').value = fmt(seteDias);
-    document.getElementById('filtroServicoDataFim').value = fmt(hoje);
-    atualizarGraficoServicosComFiltro();
-  }
-});
 // --- Fim do ajuste 2 ---
 
     async function refreshDashboardBarbeiro() {
