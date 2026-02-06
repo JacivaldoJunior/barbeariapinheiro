@@ -1133,14 +1133,64 @@
     const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
 
-// --- LOGOUT ---
+// --- LÓGICA DE LOGIN ---
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginMsg.textContent = 'Entrando...';
+  loginMsg.className = 'muted';
+  
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: emailInput.value,
+    password: passwordInput.value
+  });
+  
+  if (error) {
+    loginMsg.textContent = '❌ ' + error.message;
+    loginMsg.className = 'error-msg';
+  } else {
+    loginMsg.textContent = '✅ Login realizado com sucesso!';
+    loginMsg.className = 'success-msg';
+    // O handleSignedIn será chamado automaticamente pelo onAuthStateChange
+  }
+});
+
+// --- LÓGICA DE CRIAR CONTA ---
+btnToRegister.addEventListener('click', async () => {
+  const email = prompt('Digite o e-mail para a nova conta:');
+  const password = prompt('Digite a senha (mínimo 6 caracteres):');
+  
+  if (email && password) {
+    loginMsg.textContent = 'Registrando...';
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: email,
+      password: password
+    });
+    
+    if (error) {
+      loginMsg.textContent = '❌ ' + error.message;
+      loginMsg.className = 'error-msg';
+      alert('Erro ao registrar: ' + error.message);
+    } else {
+      loginMsg.textContent = '✅ Registro realizado! Verifique seu e-mail.';
+      loginMsg.className = 'success-msg';
+      alert('Conta criada com sucesso! Verifique a caixa de entrada do seu e-mail para confirmar.');
+    }
+  }
+});
+
+
+
+// --- LOGOUT COMPLETO ---
 btnLogout.addEventListener('click', async () => {
   const { error } = await supabaseClient.auth.signOut();
   if (error) {
     console.error('❌ Erro ao sair:', error.message);
   } else {
     console.log('✅ Usuário desconectado');
-    setUnauthenticated(); // Atualiza a UI para o estado de não logado
+    // Limpa os dados locais
+    currentUser = null;
+    currentProfile = null;
+    // A UI voltará para o login automaticamente pelo onAuthStateChange que chama setUnauthenticated()
   }
 });
 
@@ -3045,4 +3095,3 @@ btnLogout.addEventListener('click', async () => {
   </script>
 </body>
 </html>
-
