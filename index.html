@@ -1840,9 +1840,16 @@ async function atualizarGraficoServicosComFiltro() {
     console.error('Erro ao atualizar gráfico de serviços:', err);
   }
 }
-
-
-
+ 
+// Ativa os botões de filtrar que pararam de funcionar
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnFiltrarFaturamento')?.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
+    document.getElementById('btnFiltrarServicos')?.addEventListener('click', atualizarGraficoServicosComFiltro);
+    
+    // Executa uma vez ao carregar para os gráficos não ficarem vazios
+    atualizarGraficoFaturamentoComFiltro();
+    atualizarGraficoServicosComFiltro();
+});
 
 
 
