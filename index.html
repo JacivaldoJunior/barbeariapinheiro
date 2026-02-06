@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard Barbearia - Preto e Dourado</title>
+  
+  <!-- ✅ Adicionando Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     /* Reset básico */
     * {
@@ -660,14 +664,25 @@
     <section id="dashboard" class="section hidden">
       <h1>Dashboard</h1>
       <p class="subtitle">Visão geral — Barbearia</p>
+
+      <!-- ✅ Cards principais -->
       <section class="cards">
         <article class="card">
-          <h2>Vendas hoje</h2>
-          <div id="vendasHoje" class="value">R$ --</div>
+          <h2>Faturamento hoje</h2>
+          <div id="faturamentoHoje" class="value">R$ --</div>
         </article>
         <article class="card">
-          <h2>Agendamentos</h2>
-          <div id="countAgendamentos" class="value">--</div>
+          <h2>Faturamento do mês</h2>
+          <div id="faturamentoMes" class="value">R$ --</div>
+          <div id="comparativoMes" class="muted" style="font-size:0.85rem;"></div>
+        </article>
+        <article class="card">
+          <h2>Atendimentos hoje</h2>
+          <div id="atendimentosHoje" class="value">--</div>
+        </article>
+        <article class="card">
+          <h2>Clientes atendidos no mês</h2>
+          <div id="clientesMes" class="value">--</div>
         </article>
         <article class="card">
           <h2>Ticket médio</h2>
@@ -675,45 +690,37 @@
         </article>
       </section>
 
-      <section id="novoAgendamentoSection">
-        <h2 class="muted">Novo agendamento</h2>
-        <div class="form-row">
-          <input id="clienteNome" placeholder="Nome do cliente" />
-          <select id="selectBarbearia">
-            <option value="">Selecione a barbearia</option>
-          </select>
+      <!-- ✅ Gráficos -->
+      <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 24px;">
+        <div class="card">
+          <h2>Faturamento por período</h2>
+          <canvas id="graficoFaturamento" height="100"></canvas>
         </div>
-        <div class="form-row">
-          <input id="servico" placeholder="Serviço (ex: Corte, Barba)" />
-          <input id="dataHora" type="datetime-local" />
+        <div class="card">
+          <h2>Serviços mais vendidos</h2>
+          <canvas id="graficoServicos" height="100"></canvas>
         </div>
-        <div class="form-row">
-          <select id="selectBarbeiro">
-            <option value="">Selecione o barbeiro (opcional)</option>
-          </select>
+        <div class="card">
+          <h2>Forma de pagamento</h2>
+          <canvas id="graficoPagamento" height="100"></canvas>
         </div>
-        <button id="btnCriarAgendamento" class="btn" style="margin-top:10px;">Criar Agendamento</button>
-        <div id="agendamentoMsg"></div>
       </section>
 
-      <section style="margin-top:18px;">
-        <h2 class="muted">Próximos agendamentos</h2>
-        <div class="table-container">
-          <table id="tableAgendamentos">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Serviço</th>
-                <th>Data / Hora</th>
-                <th>Barbeiro</th>
-                <th>Barbearia</th>
-                <th id="acoesHeader">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td colspan="6" style="text-align:center;">Carregando...</td></tr>
-            </tbody>
-          </table>
+      <!-- ✅ Visão para Barbeiro -->
+      <section id="dashboardBarbeiro" class="hidden">
+        <div class="cards">
+          <article class="card">
+            <h2>Clientes hoje</h2>
+            <div id="clientesHojeBarbeiro" class="value">--</div>
+          </article>
+          <article class="card">
+            <h2>Faturamento hoje</h2>
+            <div id="faturamentoHojeBarbeiro" class="value">R$ --</div>
+          </article>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <h2>Próximo horário</h2>
+          <div id="proximoHorarioBarbeiro" class="muted">--</div>
         </div>
       </section>
     </section>
@@ -1266,7 +1273,7 @@
       await loadBarbearias();
       await loadBarbeiros();
       await refreshAgendamentos();
-      await refreshMetrics();
+      await refreshDashboard(); // ✅ Atualizado
       await refreshVendas();
       await refreshMetricasVendas();
       await refreshResumoBarbeiros();
@@ -1572,6 +1579,212 @@
         return false;
       }
     }
+
+    // --- DASHBOARD MELHORADO ---
+    async function refreshDashboard() {
+      const isBarbeiro = currentProfile?.role === 'barbeiro';
+      const barbeariaId = currentProfile?.barbearia_id;
+
+      if (isBarbeiro) {
+        document.getElementById('dashboardBarbeiro').classList.remove('hidden');
+        await refreshDashboardBarbeiro();
+        return;
+      }
+
+      document.getElementById('dashboardBarbeiro').classList.add('hidden');
+
+      const hoje = new Date().toISOString().split('T')[0];
+      const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+      const inicioMesAnterior = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0];
+      const fimMesAnterior = new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().split('T')[0];
+
+      // Faturamento hoje
+      const { data: vendasHoje } = await supabaseClient
+        .from('vendas')
+        .select('total')
+        .eq('barbearia_id', barbeariaId)
+        .gte('created_at', `${hoje}T00:00:00`)
+        .lte('created_at', `${hoje}T23:59:59`);
+      const totalHoje = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+      document.getElementById('faturamentoHoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
+
+      // Faturamento mês
+      const { data: vendasMes } = await supabaseClient
+        .from('vendas')
+        .select('total')
+        .eq('barbearia_id', barbeariaId)
+        .gte('created_at', `${inicioMes}T00:00:00`);
+      const totalMes = vendasMes?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+      document.getElementById('faturamentoMes').textContent = `R$ ${totalMes.toFixed(2)}`;
+
+      // Comparativo mês anterior
+      const { data: vendasMesAnterior } = await supabaseClient
+        .from('vendas')
+        .select('total')
+        .eq('barbearia_id', barbeariaId)
+        .gte('created_at', `${inicioMesAnterior}T00:00:00`)
+        .lte('created_at', `${fimMesAnterior}T23:59:59`);
+      const totalMesAnterior = vendasMesAnterior?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+      const diff = totalMesAnterior > 0 ? ((totalMes - totalMesAnterior) / totalMesAnterior) * 100 : 0;
+      const sinal = diff > 0 ? '+' : '';
+      document.getElementById('comparativoMes').textContent = `${sinal}${diff.toFixed(1)}% em relação ao mês anterior`;
+
+      // Atendimentos hoje
+      const { count: atendimentosHoje } = await supabaseClient
+        .from('vendas')
+        .select('*', { count: 'exact' })
+        .eq('barbearia_id', barbeariaId)
+        .gte('created_at', `${hoje}T00:00:00`)
+        .lte('created_at', `${hoje}T23:59:59`);
+      document.getElementById('atendimentosHoje').textContent = atendimentosHoje || 0;
+
+      // Clientes atendidos no mês
+      const { data: clientesMes } = await supabaseClient
+        .from('vendas')
+        .select('barbeiro_nome')
+        .eq('barbearia_id', barbeariaId)
+        .gte('created_at', `${inicioMes}T00:00:00`);
+      const clientesUnicos = [...new Set(clientesMes?.map(v => v.barbeiro_nome).filter(Boolean))];
+      document.getElementById('clientesMes').textContent = clientesUnicos.length;
+
+      // Ticket médio
+      const ticketMedio = atendimentosHoje > 0 ? totalHoje / atendimentosHoje : 0;
+      document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
+
+      // Gráfico de faturamento (últimos 7 dias)
+      const datas7dias = [];
+      const valores7dias = [];
+      for (let i = 6; i >= 0; i--) {
+        const dia = new Date();
+        dia.setDate(dia.getDate() - i);
+        const diaStr = dia.toISOString().split('T')[0];
+        datas7dias.push(diaStr);
+
+        const { data } = await supabaseClient
+          .from('vendas')
+          .select('total')
+          .eq('barbearia_id', barbeariaId)
+          .gte('created_at', `${diaStr}T00:00:00`)
+          .lte('created_at', `${diaStr}T23:59:59`);
+        const total = data?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+        valores7dias.push(total);
+      }
+
+      const ctx1 = document.getElementById('graficoFaturamento').getContext('2d');
+      if (window.graficoFaturamento) window.graficoFaturamento.destroy();
+      window.graficoFaturamento = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: datas7dias,
+          datasets: [{
+            label: 'Faturamento (R$)',
+            data: valores7dias,
+            borderColor: '#C8A045',
+            backgroundColor: 'rgba(200,160,69,0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+
+      // Serviços mais vendidos
+      const { data: servicos } = await supabaseClient
+        .from('vendas')
+        .select('descricao');
+      const contagem = {};
+      servicos?.forEach(s => {
+        const serv = s.descricao || 'Outros';
+        contagem[serv] = (contagem[serv] || 0) + 1;
+      });
+      const labels = Object.keys(contagem);
+      const dados = Object.values(contagem);
+
+      const ctx2 = document.getElementById('graficoServicos').getContext('2d');
+      if (window.graficoServicos) window.graficoServicos.destroy();
+      window.graficoServicos = new Chart(ctx2, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            data: dados,
+            backgroundColor: ['#C8A045', '#a88c3a', '#8a6d3b', '#6c5b34']
+          }]
+        },
+        options: { responsive: true }
+      });
+
+      // Forma de pagamento
+      const { data: pagamentos } = await supabaseClient
+        .from('vendas')
+        .select('forma_pagamento');
+      const contagemPag = {};
+      pagamentos?.forEach(p => {
+        const forma = p.forma_pagamento || 'Outros';
+        contagemPag[forma] = (contagemPag[forma] || 0) + 1;
+      });
+      const labelsPag = Object.keys(contagemPag);
+      const dadosPag = Object.values(contagemPag);
+
+      const ctx3 = document.getElementById('graficoPagamento').getContext('2d');
+      if (window.graficoPagamento) window.graficoPagamento.destroy();
+      window.graficoPagamento = new Chart(ctx3, {
+        type: 'bar',
+        data: {
+          labels: labelsPag,
+          datasets: [{
+            label: 'Quantidade',
+            data: dadosPag,
+            backgroundColor: '#C8A045'
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+    }
+
+    // --- Dashboard para Barbeiro ---
+    async function refreshDashboardBarbeiro() {
+      const barbeiroId = currentProfile?.id;
+      const hoje = new Date().toISOString().split('T')[0];
+
+      // Clientes hoje
+      const { count: clientesHoje } = await supabaseClient
+        .from('vendas')
+        .select('*', { count: 'exact' })
+        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
+        .gte('created_at', `${hoje}T00:00:00`)
+        .lte('created_at', `${hoje}T23:59:59`);
+      document.getElementById('clientesHojeBarbeiro').textContent = clientesHoje || 0;
+
+      // Faturamento hoje
+      const { data: vendasHoje } = await supabaseClient
+        .from('vendas')
+        .select('total')
+        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
+        .gte('created_at', `${hoje}T00:00:00`)
+        .lte('created_at', `${hoje}T23:59:59`);
+      const total = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+      document.getElementById('faturamentoHojeBarbeiro').textContent = `R$ ${total.toFixed(2)}`;
+
+      // Próximo horário
+      const { data: proximos } = await supabaseClient
+        .from('agendamentos')
+        .select('data_hora, cliente_nome')
+        .eq('barbeiro_id', barbeiroId)
+        .gte('data_hora', new Date().toISOString())
+        .order('data_hora', { ascending: true })
+        .limit(1);
+      if (proximos && proximos[0]) {
+        const data = new Date(proximos[0].data_hora);
+        document.getElementById('proximoHorarioBarbeiro').innerHTML = `
+          ${data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - 
+          <strong>${proximos[0].cliente_nome}</strong>
+        `;
+      } else {
+        document.getElementById('proximoHorarioBarbeiro').textContent = 'Nenhum agendamento';
+      }
+    }
+
 
     // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
@@ -2849,6 +3062,7 @@
         
         if (section === 'dashboard') {
           dashboardSection.classList.remove('hidden');
+          await refreshDashboard(); // ✅ Garantir refresh ao voltar
         } else if (section === 'agenda') {
           agendaSection.classList.remove('hidden');
           await refreshAgenda();
@@ -2872,12 +3086,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
