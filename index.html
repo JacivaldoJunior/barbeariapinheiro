@@ -1133,6 +1133,17 @@
     const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
 
+// --- LOGOUT ---
+btnLogout.addEventListener('click', async () => {
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) {
+    console.error('❌ Erro ao sair:', error.message);
+  } else {
+    console.log('✅ Usuário desconectado');
+    setUnauthenticated(); // Atualiza a UI para o estado de não logado
+  }
+});
+
     // Agenda
     const tableAgenda = document.querySelector('#tableAgenda tbody');
     const agendaFiltroData = document.getElementById('agendaFiltroData');
@@ -3034,3 +3045,4 @@
   </script>
 </body>
 </html>
+
