@@ -1,6 +1,4 @@
 
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1840,6 +1838,48 @@ async function atualizarGraficoServicosComFiltro() {
     console.error('Erro ao atualizar gráfico de serviços:', err);
   }
 }
+
+
+// Inicializa filtros com "últimos 7 dias" e registra os listeners dos botões
+document.addEventListener('DOMContentLoaded', () => {
+  const hoje = new Date();
+  const seteDias = new Date();
+  seteDias.setDate(hoje.getDate() - 6); // 7 dias no total
+  const fmt = d => d.toISOString().split('T')[0];
+  const inicio = fmt(seteDias);
+  const fim = fmt(hoje);
+
+  const filtroInicio = document.getElementById('filtroDataInicio');
+  const filtroFim = document.getElementById('filtroDataFim');
+  if (filtroInicio && filtroFim) {
+    filtroInicio.value = inicio;
+    filtroFim.value = fim;
+  }
+
+  const servInicio = document.getElementById('filtroServicoDataInicio');
+  const servFim = document.getElementById('filtroServicoDataFim');
+  if (servInicio && servFim) {
+    servInicio.value = inicio;
+    servFim.value = fim;
+  }
+
+  const btnFatur = document.getElementById('btnFiltrarFaturamento');
+  const btnServ = document.getElementById('btnFiltrarServicos');
+  if (btnFatur) btnFatur.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
+  if (btnServ) btnServ.addEventListener('click', atualizarGraficoServicosComFiltro);
+
+  // Popular os gráficos ao carregar
+  try { const r1 = atualizarGraficoFaturamentoComFiltro(); if (r1 && typeof r1.catch === 'function') r1.catch(console.error); } catch(e){console.error(e);}
+  try { const r2 = atualizarGraficoServicosComFiltro(); if (r2 && typeof r2.catch === 'function') r2.catch(console.error); } catch(e){console.error(e);}
+});
+
+
+
+
+
+
+
+
  
 // Ativa os botões de filtrar que pararam de funcionar
 document.addEventListener('DOMContentLoaded', () => {
