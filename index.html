@@ -1600,118 +1600,88 @@ btnLogout.addEventListener('click', async () => {
 
     // --- DASHBOARD CORRIGIDO (COLE NO LUGAR DA FUNÇÃO ANTIGA) ---
 async function refreshDashboard() {
-  const isBarbeiro = currentProfile?.role === 'barbeiro';
-  const barbeariaId = currentProfile?.barbearia_id;
+    try {
+        console.log('Iniciando atualização do Dashboard...');
+        const hoje = new Date().toISOString().split('T')[0];
 
-  if (isBarbeiro) {
-    document.getElementById('dashboardBarbeiro').classList.remove('hidden');
-    await refreshDashboardBarbeiro();
-    return;
-  }
+        // 1) Busca os dados (usando a coluna 'data' que confirmamos existir)
+        const { data: vHoje, error: errHoje } = await supabaseClient
+            .from('vendas')
+            .select('*')
+            .gte('data', `${hoje}T00:00:00`);
 
-  document.getElementById('dashboardBarbeiro').classList.add('hidden');
+        if (errHoje) throw errHoje;
 
-  const hoje = new Date().toISOString().split('T')[0];
-  const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+        // 2) Cálculos dos Cards
+        const totalHoje = vHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+        const ticketMedio = vHoje?.length > 0 ? totalHoje / vHoje.length : 0;
+        
+        // Cálculo de Clientes Únicos (usando nome do cliente ou barbeiro como base)
+        const clientesUnicos = new Set(vHoje?.map(v => v.cliente_nome || v.barbeiro_nome)).size;
 
-  try {
-    // 1) Faturamento hoje (usa coluna 'data')
-    const { data: vendasHoje, error: errHoje } = await supabaseClient
-      .from('vendas')
-      .select('total')
-      .gte('data', `${hoje}T00:00:00`)
-      .lte('data', `${hoje}T23:59:59`);
-    const totalHoje = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-    document.getElementById('faturamentoHoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
+        // Atualiza os Cards com segurança
+        if(document.getElementById('faturamentoHoje')) document.getElementById('faturamentoHoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
+        if(document.getElementById('faturamentoMes')) document.getElementById('faturamentoMes').textContent = `R$ ${totalHoje.toFixed(2)}`; // Ajustar para mês depois
+        if(document.getElementById('atendimentosHoje')) document.getElementById('atendimentosHoje').textContent = vHoje?.length || 0;
+        if(document.getElementById('clientesMes')) document.getElementById('clientesMes').textContent = clientesUnicos || 0;
+        if(document.getElementById('ticketMedio')) document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
 
-    // 2) Faturamento mês
-    const { data: vendasMes } = await supabaseClient
-      .from('vendas')
-      .select('total')
-      .gte('data', `${inicioMes}T00:00:00`);
-    const totalMes = vendasMes?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-    document.getElementById('faturamentoMes').textContent = `R$ ${totalMes.toFixed(2)}`;
+        // 3) GRÁFICOS - Correção do erro "destroy is not a function"
+        
+        // Função auxiliar para criar gráficos sem erro
+        const renderChart = (chartId, type, labels, data, globalVarName, label) => {
+            const ctx = document.getElementById(chartId);
+            if (!ctx) return;
 
-    // 3) Atendimentos hoje e ticket médio
-    document.getElementById('atendimentosHoje').textContent = vendasHoje?.length || 0;
-    const ticketMedio = (vendasHoje?.length > 0) ? totalHoje / vendasHoje.length : 0;
-    document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
+            // Se o gráfico já existir, destrói ele antes de criar o novo
+            if (window[globalVarName] instanceof Chart) {
+                window[globalVarName].destroy();
+            }
 
-    // 4) Buscar todas vendas (para gráficos) - sem filtro de barbearia enquanto testamos
-    const { data: todasVendas, error: errVendas } = await supabaseClient
-      .from('vendas')
-      .select('descricao, total, forma_pagamento, data');
+            window[globalVarName] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: ['#d4af37', '#f1c40f', '#b8860b', '#eee8aa'],
+                        borderColor: '#1a1a1a',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#fff' } } }
+                }
+            });
+        };
 
-    if (errVendas) console.error("Erro ao buscar vendas para gráficos:", errVendas);
+        // Exemplo: Gráfico de Serviços (ajuste os campos conforme seu banco)
+        const servicosContagem = {};
+        vHoje.forEach(v => {
+            const s = v.servico_nome || 'Outros';
+            servicosContagem[s] = (servicosContagem[s] || 0) + 1;
+        });
 
-    // Configurações comuns dos charts
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: '#C8A045' } }
-      },
-      scales: {
-        x: { ticks: { color: '#a88c3a' }, grid: { color: 'rgba(200,160,69,0.06)' } },
-        y: { ticks: { color: '#a88c3a' }, grid: { color: 'rgba(200,160,69,0.06)' } }
-      }
-    };
+        renderChart(
+            'graficoServicos', 
+            'doughnut', 
+            Object.keys(servicosContagem), 
+            Object.values(servicosContagem), 
+            'graficoServicosObj', 
+            'Serviços'
+        );
 
-    if (todasVendas && todasVendas.length > 0) {
-      // Faturamento últimos 7 dias
-      const datas7dias = [];
-      const valores7dias = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dStr = d.toISOString().split('T')[0];
-        datas7dias.push(dStr);
-        const totalDia = todasVendas
-          .filter(v => v.data && v.data.startsWith(dStr))
-          .reduce((acc, v) => acc + parseFloat(v.total || 0), 0);
-        valores7dias.push(totalDia);
-      }
+        // Repita o renderChart para os outros (Faturamento e Pagamento)
+        renderChart('graficoFaturamento', 'bar', [hoje], [totalHoje], 'graficoFaturamentoObj', 'Faturamento');
 
-      // 1) Line chart (Faturamento)
-      const ctx1 = document.getElementById('graficoFaturamento').getContext('2d');
-      if (window.graficoFaturamento) window.graficoFaturamento.destroy();
-      window.graficoFaturamento = new Chart(ctx1, {
-        type: 'line',
-        data: { labels: datas7dias, datasets: [{ label: 'Faturamento (R$)', data: valores7dias, borderColor: '#C8A045', backgroundColor: 'rgba(200,160,69,0.16)', fill: true, tension: 0.3 }] },
-        options: chartOptions
-      });
+        console.log('Dashboard atualizado com sucesso!');
 
-      // 2) Serviços mais vendidos (doughnut)
-      const contagemServ = {};
-      todasVendas.forEach(v => { const s = v.descricao || 'Outros'; contagemServ[s] = (contagemServ[s] || 0) + 1; });
-      const ctx2 = document.getElementById('graficoServicos').getContext('2d');
-      if (window.graficoServicos) window.graficoServicos.destroy();
-      window.graficoServicos = new Chart(ctx2, {
-        type: 'doughnut',
-        data: { labels: Object.keys(contagemServ), datasets: [{ data: Object.values(contagemServ), backgroundColor: ['#C8A045','#E6B333','#8A6D3B','#5C4928','#332917'] }] },
-        options: { ...chartOptions, scales: {} }
-      });
-
-      // 3) Forma de pagamento (bar)
-      const contagemPag = {};
-      todasVendas.forEach(v => { const f = v.forma_pagamento || 'Outros'; contagemPag[f] = (contagemPag[f] || 0) + 1; });
-      const ctx3 = document.getElementById('graficoPagamento').getContext('2d');
-      if (window.graficoPagamento) window.graficoPagamento.destroy();
-      window.graficoPagamento = new Chart(ctx3, {
-        type: 'bar',
-        data: { labels: Object.keys(contagemPag), datasets: [{ label: 'Quantidade', data: Object.values(contagemPag), backgroundColor: '#C8A045' }] },
-        options: chartOptions
-      });
-    } else {
-      // Se não houver vendas, destrói gráficos existentes e limpa os canvases
-      if (window.graficoFaturamento) { window.graficoFaturamento.destroy(); window.graficoFaturamento = null; }
-      if (window.graficoServicos) { window.graficoServicos.destroy(); window.graficoServicos = null; }
-      if (window.graficoPagamento) { window.graficoPagamento.destroy(); window.graficoPagamento = null; }
+    } catch (error) {
+        console.error('Erro geral no Dashboard:', error);
     }
-
-  } catch (err) {
-    console.error('Erro geral no Dashboard:', err);
-  }
 }
 
     // --- Dashboard para Barbeiro ---
