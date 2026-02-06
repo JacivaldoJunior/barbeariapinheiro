@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -857,8 +859,10 @@
           </select>
         </div>
         <div class="form-row">
-          <input id="inputBarbeiroNome" placeholder="Nome do barbeiro" />
-        </div>
+  <select id="selectBarbeiroVenda">
+    <option value="">Selecione o barbeiro (opcional)</option>
+  </select>
+</div>
         <button id="btnCriarVenda" class="btn" style="margin-top:10px;">Criar Venda</button>
         <div id="vendaMsg"></div>
       </section>
@@ -1546,11 +1550,13 @@ btnLogout.addEventListener('click', async () => {
     }
 
     // --- CARREGAR BARBEIROS ---
+    // --- CARREGAR BARBEIROS (VERSÃO CORRIGIDA - PASSO 2) ---
     async function loadBarbeiros() {
       try {
+        // 1. Buscamos o ID e também o EMAIL/NOME para exibir no select
         let query = supabaseClient
           .from('profiles')
-          .select('id, barbearia_id, barbearias(nome)')
+          .select('id, email, nome, barbearia_id, barbearias(nome)')
           .eq('role', 'barbeiro')
           .order('barbearia_id');
 
@@ -1562,38 +1568,33 @@ btnLogout.addEventListener('click', async () => {
         
         if (error) {
           console.error('❌ Erro ao carregar barbeiros:', error);
-          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
           return;
         }
         
         if (data && data.length > 0) {
+          // 2. Montamos as opções: value é o ID (UUID) e o texto é o Nome/Email
           const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
             data.map(b => {
+              const nomeBarbeiro = b.nome || b.email || 'Barbeiro';
               const barbeariaNome = b.barbearias?.nome || 'N/A';
-              return `<option value="${b.id}">${barbeariaNome}</option>`;
+              return `<option value="${b.id}">${nomeBarbeiro} (${barbeariaNome})</option>`;
             }).join('');
           
-          const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
-            data.map(b => {
-              const barbeariaNome = b.barbearias?.nome || 'N/A';
-              return `<option value="${b.id}">${barbeariaNome}</option>`;
-            }).join('');
+          // 3. Aplicamos em todos os selects de barbeiro do sistema
+          const selects = [
+            'selectBarbeiro', 
+            'editBarbeiro', 
+            'novoBarbeiro', 
+            'agendaFiltroBarbeiro',
+            'selectBarbeiroVenda' // Este é o select da área de Vendas
+          ];
+
+          selects.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = options;
+          });
           
-          selectBarbeiro.innerHTML = options;
-          editBarbeiro.innerHTML = options;
-          novoBarbeiro.innerHTML = options;
-          agendaFiltroBarbeiro.innerHTML = filtroOptions;
-          
-          console.log('✅ Barbeiros carregados:', data.length);
-        } else {
-          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
-          console.warn('⚠️ Nenhum barbeiro encontrado');
+          console.log('✅ Barbeiros carregados nos selects:', data.length);
         }
       } catch (err) {
         console.error('❌ Erro ao carregar barbeiros:', err);
@@ -2870,6 +2871,17 @@ document.addEventListener('DOMContentLoaded', () => {
         vendaMsg.textContent = 'Criando venda...';
         vendaMsg.className = 'muted';
 
+        try {
+        vendaMsg.textContent = 'Criando venda...';
+        vendaMsg.className = 'muted';
+
+        // Pegamos o ID (UUID) do select
+        const barbeiroId = document.getElementById('selectBarbeiroVenda').value || null;
+        
+        // Pegamos o Nome (texto) que está selecionado para salvar como referência
+        const selectEl = document.getElementById('selectBarbeiroVenda');
+        const barbeiroNome = barbeiroId ? selectEl.options[selectEl.selectedIndex].text : null;
+
         const { data, error } = await supabaseClient
           .from('vendas')
           .insert([{
@@ -2877,10 +2889,12 @@ document.addEventListener('DOMContentLoaded', () => {
             total: parseFloat(valorVenda.value),
             forma_pagamento: selectFormaPagamento.value,
             barbearia_id: selectBarbeariaVenda.value,
-            barbeiro_nome: inputBarbeiroNome.value.trim() || null
+            barbeiro_id: barbeiroId, // ✅ AGORA SALVA O ID CORRETO (UUID)
+            barbeiro_nome: barbeiroNome // ✅ SALVA O NOME PARA O DASHBOARD
           }])
-          .select();
-        
+          .select();   
+
+
         if (error) {
           console.error('❌ Erro ao criar venda:', error);
           vendaMsg.textContent = '❌ Erro: ' + error.message;
