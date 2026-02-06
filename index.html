@@ -2396,89 +2396,7 @@
       }
     }
 
-    // --- CRIAR AGENDAMENTO (DASHBOARD) ---
-    btnCriarAgendamento.addEventListener('click', async () => {
-      if (!clienteNome.value.trim()) {
-        agendamentoMsg.textContent = '❌ Digite o nome do cliente';
-        agendamentoMsg.className = 'error-msg';
-        return;
-      }
-      
-      if (!servicoInput.value.trim()) {
-        agendamentoMsg.textContent = '❌ Digite o serviço';
-        agendamentoMsg.className = 'error-msg';
-        return;
-      }
-      
-      if (!dataHoraInput.value) {
-        agendamentoMsg.textContent = '❌ Selecione a data e hora';
-        agendamentoMsg.className = 'error-msg';
-        return;
-      }
-      
-      if (!selectBarbearia.value) {
-        agendamentoMsg.textContent = '❌ Selecione a barbearia';
-        agendamentoMsg.className = 'error-msg';
-        return;
-      }
-
-      // ✅ NOVO: Verificar conflito de horário
-      const dataHoraISO = new Date(dataHoraInput.value).toISOString();
-      const temConflito = await verificarConflito(dataHoraISO, selectBarbeiro.value);
-
-      if (temConflito) {
-        agendamentoMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!';
-        agendamentoMsg.className = 'warning-msg';
-        return;
-      }
-
-      try {
-        agendamentoMsg.textContent = 'Criando agendamento...';
-        agendamentoMsg.className = 'muted';
-
-        const { data, error } = await supabaseClient
-          .from('agendamentos')
-          .insert([{
-            cliente_nome: clienteNome.value.trim(),
-            servico: servicoInput.value.trim(),
-            data_hora: dataHoraISO,
-            barbearia_id: selectBarbearia.value,
-            barbeiro_id: selectBarbeiro.value || null,
-            status: 'Pendente'
-          }])
-          .select();
-        
-        if (error) {
-          console.error('❌ Erro ao criar agendamento:', error);
-          agendamentoMsg.textContent = '❌ Erro: ' + error.message;
-          agendamentoMsg.className = 'error-msg';
-        } else {
-          console.log('✅ Agendamento criado:', data);
-          agendamentoMsg.textContent = '✅ Agendamento criado com sucesso!';
-          agendamentoMsg.className = 'success-msg';
-          
-          clienteNome.value = '';
-          servicoInput.value = '';
-          dataHoraInput.value = '';
-          selectBarbearia.value = '';
-          selectBarbeiro.value = '';
-          
-          await refreshAgendamentos();
-          await refreshAgenda();
-          await refreshAgendaHoje(); // ✅ NOVO
-          await refreshMetrics();
-          
-          setTimeout(() => {
-            agendamentoMsg.textContent = '';
-            agendamentoMsg.className = '';
-          }, 3000);
-        }
-      } catch (err) {
-        console.error('❌ Erro ao criar agendamento:', err);
-        agendamentoMsg.textContent = '❌ Erro ao criar agendamento';
-        agendamentoMsg.className = 'error-msg';
-      }
-    });
+ 
 
     // --- ABRIR MODAL DE EDIÇÃO VENDA ---
     function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
@@ -2954,6 +2872,7 @@
   </script>
 </body>
 </html>
+
 
 
 
