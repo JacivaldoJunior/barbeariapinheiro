@@ -1590,7 +1590,7 @@ btnLogout.addEventListener('click', async () => {
       }
     }
 
-    // --- DASHBOARD MELHORADO ---
+    // --- DASHBOARD CORRIGIDO ---
     async function refreshDashboard() {
       const isBarbeiro = currentProfile?.role === 'barbeiro';
       const barbeariaId = currentProfile?.barbearia_id;
@@ -1603,153 +1603,123 @@ btnLogout.addEventListener('click', async () => {
 
       document.getElementById('dashboardBarbeiro').classList.add('hidden');
 
+      // Pegamos a data de hoje no formato ISO
       const hoje = new Date().toISOString().split('T')[0];
       const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-      const inicioMesAnterior = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0];
-      const fimMesAnterior = new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().split('T')[0];
 
-      // Faturamento hoje
-      const { data: vendasHoje } = await supabaseClient
-        .from('vendas')
-        .select('total')
-        .eq('barbearia_id', barbeariaId)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      const totalHoje = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-      document.getElementById('faturamentoHoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
-
-      // Faturamento mês
-      const { data: vendasMes } = await supabaseClient
-        .from('vendas')
-        .select('total')
-        .eq('barbearia_id', barbeariaId)
-        .gte('created_at', `${inicioMes}T00:00:00`);
-      const totalMes = vendasMes?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-      document.getElementById('faturamentoMes').textContent = `R$ ${totalMes.toFixed(2)}`;
-
-      // Comparativo mês anterior
-      const { data: vendasMesAnterior } = await supabaseClient
-        .from('vendas')
-        .select('total')
-        .eq('barbearia_id', barbeariaId)
-        .gte('created_at', `${inicioMesAnterior}T00:00:00`)
-        .lte('created_at', `${fimMesAnterior}T23:59:59`);
-      const totalMesAnterior = vendasMesAnterior?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-      const diff = totalMesAnterior > 0 ? ((totalMes - totalMesAnterior) / totalMesAnterior) * 100 : 0;
-      const sinal = diff > 0 ? '+' : '';
-      document.getElementById('comparativoMes').textContent = `${sinal}${diff.toFixed(1)}% em relação ao mês anterior`;
-
-      // Atendimentos hoje
-      const { count: atendimentosHoje } = await supabaseClient
-        .from('vendas')
-        .select('*', { count: 'exact' })
-        .eq('barbearia_id', barbeariaId)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      document.getElementById('atendimentosHoje').textContent = atendimentosHoje || 0;
-
-      // Clientes atendidos no mês
-      const { data: clientesMes } = await supabaseClient
-        .from('vendas')
-        .select('barbeiro_nome')
-        .eq('barbearia_id', barbeariaId)
-        .gte('created_at', `${inicioMes}T00:00:00`);
-      const clientesUnicos = [...new Set(clientesMes?.map(v => v.barbeiro_nome).filter(Boolean))];
-      document.getElementById('clientesMes').textContent = clientesUnicos.length;
-
-      // Ticket médio
-      const ticketMedio = atendimentosHoje > 0 ? totalHoje / atendimentosHoje : 0;
-      document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
-
-      // Gráfico de faturamento (últimos 7 dias)
-      const datas7dias = [];
-      const valores7dias = [];
-      for (let i = 6; i >= 0; i--) {
-        const dia = new Date();
-        dia.setDate(dia.getDate() - i);
-        const diaStr = dia.toISOString().split('T')[0];
-        datas7dias.push(diaStr);
-
-        const { data } = await supabaseClient
+      try {
+        // 1. Faturamento hoje (Usando a coluna 'data' em vez de 'created_at')
+        const { data: vendasHoje, error: errHoje } = await supabaseClient
           .from('vendas')
           .select('total')
-          .eq('barbearia_id', barbeariaId)
-          .gte('created_at', `${diaStr}T00:00:00`)
-          .lte('created_at', `${diaStr}T23:59:59`);
-        const total = data?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-        valores7dias.push(total);
+          .gte('data', `${hoje}T00:00:00`)
+          .lte('data', `${hoje}T23:59:59`);
+        
+        const totalHoje = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+        document.getElementById('faturamentoHoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
+
+        // 2. Faturamento mês
+        const { data: vendasMes } = await supabaseClient
+          .from('vendas')
+          .select('total')
+          .gte('data', `${inicioMes}T00:00:00`);
+        
+        const totalMes = vendasMes?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+        document.getElementById('faturamentoMes').textContent = `R$ ${totalMes.toFixed(2)}`;
+
+        // 3. Atendimentos hoje
+        document.getElementById('atendimentosHoje').textContent = vendasHoje?.length || 0;
+
+        // 4. Ticket médio
+        const ticketMedio = (vendasHoje?.length > 0) ? totalHoje / vendasHoje.length : 0;
+        document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
+
+        // --- GRÁFICOS (Removido filtro de barbearia para teste) ---
+        
+        const { data: todasVendas, error: errVendas } = await supabaseClient
+          .from('vendas')
+          .select('descricao, total, forma_pagamento, data');
+
+        if (errVendas) console.error("Erro ao buscar vendas para gráficos:", errVendas);
+
+        if (todasVendas) {
+          // Gráfico de faturamento (últimos 7 dias)
+          const datas7dias = [];
+          const valores7dias = [];
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dStr = d.toISOString().split('T')[0];
+            datas7dias.push(dStr);
+
+            const totalDia = todasVendas
+              .filter(v => v.data && v.data.startsWith(dStr))
+              .reduce((acc, v) => acc + parseFloat(v.total || 0), 0);
+            valores7dias.push(totalDia);
+          }
+
+          const ctx1 = document.getElementById('graficoFaturamento').getContext('2d');
+          if (window.graficoFaturamento) window.graficoFaturamento.destroy();
+          window.graficoFaturamento = new Chart(ctx1, {
+            type: 'line',
+            data: {
+              labels: datas7dias,
+              datasets: [{
+                label: 'Faturamento (R$)',
+                data: valores7dias,
+                borderColor: '#C8A045',
+                backgroundColor: 'rgba(200,160,69,0.1)',
+                tension: 0.3,
+                fill: true
+              }]
+            }
+          });
+
+          // Serviços mais vendidos
+          const contagemServ = {};
+          todasVendas.forEach(v => {
+            const s = v.descricao || 'Outros';
+            contagemServ[s] = (contagemServ[s] || 0) + 1;
+          });
+
+          const ctx2 = document.getElementById('graficoServicos').getContext('2d');
+          if (window.graficoServicos) window.graficoServicos.destroy();
+          window.graficoServicos = new Chart(ctx2, {
+            type: 'pie',
+            data: {
+              labels: Object.keys(contagemServ),
+              datasets: [{
+                data: Object.values(contagemServ),
+                backgroundColor: ['#C8A045', '#a88c3a', '#8a6d3b', '#6c5b34', '#4e412a']
+              }]
+            }
+          });
+
+          // Forma de pagamento
+          const contagemPag = {};
+          todasVendas.forEach(v => {
+            const f = v.forma_pagamento || 'Outros';
+            contagemPag[f] = (contagemPag[f] || 0) + 1;
+          });
+
+          const ctx3 = document.getElementById('graficoPagamento').getContext('2d');
+          if (window.graficoPagamento) window.graficoPagamento.destroy();
+          window.graficoPagamento = new Chart(ctx3, {
+            type: 'bar',
+            data: {
+              labels: Object.keys(contagemPag),
+              datasets: [{
+                label: 'Quantidade',
+                data: Object.values(contagemPag),
+                backgroundColor: '#C8A045'
+              }]
+            }
+          });
+        }
+
+      } catch (err) {
+        console.error('Erro geral no Dashboard:', err);
       }
-
-      const ctx1 = document.getElementById('graficoFaturamento').getContext('2d');
-      if (window.graficoFaturamento) window.graficoFaturamento.destroy();
-      window.graficoFaturamento = new Chart(ctx1, {
-        type: 'line',
-        data: {
-          labels: datas7dias,
-          datasets: [{
-            label: 'Faturamento (R$)',
-            data: valores7dias,
-            borderColor: '#C8A045',
-            backgroundColor: 'rgba(200,160,69,0.1)',
-            tension: 0.3,
-            fill: true
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-      });
-
-      // Serviços mais vendidos
-      const { data: servicos } = await supabaseClient
-        .from('vendas')
-        .select('descricao');
-      const contagem = {};
-      servicos?.forEach(s => {
-        const serv = s.descricao || 'Outros';
-        contagem[serv] = (contagem[serv] || 0) + 1;
-      });
-      const labels = Object.keys(contagem);
-      const dados = Object.values(contagem);
-
-      const ctx2 = document.getElementById('graficoServicos').getContext('2d');
-      if (window.graficoServicos) window.graficoServicos.destroy();
-      window.graficoServicos = new Chart(ctx2, {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [{
-            data: dados,
-            backgroundColor: ['#C8A045', '#a88c3a', '#8a6d3b', '#6c5b34']
-          }]
-        },
-        options: { responsive: true }
-      });
-
-      // Forma de pagamento
-      const { data: pagamentos } = await supabaseClient
-        .from('vendas')
-        .select('forma_pagamento');
-      const contagemPag = {};
-      pagamentos?.forEach(p => {
-        const forma = p.forma_pagamento || 'Outros';
-        contagemPag[forma] = (contagemPag[forma] || 0) + 1;
-      });
-      const labelsPag = Object.keys(contagemPag);
-      const dadosPag = Object.values(contagemPag);
-
-      const ctx3 = document.getElementById('graficoPagamento').getContext('2d');
-      if (window.graficoPagamento) window.graficoPagamento.destroy();
-      window.graficoPagamento = new Chart(ctx3, {
-        type: 'bar',
-        data: {
-          labels: labelsPag,
-          datasets: [{
-            label: 'Quantidade',
-            data: dadosPag,
-            backgroundColor: '#C8A045'
-          }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-      });
     }
 
     // --- Dashboard para Barbeiro ---
@@ -3095,3 +3065,4 @@ btnLogout.addEventListener('click', async () => {
   </script>
 </body>
 </html>
+
