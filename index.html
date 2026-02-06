@@ -690,23 +690,29 @@
         </article>
       </section>
 
-      <!-- ✅ Gráficos -->
-      <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 24px;">
-        <div class="card">
-  <h2>Faturamento por período</h2>
-  <div style="height:220px;">
-    <canvas id="graficoFaturamento"></canvas>
+     <!-- ✅ Gráficos -->
+<section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 24px;">
+  <div class="card">
+    <h2>Faturamento por período</h2>
+    <div style="height:220px;">
+      <canvas id="graficoFaturamento"></canvas>
+    </div>
   </div>
-</div>
-        <div class="card">
-          <h2>Serviços mais vendidos</h2>
-          <canvas id="graficoServicos" height="100"></canvas>
-        </div>
-        <div class="card">
-          <h2>Forma de pagamento</h2>
-          <canvas id="graficoPagamento" height="100"></canvas>
-        </div>
-      </section>
+
+  <div class="card">
+    <h2>Serviços mais vendidos</h2>
+    <div style="height:220px;">
+      <canvas id="graficoServicos"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Forma de pagamento</h2>
+    <div style="height:220px;">
+      <canvas id="graficoPagamento"></canvas>
+    </div>
+  </div>
+</section>
 
       <!-- ✅ Visão para Barbeiro -->
       <section id="dashboardBarbeiro" class="hidden">
@@ -1123,7 +1129,7 @@
     const dashboardSection = document.getElementById('dashboard');
     const agendaSection = document.getElementById('agenda');
     const vendasSection = document.getElementById('vendas');
-    const tableBody = document.querySelector('#tableAgendamentos tbody');
+    const tableBody = document.querySelector('#tableAgenda tbody');
     const selectBarbearia = document.getElementById('selectBarbearia');
     const selectBarbeiro = document.getElementById('selectBarbeiro');
     const clienteNome = document.getElementById('clienteNome');
