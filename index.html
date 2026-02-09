@@ -1653,140 +1653,60 @@ async function refreshDashboard() {
 
         // 3) GRÁFICOS - Correção do erro "destroy is not a function"
       
-       // Updated function for filtered revenue chart
-async function atualizarGraficoFaturamentoComFiltro() {
-  try {
-    const inicio = document.getElementById('filtroDataInicio')?.value;
-    const fim = document.getElementById('filtroDataFim')?.value;
-    if (!inicio || !fim) return;
+        // Função auxiliar para criar gráficos sem erro
+        const renderChart = (chartId, type, labels, data, globalVarName, label) => {
+            const ctx = document.getElementById(chartId);
+            if (!ctx) return;
 
-    const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
-    const fimISO = new Date(fim + 'T23:59:59').toISOString();
-
-    const { data: vendas, error } = await supabaseClient
-      .from('vendas')
-      .select('total, created_at')
-      .gte('created_at', inicioISO)
-      .lte('created_at', fimISO);
-
-    if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
-
-    const faturamentoPorDia = {};
-    (vendas || []).forEach(v => {
-      const dia = new Date(v.created_at).toISOString().split('T')[0];
-      faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + parseFloat(v.total || 0);
-    });
-
-    const labels = Object.keys(faturamentoPorDia).sort();
-    const dataValues = labels.map(d => faturamentoPorDia[d] || 0);
-  
-    // Calculate total for percentage display
-    const total = dataValues.reduce((sum, value) => sum + value, 0);
-  
-    const ctx = document.getElementById('graficoFaturamento');
-    if (!ctx) return;
-    if (graficoFaturamentoObj && graficoFaturamentoObj.destroy) graficoFaturamentoObj.destroy();
-
-    graficoFaturamentoObj = new Chart(ctx, {
-      type: 'bar',
-      data: { 
-        labels, 
-        datasets: [{
-          label: 'Faturamento', 
-          data: dataValues, 
-          backgroundColor: '#d4af37', 
-          borderColor: '#1a1a1a', 
-          borderWidth: 1
-        }] 
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: '#fff' } },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const value = context.raw;
-                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                return `R$${value} (${percentage}%)`;
-              }
+            // Se o gráfico já existir, destrói ele antes de criar o novo
+            if (window[globalVarName] instanceof Chart) {
+                window[globalVarName].destroy();
             }
-          }
-        }
-      }
-    });
-  } catch (err) {
-    console.error('Erro ao atualizar gráfico de faturamento:', err);
-  }
-}
 
-// Updated function for filtered services chart
-async function atualizarGraficoServicosComFiltro() {
-  try {
-    const inicio = document.getElementById('filtroServicoDataInicio')?.value;
-    const fim = document.getElementById('filtroServicoDataFim')?.value;
-    if (!inicio || !fim) return;
+            window[globalVarName] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: ['#d4af37', '#f1c40f', '#b8860b', '#eee8aa'],
+                        borderColor: '#1a1a1a',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#fff' } } }
+                }
+            });
+        };
 
-    const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
-    const fimISO = new Date(fim + 'T23:59:59').toISOString();
+        // Exemplo: Gráfico de Serviços (ajuste os campos conforme seu banco)
+        const servicosContagem = {};
+        vHoje.forEach(v => {
+            const s = v.servico_nome || 'Outros';
+            servicosContagem[s] = (servicosContagem[s] || 0) + 1;
+        });
 
-    const { data: vendas, error } = await supabaseClient
-      .from('vendas')
-      .select('descricao, created_at')
-      .gte('created_at', inicioISO)
-      .lte('created_at', fimISO);
+        renderChart(
+            'graficoServicos', 
+            'doughnut', 
+            Object.keys(servicosContagem), 
+            Object.values(servicosContagem), 
+            'graficoServicosObj', 
+            'Serviços'
+        );
 
-    if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
+        // Repita o renderChart para os outros (Faturamento e Pagamento)
+        renderChart('graficoFaturamento', 'bar', [hoje], [totalHoje], 'graficoFaturamentoObj', 'Faturamento');
 
-    const servicosContagem = {};
-    (vendas || []).forEach(v => {
-      const serv = (v.descricao || 'Outros').trim();
-      servicosContagem[serv] = (servicosContagem[serv] || 0) + 1;
-    });
+        console.log('Dashboard atualizado com sucesso!');
 
-    const labels = Object.keys(servicosContagem);
-    const dataValues = labels.map(s => servicosContagem[s]);
-  
-    // Calculate total for percentage display
-    const total = dataValues.reduce((sum, value) => sum + value, 0);
-  
-    const ctx = document.getElementById('graficoServicos');
-    if (!ctx) return;
-    if (graficoServicosObj && graficoServicosObj.destroy) graficoServicosObj.destroy();
-
-    graficoServicosObj = new Chart(ctx, {
-      type: 'doughnut',
-      data: { 
-        labels, 
-        datasets: [{
-          label: 'Serviços', 
-          data: dataValues, 
-          backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], 
-          borderColor: '#1a1a1a', 
-          borderWidth: 1
-        }] 
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: '#fff' } },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const value = context.raw;
-                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                return `${context.label}: ${value} (${percentage}%)`;
-              }
-            }
-          }
-        }
-      }
-    });
-  } catch (err) {
-    console.error('Erro ao atualizar gráfico de serviços:', err);
-  }
+    } catch (error) {
+        console.error('Erro geral no Dashboard:', error);
+    }
 }
 
     // --- Dashboard para Barbeiro ---
