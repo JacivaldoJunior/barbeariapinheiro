@@ -1,13 +1,10 @@
-
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard Barbearia - Preto e Dourado</title>
-  
+
   <!-- ✅ Adicionando Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -20,7 +17,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #C8A045;
     }
-    
+  
     /* FUNDO DA TELA DE LOGIN MELHORADO */
     body {
       background-color: #0a0a0a;
@@ -600,7 +597,7 @@
       background: rgba(46, 204, 113, 0.2); 
       color: #2ecc71; 
     }
-    
+  
     .status-pendente { 
       background: rgba(241, 196, 15, 0.2); 
       color: #f1c40f; 
@@ -818,7 +815,7 @@
     <section id="vendas" class="section hidden">
       <h1>Vendas</h1>
       <p class="subtitle">Gerenciar vendas — Barbearia</p>
-      
+    
       <section class="cards">
         <article class="card">
           <h2>Total de vendas</h2>
@@ -859,10 +856,8 @@
           </select>
         </div>
         <div class="form-row">
-  <select id="selectBarbeiroVenda">
-    <option value="">Selecione o barbeiro (opcional)</option>
-  </select>
-</div>
+          <input id="inputBarbeiroNome" placeholder="Nome do barbeiro" />
+        </div>
         <button id="btnCriarVenda" class="btn" style="margin-top:10px;">Criar Venda</button>
         <div id="vendaMsg"></div>
       </section>
@@ -988,28 +983,28 @@
   <div id="editModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2>Editar Agendamento</h2>
-      
+    
       <label for="editClienteNome">Nome do cliente</label>
       <input id="editClienteNome" type="text" />
-      
+    
       <label for="editServico">Serviço</label>
       <input id="editServico" type="text" />
-      
+    
       <label for="editDataHora">Data e Hora</label>
       <input id="editDataHora" type="datetime-local" />
-      
+    
       <label for="editBarbeiro">Barbeiro</label>
       <select id="editBarbeiro">
         <option value="">Selecione o barbeiro (opcional)</option>
       </select>
-      
+    
       <label for="editBarbearia">Barbearia</label>
       <select id="editBarbearia">
         <option value="">Selecione a barbearia</option>
       </select>
-      
+    
       <div id="editMsg"></div>
-      
+    
       <div class="modal-buttons">
         <button id="btnCancelEdit" class="btn btn-cancel">Cancelar</button>
         <button id="btnSaveEdit" class="btn">Salvar</button>
@@ -1021,13 +1016,13 @@
   <div id="editVendaModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2>Editar Venda</h2>
-      
+    
       <label for="editDescricaoVenda">Descrição</label>
       <input id="editDescricaoVenda" type="text" />
-      
+    
       <label for="editValorVenda">Valor (R$)</label>
       <input id="editValorVenda" type="number" step="0.01" min="0" />
-      
+    
       <label for="editFormaPagamentoVenda">Forma de Pagamento</label>
       <select id="editFormaPagamentoVenda">
         <option value="">Selecione a forma de pagamento</option>
@@ -1036,7 +1031,7 @@
         <option value="PIX">📱 PIX</option>
         <option value="Dinheiro">💵 Dinheiro</option>
       </select>
-      
+    
       <label for="editBarbeariaVenda">Barbearia</label>
       <select id="editBarbeariaVenda">
         <option value="">Selecione a barbearia</option>
@@ -1044,9 +1039,9 @@
 
       <label for="editBarbeiroNomeVenda">Nome do Barbeiro</label>
       <input id="editBarbeiroNomeVenda" type="text" placeholder="Nome do barbeiro" />
-      
+    
       <div id="editVendaMsg"></div>
-      
+    
       <div class="modal-buttons">
         <button id="btnCancelEditVenda" class="btn btn-cancel">Cancelar</button>
         <button id="btnSaveEditVenda" class="btn">Salvar</button>
@@ -1058,28 +1053,28 @@
   <div id="novoAgendamentoModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2>Novo Agendamento</h2>
-      
+    
       <label for="novoClienteNome">Nome do cliente</label>
       <input id="novoClienteNome" type="text" placeholder="Digite o nome do cliente" />
-      
+    
       <label for="novoServico">Serviço</label>
       <input id="novoServico" type="text" placeholder="Ex: Corte, Barba, Corte + Barba" />
-      
+    
       <label for="novoDataHora">Data e Hora</label>
       <input id="novoDataHora" type="datetime-local" />
-      
+    
       <label for="novoBarbeiro">Barbeiro</label>
       <select id="novoBarbeiro">
         <option value="">Selecione o barbeiro (opcional)</option>
       </select>
-      
+    
       <label for="novoBarbearia">Barbearia</label>
       <select id="novoBarbearia">
         <option value="">Selecione a barbearia</option>
       </select>
-      
+    
       <div id="novoAgendamentoModalMsg"></div>
-      
+    
       <div class="modal-buttons">
         <button id="btnCancelNovoAgendamento" class="btn btn-cancel">Cancelar</button>
         <button id="btnSalvarNovoAgendamento" class="btn">Criar Agendamento</button>
@@ -1092,16 +1087,16 @@
     <div class="modal-content">
       <h2>Finalizar Atendimento</h2>
       <p class="muted" style="margin-bottom:16px;">Converter agendamento em venda</p>
-      
+    
       <label for="finalizarCliente">Cliente</label>
       <input id="finalizarCliente" type="text" disabled />
-      
+    
       <label for="finalizarDescricao">Descrição do Serviço</label>
       <input id="finalizarDescricao" type="text" />
-      
+    
       <label for="finalizarValor">Valor (R$)</label>
       <input id="finalizarValor" type="number" step="0.01" min="0" placeholder="0.00" />
-      
+    
       <label for="finalizarFormaPagamento">Forma de Pagamento</label>
       <select id="finalizarFormaPagamento">
         <option value="">Selecione a forma de pagamento</option>
@@ -1110,12 +1105,12 @@
         <option value="PIX">📱 PIX</option>
         <option value="Dinheiro">💵 Dinheiro</option>
       </select>
-      
+    
       <label for="finalizarBarbeiro">Barbeiro</label>
       <input id="finalizarBarbeiro" type="text" />
-      
+    
       <div id="finalizarMsg"></div>
-      
+    
       <div class="modal-buttons">
         <button id="btnCancelFinalizar" class="btn btn-cancel">Cancelar</button>
         <button id="btnConfirmarFinalizar" class="btn">Finalizar e Criar Venda</button>
@@ -1160,6 +1155,15 @@
     const agendaSection = document.getElementById('agenda');
     const vendasSection = document.getElementById('vendas');
     const tableBody = document.querySelector('#tableAgenda tbody');
+    const selectBarbearia = document.getElementById('selectBarbearia');
+    const selectBarbeiro = document.getElementById('selectBarbeiro');
+    const clienteNome = document.getElementById('clienteNome');
+    const servicoInput = document.getElementById('servico');
+    const dataHoraInput = document.getElementById('dataHora');
+    const btnCriarAgendamento = document.getElementById('btnCriarAgendamento');
+    const agendamentoMsg = document.getElementById('agendamentoMsg');
+    const vendasHojeEl = document.getElementById('vendasHoje');
+    const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
 
 // --- LÓGICA DE LOGIN ---
@@ -1167,12 +1171,12 @@ loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   loginMsg.textContent = 'Entrando...';
   loginMsg.className = 'muted';
-  
+
   const { data, error } = await supabaseClient.auth.signInWithPassword({
     email: emailInput.value,
     password: passwordInput.value
   });
-  
+
   if (error) {
     loginMsg.textContent = '❌ ' + error.message;
     loginMsg.className = 'error-msg';
@@ -1187,14 +1191,14 @@ loginForm.addEventListener('submit', async (e) => {
 btnToRegister.addEventListener('click', async () => {
   const email = prompt('Digite o e-mail para a nova conta:');
   const password = prompt('Digite a senha (mínimo 6 caracteres):');
-  
+
   if (email && password) {
     loginMsg.textContent = 'Registrando...';
     const { data, error } = await supabaseClient.auth.signUp({
       email: email,
       password: password
     });
-    
+  
     if (error) {
       loginMsg.textContent = '❌ ' + error.message;
       loginMsg.className = 'error-msg';
@@ -1369,7 +1373,7 @@ btnLogout.addEventListener('click', async () => {
       await refreshResumoBarbeiros();
       await refreshAgenda();
       await refreshAgendaHoje(); // ✅ NOVO
-      
+    
       // Definir data de hoje no filtro
       const hoje = new Date().toISOString().split('T')[0];
       agendaFiltroData.value = hoje;
@@ -1418,7 +1422,7 @@ btnLogout.addEventListener('click', async () => {
       const roleBadge = role === 'gerente' 
         ? '<span class="role-badge role-gerente">📋 Gerente</span>'
         : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>';
-      
+    
       userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
 
       const isGerente = (role === 'gerente');
@@ -1507,16 +1511,16 @@ btnLogout.addEventListener('click', async () => {
           .order('nome');
 
         const { data, error } = await query;
-        
+      
         if (error) {
           console.error('❌ Erro ao carregar barbearias:', error);
           return;
         }
-        
+      
         if (data && data.length > 0) {
           const options = '<option value="">Selecione a barbearia</option>' +
             data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
-          
+        
           // Lista de selects que devem ser preenchidos
           const selects = [
             'selectBarbeariaVenda',
@@ -1541,13 +1545,11 @@ btnLogout.addEventListener('click', async () => {
     }
 
     // --- CARREGAR BARBEIROS ---
-    // --- CARREGAR BARBEIROS (VERSÃO CORRIGIDA - PASSO 2) ---
     async function loadBarbeiros() {
       try {
-        // 1. Buscamos o ID e também o EMAIL/NOME para exibir no select
         let query = supabaseClient
           .from('profiles')
-          .select('id, email, nome, barbearia_id, barbearias(nome)')
+          .select('id, barbearia_id, barbearias(nome)')
           .eq('role', 'barbeiro')
           .order('barbearia_id');
 
@@ -1556,36 +1558,41 @@ btnLogout.addEventListener('click', async () => {
         }
 
         const { data, error } = await query;
-        
+      
         if (error) {
           console.error('❌ Erro ao carregar barbeiros:', error);
+          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
           return;
         }
-        
+      
         if (data && data.length > 0) {
-          // 2. Montamos as opções: value é o ID (UUID) e o texto é o Nome/Email
           const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
             data.map(b => {
-              const nomeBarbeiro = b.nome || b.email || 'Barbeiro';
               const barbeariaNome = b.barbearias?.nome || 'N/A';
-              return `<option value="${b.id}">${nomeBarbeiro} (${barbeariaNome})</option>`;
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
             }).join('');
-          
-          // 3. Aplicamos em todos os selects de barbeiro do sistema
-          const selects = [
-            'selectBarbeiro', 
-            'editBarbeiro', 
-            'novoBarbeiro', 
-            'agendaFiltroBarbeiro',
-            'selectBarbeiroVenda' // Este é o select da área de Vendas
-          ];
-
-          selects.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = options;
-          });
-          
-          console.log('✅ Barbeiros carregados nos selects:', data.length);
+        
+          const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
+            data.map(b => {
+              const barbeariaNome = b.barbearias?.nome || 'N/A';
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
+            }).join('');
+        
+          selectBarbeiro.innerHTML = options;
+          editBarbeiro.innerHTML = options;
+          novoBarbeiro.innerHTML = options;
+          agendaFiltroBarbeiro.innerHTML = filtroOptions;
+        
+          console.log('✅ Barbeiros carregados:', data.length);
+        } else {
+          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          console.warn('⚠️ Nenhum barbeiro encontrado');
         }
       } catch (err) {
         console.error('❌ Erro ao carregar barbeiros:', err);
@@ -1633,7 +1640,7 @@ async function refreshDashboard() {
         // 2) Cálculos dos Cards
         const totalHoje = vHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
         const ticketMedio = vHoje?.length > 0 ? totalHoje / vHoje.length : 0;
-        
+      
         // Cálculo de Clientes Únicos (usando nome do cliente ou barbeiro como base)
         const clientesUnicos = new Set(vHoje?.map(v => v.cliente_nome || v.barbeiro_nome)).size;
 
@@ -1645,76 +1652,148 @@ async function refreshDashboard() {
         if(document.getElementById('ticketMedio')) document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
 
         // 3) GRÁFICOS - Correção do erro "destroy is not a function"
-        
-        // Função auxiliar para criar gráficos sem erro
-        const renderChart = (chartId, type, labels, data, globalVarName, label) => {
-            const ctx = document.getElementById(chartId);
-            if (!ctx) return;
+      
+       // Updated function for filtered revenue chart
+async function atualizarGraficoFaturamentoComFiltro() {
+  try {
+    const inicio = document.getElementById('filtroDataInicio')?.value;
+    const fim = document.getElementById('filtroDataFim')?.value;
+    if (!inicio || !fim) return;
 
-            // Se o gráfico já existir, destrói ele antes de criar o novo
-            if (window[globalVarName] instanceof Chart) {
-                window[globalVarName].destroy();
+    const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
+    const fimISO = new Date(fim + 'T23:59:59').toISOString();
+
+    const { data: vendas, error } = await supabaseClient
+      .from('vendas')
+      .select('total, created_at')
+      .gte('created_at', inicioISO)
+      .lte('created_at', fimISO);
+
+    if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
+
+    const faturamentoPorDia = {};
+    (vendas || []).forEach(v => {
+      const dia = new Date(v.created_at).toISOString().split('T')[0];
+      faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + parseFloat(v.total || 0);
+    });
+
+    const labels = Object.keys(faturamentoPorDia).sort();
+    const dataValues = labels.map(d => faturamentoPorDia[d] || 0);
+  
+    // Calculate total for percentage display
+    const total = dataValues.reduce((sum, value) => sum + value, 0);
+  
+    const ctx = document.getElementById('graficoFaturamento');
+    if (!ctx) return;
+    if (graficoFaturamentoObj && graficoFaturamentoObj.destroy) graficoFaturamentoObj.destroy();
+
+    graficoFaturamentoObj = new Chart(ctx, {
+      type: 'bar',
+      data: { 
+        labels, 
+        datasets: [{
+          label: 'Faturamento', 
+          data: dataValues, 
+          backgroundColor: '#d4af37', 
+          borderColor: '#1a1a1a', 
+          borderWidth: 1
+        }] 
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                return `R$${value} (${percentage}%)`;
+              }
             }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar gráfico de faturamento:', err);
+  }
+}
 
-            window[globalVarName] = new Chart(ctx, {
-                type: type,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        backgroundColor: ['#d4af37', '#f1c40f', '#b8860b', '#eee8aa'],
-                        borderColor: '#1a1a1a',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#fff' } } }
-                }
-            });
-        };
+// Updated function for filtered services chart
+async function atualizarGraficoServicosComFiltro() {
+  try {
+    const inicio = document.getElementById('filtroServicoDataInicio')?.value;
+    const fim = document.getElementById('filtroServicoDataFim')?.value;
+    if (!inicio || !fim) return;
 
-        // Exemplo: Gráfico de Serviços (ajuste os campos conforme seu banco)
-        const servicosContagem = {};
-        vHoje.forEach(v => {
-            const s = v.servico_nome || 'Outros';
-            servicosContagem[s] = (servicosContagem[s] || 0) + 1;
-        });
+    const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
+    const fimISO = new Date(fim + 'T23:59:59').toISOString();
 
-        renderChart(
-            'graficoServicos', 
-            'doughnut', 
-            Object.keys(servicosContagem), 
-            Object.values(servicosContagem), 
-            'graficoServicosObj', 
-            'Serviços'
-        );
+    const { data: vendas, error } = await supabaseClient
+      .from('vendas')
+      .select('descricao, created_at')
+      .gte('created_at', inicioISO)
+      .lte('created_at', fimISO);
 
-        // Repita o renderChart para os outros (Faturamento e Pagamento)
-        renderChart('graficoFaturamento', 'bar', [hoje], [totalHoje], 'graficoFaturamentoObj', 'Faturamento');
+    if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
 
-        console.log('Dashboard atualizado com sucesso!');
+    const servicosContagem = {};
+    (vendas || []).forEach(v => {
+      const serv = (v.descricao || 'Outros').trim();
+      servicosContagem[serv] = (servicosContagem[serv] || 0) + 1;
+    });
 
-    } catch (error) {
-        console.error('Erro geral no Dashboard:', error);
-    }
+    const labels = Object.keys(servicosContagem);
+    const dataValues = labels.map(s => servicosContagem[s]);
+  
+    // Calculate total for percentage display
+    const total = dataValues.reduce((sum, value) => sum + value, 0);
+  
+    const ctx = document.getElementById('graficoServicos');
+    if (!ctx) return;
+    if (graficoServicosObj && graficoServicosObj.destroy) graficoServicosObj.destroy();
+
+    graficoServicosObj = new Chart(ctx, {
+      type: 'doughnut',
+      data: { 
+        labels, 
+        datasets: [{
+          label: 'Serviços', 
+          data: dataValues, 
+          backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], 
+          borderColor: '#1a1a1a', 
+          borderWidth: 1
+        }] 
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#fff' } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                return `${context.label}: ${value} (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar gráfico de serviços:', err);
+  }
 }
 
     // --- Dashboard para Barbeiro ---
 
 // --- Início do ajuste 2: filtros e atualização de gráficos ---
-
-// --- Início do ajuste 2: filtros e atualização de gráficos ---
 let graficoFaturamentoObj = null;
 let graficoServicosObj = null;
-
-// Função auxiliar para calcular porcentagens
-function calcularPorcentagem(valor, total) {
-    if (total === 0) return 0;
-    return ((valor / total) * 100).toFixed(1);
-}
 
 async function atualizarGraficoFaturamentoComFiltro() {
   try {
@@ -1734,12 +1813,9 @@ async function atualizarGraficoFaturamentoComFiltro() {
     if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
 
     const faturamentoPorDia = {};
-    let totalGeral = 0;
     (vendas || []).forEach(v => {
       const dia = new Date(v.created_at).toISOString().split('T')[0];
-      const valor = parseFloat(v.total || 0);
-      faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + valor;
-      totalGeral += valor;
+      faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + parseFloat(v.total || 0);
     });
 
     const labels = Object.keys(faturamentoPorDia).sort();
@@ -1751,23 +1827,8 @@ async function atualizarGraficoFaturamentoComFiltro() {
 
     graficoFaturamentoObj = new Chart(ctx, {
       type: 'bar',
-      data: { labels, datasets: [{ label: 'Faturamento R$', data: dataValues, backgroundColor: '#d4af37' }] },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        plugins: { 
-            legend: { labels: { color: '#fff' } },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const valor = context.raw;
-                        const pct = calcularPorcentagem(valor, totalGeral);
-                        return `R$ ${valor.toFixed(2)} (${pct}%)`;
-                    }
-                }
-            }
-        } 
-      }
+      data: { labels, datasets: [{ label: 'Faturamento', data: dataValues, backgroundColor: '#d4af37', borderColor: '#1a1a1a', borderWidth: 1 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
     });
   } catch (err) {
     console.error('Erro ao atualizar gráfico de faturamento:', err);
@@ -1792,11 +1853,9 @@ async function atualizarGraficoServicosComFiltro() {
     if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
 
     const servicosContagem = {};
-    let totalServicos = 0;
     (vendas || []).forEach(v => {
       const serv = (v.descricao || 'Outros').trim();
       servicosContagem[serv] = (servicosContagem[serv] || 0) + 1;
-      totalServicos++;
     });
 
     const labels = Object.keys(servicosContagem);
@@ -1808,82 +1867,80 @@ async function atualizarGraficoServicosComFiltro() {
 
     graficoServicosObj = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels, datasets: [{ data: dataValues, backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'] }] },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        plugins: { 
-            legend: { labels: { color: '#fff' } },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const valor = context.raw;
-                        const pct = calcularPorcentagem(valor, totalServicos);
-                        return `${context.label}: ${valor} atendimentos (${pct}%)`;
-                    }
-                }
-            }
-        } 
-      }
+      data: { labels, datasets: [{ label: 'Serviços', data: dataValues, backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], borderColor: '#1a1a1a', borderWidth: 1 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
     });
   } catch (err) {
     console.error('Erro ao atualizar gráfico de serviços:', err);
   }
 }
 
+// Event listeners (verifica existência dos elementos antes)
+document.getElementById('btnFiltrarFaturamento')?.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
+document.getElementById('btnFiltrarServicos')?.addEventListener('click', atualizarGraficoServicosComFiltro);
 
-// Inicializa filtros com "últimos 7 dias" e registra os listeners dos botões
-document.addEventListener('DOMContentLoaded', () => {
+// Inicializa filtros com últimos 7 dias (se os inputs estiverem presentes)
+window.addEventListener('load', () => {
   const hoje = new Date();
   const seteDias = new Date();
-  seteDias.setDate(hoje.getDate() - 6); // 7 dias no total
+  seteDias.setDate(hoje.getDate() - 7);
   const fmt = d => d.toISOString().split('T')[0];
-  const inicio = fmt(seteDias);
-  const fim = fmt(hoje);
 
-  const filtroInicio = document.getElementById('filtroDataInicio');
-  const filtroFim = document.getElementById('filtroDataFim');
-  if (filtroInicio && filtroFim) {
-    filtroInicio.value = inicio;
-    filtroFim.value = fim;
-  }
-
-  const servInicio = document.getElementById('filtroServicoDataInicio');
-  const servFim = document.getElementById('filtroServicoDataFim');
-  if (servInicio && servFim) {
-    servInicio.value = inicio;
-    servFim.value = fim;
-  }
-
-  const btnFatur = document.getElementById('btnFiltrarFaturamento');
-  const btnServ = document.getElementById('btnFiltrarServicos');
-  if (btnFatur) btnFatur.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
-  if (btnServ) btnServ.addEventListener('click', atualizarGraficoServicosComFiltro);
-
-  // Popular os gráficos ao carregar
-  try { const r1 = atualizarGraficoFaturamentoComFiltro(); if (r1 && typeof r1.catch === 'function') r1.catch(console.error); } catch(e){console.error(e);}
-  try { const r2 = atualizarGraficoServicosComFiltro(); if (r2 && typeof r2.catch === 'function') r2.catch(console.error); } catch(e){console.error(e);}
-});
-
-
-
-
-
-
-
-
- 
-// Ativa os botões de filtrar que pararam de funcionar
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnFiltrarFaturamento')?.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
-    document.getElementById('btnFiltrarServicos')?.addEventListener('click', atualizarGraficoServicosComFiltro);
-    
-    // Executa uma vez ao carregar para os gráficos não ficarem vazios
+  if (document.getElementById('filtroDataInicio') && document.getElementById('filtroDataFim')) {
+    document.getElementById('filtroDataInicio').value = fmt(seteDias);
+    document.getElementById('filtroDataFim').value = fmt(hoje);
     atualizarGraficoFaturamentoComFiltro();
+  }
+
+  if (document.getElementById('filtroServicoDataInicio') && document.getElementById('filtroServicoDataFim')) {
+    document.getElementById('filtroServicoDataInicio').value = fmt(seteDias);
+    document.getElementById('filtroServicoDataFim').value = fmt(hoje);
     atualizarGraficoServicosComFiltro();
+  }
 });
+// --- Fim do ajuste 2 ---
 
+    async function refreshDashboardBarbeiro() {
+      const barbeiroId = currentProfile?.id;
+      const hoje = new Date().toISOString().split('T')[0];
 
+      // Clientes hoje
+      const { count: clientesHoje } = await supabaseClient
+        .from('vendas')
+        .select('*', { count: 'exact' })
+        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
+        .gte('created_at', `${hoje}T00:00:00`)
+        .lte('created_at', `${hoje}T23:59:59`);
+      document.getElementById('clientesHojeBarbeiro').textContent = clientesHoje || 0;
+
+      // Faturamento hoje
+      const { data: vendasHoje } = await supabaseClient
+        .from('vendas')
+        .select('total')
+        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
+        .gte('created_at', `${hoje}T00:00:00`)
+        .lte('created_at', `${hoje}T23:59:59`);
+      const total = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
+      document.getElementById('faturamentoHojeBarbeiro').textContent = `R$ ${total.toFixed(2)}`;
+
+      // Próximo horário
+      const { data: proximos } = await supabaseClient
+        .from('agendamentos')
+        .select('data_hora, cliente_nome')
+        .eq('barbeiro_id', barbeiroId)
+        .gte('data_hora', new Date().toISOString())
+        .order('data_hora', { ascending: true })
+        .limit(1);
+      if (proximos && proximos[0]) {
+        const data = new Date(proximos[0].data_hora);
+        document.getElementById('proximoHorarioBarbeiro').innerHTML = `
+          ${data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - 
+          <strong>${proximos[0].cliente_nome}</strong>
+        `;
+      } else {
+        document.getElementById('proximoHorarioBarbeiro').textContent = 'Nenhum agendamento';
+      }
+    }
 
  // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
@@ -1893,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .from('vendas')
           .select('total')
           .gte('created_at', hoje);
-        
+      
         if (!vendasError && vendas) {
           const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
           vendasHojeEl.textContent = `R$ ${total.toFixed(2)}`;
@@ -1905,10 +1962,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: agendamentos, error: agendError } = await supabaseClient
           .from('agendamentos')
           .select('id', { count: 'exact' });
-        
+      
         if (!agendError && agendamentos) {
           countAgendamentosEl.textContent = agendamentos.length;
-          
+        
           if (vendas && vendas.length > 0 && agendamentos.length > 0) {
             const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
             const ticketMedio = total / agendamentos.length;
@@ -1931,16 +1988,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const { data: vendas, error } = await supabaseClient
           .from('vendas')
           .select('total');
-        
+      
         if (!error && vendas) {
           const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
           const quantidade = vendas.length;
           const ticketMedio = quantidade > 0 ? total / quantidade : 0;
-          
+        
           totalVendasEl.textContent = `R$ ${total.toFixed(2)}`;
           countVendasEl.textContent = quantidade;
           ticketMedioVendasEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
-          
+        
           console.log('✅ Métricas de vendas atualizadas');
         }
       } catch (err) {
@@ -2005,21 +2062,21 @@ document.addEventListener('DOMContentLoaded', () => {
             profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
           `)
           .order('data_hora', { ascending: true });
-        
+      
         if (error) {
           console.error('❌ Erro ao carregar agendamentos:', error);
           tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
           return;
         }
-        
+      
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-          
+        
           tableBody.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
-            
+          
             const acoesHtml = isBarbeiro ? '' : `
               <td>
                 <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
@@ -2030,7 +2087,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
               </td>
             `;
-            
+          
             return `
               <tr>
                 <td>${row.cliente_nome || 'N/A'}</td>
@@ -2068,7 +2125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (agendaFiltroData.value) {
           const dataInicio = `${agendaFiltroData.value}T00:00:00`;
           const dataFim = `${agendaFiltroData.value}T23:59:59`;
-          
+        
           query = query
             .gte('data_hora', dataInicio)
             .lte('data_hora', dataFim);
@@ -2080,27 +2137,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const { data, error } = await query;
-        
+      
         if (error) {
           console.error('❌ Erro ao carregar agenda:', error);
           tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>';
           return;
         }
-        
+      
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-          
+        
           tableAgenda.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
             const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
             const status = row.status || 'Pendente';
-            
+          
             let statusClass = 'status-pendente';
             if (status === 'Confirmado') statusClass = 'status-confirmado';
             if (status === 'Cancelado') statusClass = 'status-cancelado';
-            
+          
             // ✅ NOVO: Adicionar botão Finalizar Atendimento
             const acoesHtml = isBarbeiro ? '' : `
               <td>
@@ -2121,7 +2178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
               </td>
             `;
-            
+          
             return `
               <tr>
                 <td>${horario}</td>
@@ -2201,7 +2258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ NOVO: ABRIR MODAL FINALIZAR ATENDIMENTO
     async function abrirFinalizarAtendimento(id, clienteNome, servico, barbeariaId, barbeiroId) {
       currentFinalizarAgendamento = { id, clienteNome, servico, barbeariaId, barbeiroId };
-      
+    
       finalizarCliente.value = clienteNome;
       finalizarDescricao.value = servico;
       finalizarValor.value = '';
@@ -2384,7 +2441,7 @@ document.addEventListener('DOMContentLoaded', () => {
       novoBarbearia.value = '';
       novoAgendamentoModalMsg.textContent = '';
       novoAgendamentoModalMsg.className = '';
-      
+    
       // Se for barbeiro, pré-selecionar a barbearia
       if (currentProfile && currentProfile.role === 'barbeiro') {
         novoBarbearia.value = currentProfile.barbearia_id;
@@ -2392,7 +2449,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         novoBarbearia.disabled = false;
       }
-      
+    
       // Abrir modal
       novoAgendamentoModal.classList.remove('hidden');
     });
@@ -2409,19 +2466,19 @@ document.addEventListener('DOMContentLoaded', () => {
         novoAgendamentoModalMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!novoServico.value.trim()) {
         novoAgendamentoModalMsg.textContent = '❌ Digite o serviço';
         novoAgendamentoModalMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!novoDataHora.value) {
         novoAgendamentoModalMsg.textContent = '❌ Selecione a data e hora';
         novoAgendamentoModalMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!novoBarbearia.value) {
         novoAgendamentoModalMsg.textContent = '❌ Selecione a barbearia';
         novoAgendamentoModalMsg.className = 'error-msg';
@@ -2453,7 +2510,7 @@ document.addEventListener('DOMContentLoaded', () => {
             status: 'Pendente'
           }])
           .select();
-        
+      
         if (error) {
           console.error('❌ Erro ao criar agendamento:', error);
           novoAgendamentoModalMsg.textContent = '❌ Erro: ' + error.message;
@@ -2462,12 +2519,12 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('✅ Agendamento criado:', data);
           novoAgendamentoModalMsg.textContent = '✅ Agendamento criado com sucesso!';
           novoAgendamentoModalMsg.className = 'success-msg';
-          
+        
           await refreshAgendamentos();
           await refreshAgenda();
           await refreshAgendaHoje(); // ✅ NOVO
           await refreshMetrics();
-          
+        
           setTimeout(() => {
             novoAgendamentoModal.classList.add('hidden');
           }, 1000);
@@ -2489,46 +2546,46 @@ document.addEventListener('DOMContentLoaded', () => {
             barbearias (nome)
           `)
           .order('created_at', { ascending: false });
-        
+      
         if (error) {
           console.error('❌ Erro ao carregar vendas:', error);
           tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
           return;
         }
-        
+      
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-          
+        
           // Buscar todos os agendamentos para verificar se a venda foi agendada
           const { data: agendamentos, error: agendError } = await supabaseClient
             .from('agendamentos')
             .select('cliente_nome, servico, data_hora');
-          
+        
           tableVendas.innerHTML = data.map(row => {
             const data_criacao = new Date(row.created_at);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.barbeiro_nome || 'N/A';
-            
+          
             // Verificar se existe um agendamento correspondente
             let foiAgendado = false;
             if (agendamentos && !agendError) {
               foiAgendado = agendamentos.some(ag => {
                 const agDataHora = new Date(ag.data_hora);
                 const vendaData = new Date(row.created_at);
-                
+              
                 // Verifica se o serviço é similar e se a data é próxima (mesmo dia)
                 const mesmoServico = ag.servico && row.descricao && 
                   ag.servico.toLowerCase().includes(row.descricao.toLowerCase());
                 const mesmoDia = agDataHora.toDateString() === vendaData.toDateString();
-                
+              
                 return mesmoServico && mesmoDia;
               });
             }
-            
+          
             const agendadoBadge = foiAgendado 
               ? '<span class="status-badge agendado-sim">✓ Sim</span>'
               : '<span class="status-badge agendado-nao">✗ Não</span>';
-            
+          
             const acoesHtml = isBarbeiro ? '' : `
               <td>
                 <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_nome || ''}')">
@@ -2539,7 +2596,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
               </td>
             `;
-            
+          
             return `
               <tr>
                 <td>${row.descricao || 'N/A'}</td>
@@ -2566,19 +2623,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ABRIR MODAL DE EDIÇÃO AGENDAMENTO ---
     function openEditModal(id, clienteNome, servico, dataHora, barbeiroId, barbeariaId) {
       currentEditId = id;
-      
+    
       editClienteNome.value = clienteNome;
       editServico.value = servico;
-      
+    
       const date = new Date(dataHora);
       const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       editDataHora.value = localDate.toISOString().slice(0, 16);
-      
+    
       editBarbeiro.value = barbeiroId || '';
       editBarbearia.value = barbeariaId;
       editMsg.textContent = '';
       editMsg.className = '';
-      
+    
       editModal.classList.remove('hidden');
     }
 
@@ -2597,19 +2654,19 @@ document.addEventListener('DOMContentLoaded', () => {
         editMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!editServico.value.trim()) {
         editMsg.textContent = '❌ Digite o serviço';
         editMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!editDataHora.value) {
         editMsg.textContent = '❌ Selecione a data e hora';
         editMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!editBarbearia.value) {
         editMsg.textContent = '❌ Selecione a barbearia';
         editMsg.className = 'error-msg';
@@ -2618,7 +2675,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // ✅ NOVO: Verificar conflito ao editar (excluindo o próprio agendamento)
       const dataHoraISO = new Date(editDataHora.value).toISOString();
-      
+    
       if (editBarbeiro.value) {
         const { data: conflitos, error } = await supabaseClient
           .from('agendamentos')
@@ -2650,7 +2707,7 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .eq('id', currentEditId)
           .select();
-        
+      
         if (error) {
           console.error('❌ Erro ao atualizar agendamento:', error);
           editMsg.textContent = '❌ Erro: ' + error.message;
@@ -2659,12 +2716,12 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('✅ Agendamento atualizado:', data);
           editMsg.textContent = '✅ Agendamento atualizado com sucesso!';
           editMsg.className = 'success-msg';
-          
+        
           await refreshAgendamentos();
           await refreshAgenda();
           await refreshAgendaHoje(); // ✅ NOVO
           await refreshMetrics();
-          
+        
           setTimeout(() => {
             editModal.classList.add('hidden');
             currentEditId = null;
@@ -2713,7 +2770,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- ABRIR MODAL DE EDIÇÃO VENDA ---
     function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
       currentEditVendaId = id;
-      
+    
       editDescricaoVenda.value = descricao;
       editValorVenda.value = parseFloat(valor);
       editFormaPagamentoVenda.value = formaPagamento;
@@ -2721,7 +2778,7 @@ document.addEventListener('DOMContentLoaded', () => {
       editBarbeiroNomeVenda.value = barbeiroNome || '';
       editVendaMsg.textContent = '';
       editVendaMsg.className = '';
-      
+    
       editVendaModal.classList.remove('hidden');
     }
 
@@ -2740,19 +2797,19 @@ document.addEventListener('DOMContentLoaded', () => {
         editVendaMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!editValorVenda.value || parseFloat(editValorVenda.value) <= 0) {
         editVendaMsg.textContent = '❌ Digite um valor válido';
         editVendaMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!editFormaPagamentoVenda.value) {
         editVendaMsg.textContent = '❌ Selecione a forma de pagamento';
         editVendaMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!editBarbeariaVenda.value) {
         editVendaMsg.textContent = '❌ Selecione a barbearia';
         editVendaMsg.className = 'error-msg';
@@ -2774,7 +2831,7 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .eq('id', currentEditVendaId)
           .select();
-        
+      
         if (error) {
           console.error('❌ Erro ao atualizar venda:', error);
           editVendaMsg.textContent = '❌ Erro: ' + error.message;
@@ -2783,12 +2840,12 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('✅ Venda atualizada:', data);
           editVendaMsg.textContent = '✅ Venda atualizada com sucesso!';
           editVendaMsg.className = 'success-msg';
-          
+        
           await refreshVendas();
           await refreshMetricasVendas();
           await refreshMetrics();
           await refreshResumoBarbeiros();
-          
+        
           setTimeout(() => {
             editVendaModal.classList.add('hidden');
             currentEditVendaId = null;
@@ -2839,19 +2896,19 @@ document.addEventListener('DOMContentLoaded', () => {
         vendaMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!valorVenda.value || parseFloat(valorVenda.value) <= 0) {
         vendaMsg.textContent = '❌ Digite um valor válido';
         vendaMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!selectFormaPagamento.value) {
         vendaMsg.textContent = '❌ Selecione a forma de pagamento';
         vendaMsg.className = 'error-msg';
         return;
       }
-      
+    
       if (!selectBarbeariaVenda.value) {
         vendaMsg.textContent = '❌ Selecione a barbearia';
         vendaMsg.className = 'error-msg';
@@ -2862,17 +2919,6 @@ document.addEventListener('DOMContentLoaded', () => {
         vendaMsg.textContent = 'Criando venda...';
         vendaMsg.className = 'muted';
 
-        try {
-        vendaMsg.textContent = 'Criando venda...';
-        vendaMsg.className = 'muted';
-
-        // Pegamos o ID (UUID) do select
-        const barbeiroId = document.getElementById('selectBarbeiroVenda').value || null;
-        
-        // Pegamos o Nome (texto) que está selecionado para salvar como referência
-        const selectEl = document.getElementById('selectBarbeiroVenda');
-        const barbeiroNome = barbeiroId ? selectEl.options[selectEl.selectedIndex].text : null;
-
         const { data, error } = await supabaseClient
           .from('vendas')
           .insert([{
@@ -2880,12 +2926,10 @@ document.addEventListener('DOMContentLoaded', () => {
             total: parseFloat(valorVenda.value),
             forma_pagamento: selectFormaPagamento.value,
             barbearia_id: selectBarbeariaVenda.value,
-            barbeiro_id: barbeiroId, // ✅ AGORA SALVA O ID CORRETO (UUID)
-            barbeiro_nome: barbeiroNome // ✅ SALVA O NOME PARA O DASHBOARD
+            barbeiro_nome: inputBarbeiroNome.value.trim() || null
           }])
-          .select();   
-
-
+          .select();
+      
         if (error) {
           console.error('❌ Erro ao criar venda:', error);
           vendaMsg.textContent = '❌ Erro: ' + error.message;
@@ -2894,18 +2938,18 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('✅ Venda criada:', data);
           vendaMsg.textContent = '✅ Venda criada com sucesso!';
           vendaMsg.className = 'success-msg';
-          
+        
           descricaoVenda.value = '';
           valorVenda.value = '';
           selectFormaPagamento.value = '';
           selectBarbeariaVenda.value = '';
           inputBarbeiroNome.value = '';
-          
+        
           await refreshVendas();
           await refreshMetricasVendas();
           await refreshMetrics();
           await refreshResumoBarbeiros();
-          
+        
           setTimeout(() => {
             vendaMsg.textContent = '';
             vendaMsg.className = '';
@@ -3164,14 +3208,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('nav.sidebar a').forEach(link => {
       link.addEventListener('click', async (e) => {
         e.preventDefault();
-        
+      
         document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
-        
+      
         const section = link.getAttribute('data-section');
-        
+      
         document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
-        
+      
         if (section === 'dashboard') {
           dashboardSection.classList.remove('hidden');
           await refreshDashboard();
@@ -3189,7 +3233,7 @@ document.addEventListener('DOMContentLoaded', () => {
           await refreshFechamento();
           await refreshHistoricoFechamentos();
         }
-        
+      
         console.log('📍 Navegando para:', section);
       });
     });
@@ -3198,4 +3242,3 @@ document.addEventListener('DOMContentLoaded', () => {
   </script>
 </body>
 </html>
-
