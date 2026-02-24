@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -152,6 +153,25 @@
       background:#5a9ff2;
       transform: translateY(-1px);
     }
+
+    .btn-whatsapp {
+     background: #25d366;
+     color: #fff;
+     padding: 4px 8px;
+     font-size: 0.75rem;
+     border-radius: 6px;
+     border: none;
+     cursor: pointer;
+     font-weight: 600;
+     transition: all 0.3s ease;
+     margin-right: 4px;
+    }
+    .btn-whatsapp:hover {
+     background: #128c7e;
+     transform: translateY(-1px);
+   }
+
+
 
     .btn-delete {
       background:#b33;
@@ -986,6 +1006,9 @@
   
       <label for="editClienteNome">Nome do cliente</label>
       <input id="editClienteNome" type="text" />
+
+      <label for="editClienteTelefone">Telefone do cliente</label>
+      <input id="editClienteTelefone" type="text" />
   
       <label for="editServico">Serviço</label>
       <input id="editServico" type="text" />
@@ -1056,6 +1079,9 @@
   
       <label for="novoClienteNome">Nome do cliente</label>
       <input id="novoClienteNome" type="text" placeholder="Digite o nome do cliente" />
+
+      <label for="novoClienteTelefone">Telefone do cliente (com DDD)</label>
+      <input id="novoClienteTelefone" type="text" placeholder="Ex: 11999998888" />
   
       <label for="novoServico">Serviço</label>
       <input id="novoServico" type="text" placeholder="Ex: Corte, Barba, Corte + Barba" />
@@ -1124,6 +1150,33 @@
   <script>
     const SUPABASE_URL = 'https://zchtdtylhelrgxdkvgnx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaHRkdHlsaGVscmd4ZGt2Z254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTY3MzgsImV4cCI6MjA3NjczMjczOH0.q3SDbmT6VPWyCdK6vm1R2d-9IUGksE8rprJPmlYl524';
+
+   // --- FUNÇÃO PARA ENVIAR WHATSAPP ---
+function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
+  if (!telefone || telefone.trim() === "" || telefone === "undefined" || telefone === "null") {
+    alert("Atenção: Este cliente não possui um número de telefone cadastrado no agendamento.");
+    return;
+  }
+
+  // Remove qualquer caractere que não seja número (espaços, parênteses, traços)
+  const telLimpo = telefone.replace(/\D/g, '');
+  
+  // Formata a data e hora para a mensagem ficar bonita
+  const data = new Date(dataHora);
+  const dataFormatada = data.toLocaleDateString('pt-BR');
+  const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  // Cria o texto da mensagem (o %0A serve para pular linha)
+  const mensagem = `Olá *${nomeCliente}*! ✂️%0AAqui é da Barbearia. Estou passando para confirmar seu agendamento de *${servico}* no dia *${dataFormatada}* às *${horaFormatada}*.%0A%0APodemos confirmar?`;
+
+  // Monta o link. Se o número não começar com 55 (Brasil), ele adiciona automaticamente.
+  const ddi = telLimpo.startsWith('55') ? '' : '55';
+  const link = `https://api.whatsapp.com/send?phone=${ddi}${telLimpo}&text=${mensagem}`;
+  
+  // Abre em uma nova aba
+  window.open(link, '_blank');
+}
+      
 
     let supabaseClient = null;
     let currentUser = null;
@@ -1996,18 +2049,24 @@ window.addEventListener('load', () => {
             const dataHora = new Date(row.data_hora);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
-        
-            const acoesHtml = isBarbeiro ? '' : `
-              <td>
-                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
-                  Editar
-                </button>
-                <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
-                  Excluir
-                </button>
-              </td>
-            `;
-        
+ 
+
+              const acoesHtml = isBarbeiro ? '' : `
+  <td>
+    <!-- ADICIONE A LINHA ABAIXO -->
+    <button class="btn-whatsapp" onclick="enviarConfirmacaoWhatsapp('${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.cliente_telefone || ''}')">
+      📱 WhatsApp
+    </button>
+
+    <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
+      Editar
+    </button>
+    <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
+      Excluir
+    </button>
+  </td>
+`;
+    
             return `
               <tr>
                 <td>${row.cliente_nome || 'N/A'}</td>
@@ -2306,6 +2365,7 @@ window.addEventListener('load', () => {
 
         console.log('✅ Agendamento confirmado');
         await refreshAgenda();
+       
         await refreshAgendaHoje(); // ✅ NOVO
         await refreshAgendamentos();
         await refreshMetrics();
