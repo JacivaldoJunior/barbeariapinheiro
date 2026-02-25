@@ -2486,14 +2486,16 @@ window.addEventListener('load', () => {
         novoAgendamentoModalMsg.className = 'muted';
 
         const { data, error } = await supabaseClient
-          .from('agendamentos')
-          .insert([{
-            cliente_nome: novoClienteNome.value.trim(),
-            servico: novoServico.value.trim(),
-            data_hora: dataHoraISO,
-            barbearia_id: novoBarbearia.value,
-            barbeiro_id: novoBarbeiro.value || null,
-            status: 'Pendente'
+    .from('agendamentos')
+    .insert([{
+     cliente_nome: novoClienteNome.value.trim(),
+     cliente_telefone: document.getElementById('novoClienteTelefone').value.trim() || null, // ✅ ADICIONE ESSA LINHA
+     servico: novoServico.value.trim(),
+     data_hora: dataHoraISO,
+     barbearia_id: novoBarbearia.value,
+     barbeiro_id: novoBarbeiro.value || null,
+     status: 'Pendente'
+     
           }])
           .select();
     
@@ -2686,6 +2688,7 @@ window.addEventListener('load', () => {
           .from('agendamentos')
           .update({
             cliente_nome: editClienteNome.value.trim(),
+            cliente_telefone: document.getElementById('editClienteTelefone').value.trim() || null,
             servico: editServico.value.trim(),
             data_hora: dataHoraISO,
             barbearia_id: editBarbearia.value,
