@@ -2137,9 +2137,14 @@ window.addEventListener('load', () => {
             if (status === 'Confirmado') statusClass = 'status-confirmado';
             if (status === 'Cancelado') statusClass = 'status-cancelado';
         
-            // ✅ NOVO: Adicionar botão Finalizar Atendimento
+           // ✅ NOVO: Adicionar botão Finalizar Atendimento
             const acoesHtml = isBarbeiro ? '' : `
               <td>
+                <!-- BOTÃO WHATSAPP ADICIONADO AQUI -->
+                <button class="btn-whatsapp" onclick="enviarConfirmacaoWhatsapp('${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.cliente_telefone || ''}')">
+                  📱 WhatsApp
+                </button>
+
                 <button class="btn-finalizar" onclick="abrirFinalizarAtendimento('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.barbearia_id}', '${row.barbeiro_id || ''}')">
                   💰 Finalizar
                 </button>
@@ -2157,6 +2162,7 @@ window.addEventListener('load', () => {
                 </button>
               </td>
             `;
+            
         
             return `
               <tr>
@@ -3222,3 +3228,4 @@ window.addEventListener('load', () => {
   </script>
 </body>
 </html>
+
