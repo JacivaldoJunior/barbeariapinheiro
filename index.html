@@ -1004,6 +1004,60 @@
         </div>
       </section>
     </section>
+
+  <!-- COMISSÃO DE BARBEIROS -->
+    <section id="comissoes" class="section hidden">
+      <h1>Comissão de Barbeiros</h1>
+      <p class="subtitle">Cálculo de repasses por profissional</p>
+
+      <div class="agenda-controls">
+        <div class="control-group">
+          <label>Barbeiro</label>
+          <select id="comissaoSelectBarbeiro">
+            <option value="">Selecione o Barbeiro</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Comissão (%)</label>
+          <input id="percentualComissao" type="number" value="50" min="0" max="100" style="width: 80px;" />
+        </div>
+        <button id="btnCalcularComissao" class="btn">Calcular</button>
+      </div>
+
+      <section class="cards">
+        <article class="card">
+          <h2>Total Bruto</h2>
+          <div id="comissaoTotalBruto" class="value">R$ 0,00</div>
+        </article>
+        <article class="card" style="border-color: #2ecc71;">
+          <h2>Comissão a Pagar</h2>
+          <div id="comissaoLiquida" class="value" style="color: #2ecc71;">R$ 0,00</div>
+        </article>
+        <article class="card">
+          <h2>Parte da Barbearia</h2>
+          <div id="comissaoCasa" class="value">R$ 0,00</div>
+        </article>
+      </section>
+
+      <div class="table-container" style="margin-top: 20px;">
+        <table id="tableComissoes">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Serviço</th>
+              <th>Valor Total</th>
+              <th>Comissão (R$)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4" style="text-align:center;">Selecione um barbeiro e clique em calcular</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
+
   </main>
 
   <!-- MODAL DE EDIÇÃO AGENDAMENTO -->
@@ -1191,6 +1245,9 @@ function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
     let currentEditId = null;
     let currentEditVendaId = null;
     let currentFinalizarAgendamento = null; // ✅ NOVO
+
+
+
 
     async function initApp() {
       try {
@@ -3211,8 +3268,7 @@ window.addEventListener('load', () => {
         const section = link.getAttribute('data-section');
     
         document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
-    
-        if (section === 'dashboard') {
+    if (section === 'dashboard') {
           dashboardSection.classList.remove('hidden');
           await refreshDashboard();
         } else if (section === 'agenda') {
@@ -3228,11 +3284,60 @@ window.addEventListener('load', () => {
           await setupFechamentoDefaults();
           await refreshFechamento();
           await refreshHistoricoFechamentos();
+        } else if (section === 'comissoes') {
+          document.getElementById('comissoes').classList.remove('hidden');
+          await carregarBarbeirosComissao();
         }
     
         console.log('📍 Navegando para:', section);
       });
-    });
+
+  }); // fecha o forEach corretamente
+
+    // --- LÓGICA DE COMISSÃO DE BARBEIROS ---
+    async function carregarBarbeirosComissao() {
+      const select = document.getElementById('comissaoSelectBarbeiro');
+      const { data, error } = await supabaseClient.from('vendas').select('barbeiro_nome');
+      if (!error && data) {
+        const nomes = [...new Set(data.map(v => v.barbeiro_nome).filter(n => n))];
+        select.innerHTML = '<option value="">Selecione o Barbeiro</option>' + 
+          nomes.map(n => `<option value="${n}">${n}</option>`).join('');
+      }
+    }
+
+    async function calcularComissoes() {
+      const nome = document.getElementById('comissaoSelectBarbeiro').value;
+      const perc = parseFloat(document.getElementById('percentualComissao').value) / 100;
+      const tbody = document.querySelector('#tableComissoes tbody');
+      if (!nome) return alert("Selecione um barbeiro");
+
+      const { data: vendas, error } = await supabaseClient
+        .from('vendas').select('*').eq('barbeiro_nome', nome).order('created_at', { ascending: false });
+
+      if (!error && vendas) {
+        let bruto = 0, liquida = 0;
+        tbody.innerHTML = vendas.map(v => {
+          const vTotal = parseFloat(v.total || 0);
+          const vComis = vTotal * perc;
+          bruto += vTotal; liquida += vComis;
+          return `<tr>
+            <td>${new Date(v.created_at).toLocaleDateString('pt-BR')}</td>
+            <td>${v.descricao || 'Serviço'}</td>
+            <td>R$ ${vTotal.toFixed(2)}</td>
+            <td>R$ ${vComis.toFixed(2)}</td>
+          </tr>`;
+        }).join('');
+        document.getElementById('comissaoTotalBruto').textContent = `R$ ${bruto.toFixed(2)}`;
+        document.getElementById('comissaoLiquida').textContent = `R$ ${liquida.toFixed(2)}`;
+        document.getElementById('comissaoCasa').textContent = `R$ ${(bruto - liquida).toFixed(2)}`;
+      }
+    }
+
+    setTimeout(() => {
+      const btnCalc = document.getElementById('btnCalcularComissao');
+      if(btnCalc) btnCalc.addEventListener('click', calcularComissoes);
+    }, 1000);
+
 
     initApp();
   </script>
