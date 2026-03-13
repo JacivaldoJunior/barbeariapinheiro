@@ -644,16 +644,97 @@
       color: #95a5a6;
     }
 
-    @media (max-width: 900px) {
-      nav.sidebar { display:none; }
-      body { flex-direction:column; }
-      main.content { padding:16px; }
-      .form-row { flex-direction: column; }
-      .agenda-controls { flex-direction: column; align-items: stretch; }
-    }
-  </style>
+   @media (max-width: 900px) {
+  nav.sidebar { display: none !important; }
+  body { flex-direction: column; }
+  .form-row { flex-direction: column; }
+  .agenda-controls { flex-direction: column; align-items: stretch; }
+
+  /* Barra de Navegação Inferior */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1a1a1a;
+    border-top: 1px solid rgba(200,160,69,0.3);
+    justify-content: space-around;
+    padding: 12px 0;
+    z-index: 1000;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+  }
+
+  .bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #a88c3a;
+    font-size: 0.65rem;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+
+  .bottom-nav a.active { color: #fff; }
+  .bottom-nav span { font-size: 1.4rem; margin-bottom: 4px; }
+
+  /* Espaço para não ficar atrás da barra inferior */
+  main.content { 
+    padding: 16px; 
+    padding-bottom: 100px !important; 
+  }
+
+  /* Tabelas viram Cards */
+  table, thead, tbody, th, td, tr { display: block; }
+  thead tr { position: absolute; top: -9999px; left: -9999px; }
+  tr { 
+    border: 1px solid rgba(200,160,69,0.2); 
+    margin-bottom: 15px; 
+    border-radius: 12px; 
+    padding: 12px; 
+    background: rgba(200,160,69,0.03); 
+  }
+  td { 
+    border: none; 
+    position: relative; 
+    padding-left: 45% !important; 
+    text-align: right; 
+    margin-bottom: 8px;
+    min-height: 25px;
+  }
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 40%;
+    text-align: left;
+    font-weight: 700;
+    color: #C8A045;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  /* Botões maiores para o polegar */
+  .btn, .btn-edit, .btn-whatsapp, .btn-delete, 
+  .btn-finalizar, .btn-confirmar, .btn-cancelar {
+    padding: 10px;
+    margin: 4px 2px;
+    width: 100%;
+    font-size: 0.9rem;
+  }
+}
+</style>
 </head>
 <body>
+
+<div class="bottom-nav hidden" id="mobileNav">
+  <a href="#" class="active" data-section="dashboard"><span>🏠</span>Início</a>
+  <a href="#" data-section="agenda"><span>📅</span>Agenda</a>
+  <a href="#" data-section="vendas"><span>💰</span>Vendas</a>
+  <a href="#" data-section="comissoes"><span>✂️</span>Comissão</a>
+</div>
+
   <nav class="sidebar hidden" aria-label="Menu principal">
     <div class="logo" aria-label="Logo da Barbearia">✂️ Barbearia</div>
     <a href="#" class="active" data-section="dashboard" aria-current="page">Dashboard</a>
@@ -3343,5 +3424,4 @@ window.addEventListener('load', () => {
   </script>
 </body>
 </html>
-
 
