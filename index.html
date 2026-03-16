@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -727,14 +725,6 @@
 </style>
 </head>
 <body>
-
-<div class="bottom-nav hidden" id="mobileNav">
-  <a href="#" class="active" data-section="dashboard"><span>🏠</span>Início</a>
-  <a href="#" data-section="agenda"><span>📅</span>Agenda</a>
-  <a href="#" data-section="vendas"><span>💰</span>Vendas</a>
-  <a href="#" data-section="comissoes"><span>✂️</span>Comissão</a>
-</div>
-
   <nav class="sidebar hidden" aria-label="Menu principal">
     <div class="logo" aria-label="Logo da Barbearia">✂️ Barbearia</div>
     <a href="#" class="active" data-section="dashboard" aria-current="page">Dashboard</a>
@@ -923,7 +913,7 @@
     <section id="vendas" class="section hidden">
       <h1>Vendas</h1>
       <p class="subtitle">Gerenciar vendas — Barbearia</p>
-  
+
       <section class="cards">
         <article class="card">
           <h2>Total de vendas</h2>
@@ -1145,31 +1135,31 @@
   <div id="editModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2>Editar Agendamento</h2>
-  
+
       <label for="editClienteNome">Nome do cliente</label>
       <input id="editClienteNome" type="text" />
 
       <label for="editClienteTelefone">Telefone do cliente</label>
       <input id="editClienteTelefone" type="text" />
-  
+
       <label for="editServico">Serviço</label>
       <input id="editServico" type="text" />
-  
+
       <label for="editDataHora">Data e Hora</label>
       <input id="editDataHora" type="datetime-local" />
-  
+
       <label for="editBarbeiro">Barbeiro</label>
       <select id="editBarbeiro">
         <option value="">Selecione o barbeiro (opcional)</option>
       </select>
-  
+
       <label for="editBarbearia">Barbearia</label>
       <select id="editBarbearia">
         <option value="">Selecione a barbearia</option>
       </select>
-  
+
       <div id="editMsg"></div>
-  
+
       <div class="modal-buttons">
         <button id="btnCancelEdit" class="btn btn-cancel">Cancelar</button>
         <button id="btnSaveEdit" class="btn">Salvar</button>
@@ -1181,13 +1171,13 @@
   <div id="editVendaModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2>Editar Venda</h2>
-  
+
       <label for="editDescricaoVenda">Descrição</label>
       <input id="editDescricaoVenda" type="text" />
-  
+
       <label for="editValorVenda">Valor (R$)</label>
       <input id="editValorVenda" type="number" step="0.01" min="0" />
-  
+
       <label for="editFormaPagamentoVenda">Forma de Pagamento</label>
       <select id="editFormaPagamentoVenda">
         <option value="">Selecione a forma de pagamento</option>
@@ -1196,7 +1186,7 @@
         <option value="PIX">📱 PIX</option>
         <option value="Dinheiro">💵 Dinheiro</option>
       </select>
-  
+
       <label for="editBarbeariaVenda">Barbearia</label>
       <select id="editBarbeariaVenda">
         <option value="">Selecione a barbearia</option>
@@ -1204,9 +1194,9 @@
 
       <label for="editBarbeiroNomeVenda">Nome do Barbeiro</label>
       <input id="editBarbeiroNomeVenda" type="text" placeholder="Nome do barbeiro" />
-  
+
       <div id="editVendaMsg"></div>
-  
+
       <div class="modal-buttons">
         <button id="btnCancelEditVenda" class="btn btn-cancel">Cancelar</button>
         <button id="btnSaveEditVenda" class="btn">Salvar</button>
@@ -1218,31 +1208,31 @@
   <div id="novoAgendamentoModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2>Novo Agendamento</h2>
-  
+
       <label for="novoClienteNome">Nome do cliente</label>
       <input id="novoClienteNome" type="text" placeholder="Digite o nome do cliente" />
 
       <label for="novoClienteTelefone">Telefone do cliente (com DDD)</label>
       <input id="novoClienteTelefone" type="text" placeholder="Ex: 11999998888" />
-  
+
       <label for="novoServico">Serviço</label>
       <input id="novoServico" type="text" placeholder="Ex: Corte, Barba, Corte + Barba" />
-  
+
       <label for="novoDataHora">Data e Hora</label>
       <input id="novoDataHora" type="datetime-local" />
-  
+
       <label for="novoBarbeiro">Barbeiro</label>
       <select id="novoBarbeiro">
         <option value="">Selecione o barbeiro (opcional)</option>
       </select>
-  
+
       <label for="novoBarbearia">Barbearia</label>
       <select id="novoBarbearia">
         <option value="">Selecione a barbearia</option>
       </select>
-  
+
       <div id="novoAgendamentoModalMsg"></div>
-  
+
       <div class="modal-buttons">
         <button id="btnCancelNovoAgendamento" class="btn btn-cancel">Cancelar</button>
         <button id="btnSalvarNovoAgendamento" class="btn">Criar Agendamento</button>
@@ -1255,16 +1245,16 @@
     <div class="modal-content">
       <h2>Finalizar Atendimento</h2>
       <p class="muted" style="margin-bottom:16px;">Converter agendamento em venda</p>
-  
+
       <label for="finalizarCliente">Cliente</label>
       <input id="finalizarCliente" type="text" disabled />
-  
+
       <label for="finalizarDescricao">Descrição do Serviço</label>
       <input id="finalizarDescricao" type="text" />
-  
+
       <label for="finalizarValor">Valor (R$)</label>
       <input id="finalizarValor" type="number" step="0.01" min="0" placeholder="0.00" />
-  
+
       <label for="finalizarFormaPagamento">Forma de Pagamento</label>
       <select id="finalizarFormaPagamento">
         <option value="">Selecione a forma de pagamento</option>
@@ -1273,12 +1263,12 @@
         <option value="PIX">📱 PIX</option>
         <option value="Dinheiro">💵 Dinheiro</option>
       </select>
-  
+
       <label for="finalizarBarbeiro">Barbeiro</label>
       <input id="finalizarBarbeiro" type="text" />
-  
+
       <div id="finalizarMsg"></div>
-  
+
       <div class="modal-buttons">
         <button id="btnCancelFinalizar" class="btn btn-cancel">Cancelar</button>
         <button id="btnConfirmarFinalizar" class="btn">Finalizar e Criar Venda</button>
@@ -1302,7 +1292,7 @@ function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
 
   // Remove qualquer caractere que não seja número (espaços, parênteses, traços)
   const telLimpo = telefone.replace(/\D/g, '');
-  
+
   // Formata a data e hora para a mensagem ficar bonita
   const data = new Date(dataHora);
   const dataFormatada = data.toLocaleDateString('pt-BR');
@@ -1314,11 +1304,11 @@ function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
   // Monta o link. Se o número não começar com 55 (Brasil), ele adiciona automaticamente.
   const ddi = telLimpo.startsWith('55') ? '' : '55';
   const link = `https://api.whatsapp.com/send?phone=${ddi}${telLimpo}&text=${mensagem}`;
-  
+
   // Abre em uma nova aba
   window.open(link, '_blank');
 }
-      
+    
 
     let supabaseClient = null;
     let currentUser = null;
@@ -1555,29 +1545,8 @@ btnLogout.addEventListener('click', async () => {
       btnLogout.classList.remove('hidden');
       loginPanel.classList.add('hidden');
       setSidebarEnabled(true);
-      // Mostrar barra mobile após login
-      const mobileNav = document.getElementById('mobileNav');
-      if (mobileNav) mobileNav.classList.remove('hidden');
       lockMain(false);
       dashboardSection.classList.remove('hidden');
-      // Navegação pelo menu inferior (Mobile)
-document.querySelectorAll('.bottom-nav a').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const section = link.getAttribute('data-section');
-
-    // Simula o clique na sidebar original para trocar de tela
-    const sidebarLink = document.querySelector(`nav.sidebar a[data-section="${section}"]`);
-    if (sidebarLink) {
-        sidebarLink.click();
-    }
-
-    // Atualiza qual ícone está "aceso" no menu de baixo
-    document.querySelectorAll('.bottom-nav a').forEach(l => l.classList.remove('active'));
-    link.classList.add('active');
-  });
-});
-
 
       console.log('✅ Usuário autenticado:', user.email);
 
@@ -1592,7 +1561,7 @@ document.querySelectorAll('.bottom-nav a').forEach(link => {
       await refreshResumoBarbeiros();
       await refreshAgenda();
       await refreshAgendaHoje(); // ✅ NOVO
-  
+
       // Definir data de hoje no filtro
       const hoje = new Date().toISOString().split('T')[0];
       agendaFiltroData.value = hoje;
@@ -1641,7 +1610,7 @@ document.querySelectorAll('.bottom-nav a').forEach(link => {
       const roleBadge = role === 'gerente' 
         ? '<span class="role-badge role-gerente">📋 Gerente</span>'
         : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>';
-  
+
       userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
 
       const isGerente = (role === 'gerente');
@@ -1730,16 +1699,16 @@ document.querySelectorAll('.bottom-nav a').forEach(link => {
           .order('nome');
 
         const { data, error } = await query;
-    
+  
         if (error) {
           console.error('❌ Erro ao carregar barbearias:', error);
           return;
         }
-    
+  
         if (data && data.length > 0) {
           const options = '<option value="">Selecione a barbearia</option>' +
             data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
-      
+    
           // Lista de selects que devem ser preenchidos
           const selects = [
             'selectBarbeariaVenda',
@@ -1777,7 +1746,7 @@ document.querySelectorAll('.bottom-nav a').forEach(link => {
         }
 
         const { data, error } = await query;
-    
+  
         if (error) {
           console.error('❌ Erro ao carregar barbeiros:', error);
           selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
@@ -1786,25 +1755,25 @@ document.querySelectorAll('.bottom-nav a').forEach(link => {
           agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
           return;
         }
-    
+  
         if (data && data.length > 0) {
           const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
             data.map(b => {
               const barbeariaNome = b.barbearias?.nome || 'N/A';
               return `<option value="${b.id}">${barbeariaNome}</option>`;
             }).join('');
-      
+    
           const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
             data.map(b => {
               const barbeariaNome = b.barbearias?.nome || 'N/A';
               return `<option value="${b.id}">${barbeariaNome}</option>`;
             }).join('');
-      
+    
           selectBarbeiro.innerHTML = options;
           editBarbeiro.innerHTML = options;
           novoBarbeiro.innerHTML = options;
           agendaFiltroBarbeiro.innerHTML = filtroOptions;
-      
+    
           console.log('✅ Barbeiros carregados:', data.length);
         } else {
           selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
@@ -1859,7 +1828,7 @@ async function refreshDashboard() {
         // 2) Cálculos dos Cards
         const totalHoje = vHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
         const ticketMedio = vHoje?.length > 0 ? totalHoje / vHoje.length : 0;
-    
+  
         // Cálculo de Clientes Únicos (usando nome do cliente ou barbeiro como base)
         const clientesUnicos = new Set(vHoje?.map(v => v.cliente_nome || v.barbeiro_nome)).size;
 
@@ -1871,7 +1840,7 @@ async function refreshDashboard() {
         if(document.getElementById('ticketMedio')) document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
 
         // 3) GRÁFICOS - Correção do erro "destroy is not a function"
-    
+  
         // Função auxiliar para criar gráficos sem erro
         const renderChart = (chartId, type, labels, data, globalVarName, label) => {
             const ctx = document.getElementById(chartId);
@@ -2089,7 +2058,7 @@ window.addEventListener('load', () => {
           .from('vendas')
           .select('total')
           .gte('created_at', hoje);
-    
+  
         if (!vendasError && vendas) {
           const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
           vendasHojeEl.textContent = `R$ ${total.toFixed(2)}`;
@@ -2101,10 +2070,10 @@ window.addEventListener('load', () => {
         const { data: agendamentos, error: agendError } = await supabaseClient
           .from('agendamentos')
           .select('id', { count: 'exact' });
-    
+  
         if (!agendError && agendamentos) {
           countAgendamentosEl.textContent = agendamentos.length;
-      
+    
           if (vendas && vendas.length > 0 && agendamentos.length > 0) {
             const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
             const ticketMedio = total / agendamentos.length;
@@ -2127,16 +2096,16 @@ window.addEventListener('load', () => {
         const { data: vendas, error } = await supabaseClient
           .from('vendas')
           .select('total');
-    
+  
         if (!error && vendas) {
           const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
           const quantidade = vendas.length;
           const ticketMedio = quantidade > 0 ? total / quantidade : 0;
-      
+    
           totalVendasEl.textContent = `R$ ${total.toFixed(2)}`;
           countVendasEl.textContent = quantidade;
           ticketMedioVendasEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
-      
+    
           console.log('✅ Métricas de vendas atualizadas');
         }
       } catch (err) {
@@ -2201,16 +2170,16 @@ window.addEventListener('load', () => {
             profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
           `)
           .order('data_hora', { ascending: true });
-    
+  
         if (error) {
           console.error('❌ Erro ao carregar agendamentos:', error);
           tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
           return;
         }
-    
+  
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-      
+    
           tableBody.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
@@ -2232,7 +2201,7 @@ window.addEventListener('load', () => {
     </button>
   </td>
 `;
-    
+  
             return `
               <tr>
                 <td>${row.cliente_nome || 'N/A'}</td>
@@ -2270,7 +2239,7 @@ window.addEventListener('load', () => {
         if (agendaFiltroData.value) {
           const dataInicio = `${agendaFiltroData.value}T00:00:00`;
           const dataFim = `${agendaFiltroData.value}T23:59:59`;
-      
+    
           query = query
             .gte('data_hora', dataInicio)
             .lte('data_hora', dataFim);
@@ -2282,27 +2251,27 @@ window.addEventListener('load', () => {
         }
 
         const { data, error } = await query;
-    
+  
         if (error) {
           console.error('❌ Erro ao carregar agenda:', error);
           tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>';
           return;
         }
-    
+  
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-      
+    
           tableAgenda.innerHTML = data.map(row => {
             const dataHora = new Date(row.data_hora);
             const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
             const status = row.status || 'Pendente';
-        
+      
             let statusClass = 'status-pendente';
             if (status === 'Confirmado') statusClass = 'status-confirmado';
             if (status === 'Cancelado') statusClass = 'status-cancelado';
-        
+      
            // ✅ NOVO: Adicionar botão Finalizar Atendimento
             const acoesHtml = isBarbeiro ? '' : `
               <td>
@@ -2328,8 +2297,8 @@ window.addEventListener('load', () => {
                 </button>
               </td>
             `;
-            
-        
+          
+      
             return `
               <tr>
                 <td>${horario}</td>
@@ -2409,7 +2378,7 @@ window.addEventListener('load', () => {
     // ✅ NOVO: ABRIR MODAL FINALIZAR ATENDIMENTO
     async function abrirFinalizarAtendimento(id, clienteNome, servico, barbeariaId, barbeiroId) {
       currentFinalizarAgendamento = { id, clienteNome, servico, barbeariaId, barbeiroId };
-  
+
       finalizarCliente.value = clienteNome;
       finalizarDescricao.value = servico;
       finalizarValor.value = '';
@@ -2537,7 +2506,7 @@ window.addEventListener('load', () => {
 
         console.log('✅ Agendamento confirmado');
         await refreshAgenda();
-       
+     
         await refreshAgendaHoje(); // ✅ NOVO
         await refreshAgendamentos();
         await refreshMetrics();
@@ -2593,7 +2562,7 @@ window.addEventListener('load', () => {
       novoBarbearia.value = '';
       novoAgendamentoModalMsg.textContent = '';
       novoAgendamentoModalMsg.className = '';
-  
+
       // Se for barbeiro, pré-selecionar a barbearia
       if (currentProfile && currentProfile.role === 'barbeiro') {
         novoBarbearia.value = currentProfile.barbearia_id;
@@ -2601,7 +2570,7 @@ window.addEventListener('load', () => {
       } else {
         novoBarbearia.disabled = false;
       }
-  
+
       // Abrir modal
       novoAgendamentoModal.classList.remove('hidden');
     });
@@ -2618,19 +2587,19 @@ window.addEventListener('load', () => {
         novoAgendamentoModalMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!novoServico.value.trim()) {
         novoAgendamentoModalMsg.textContent = '❌ Digite o serviço';
         novoAgendamentoModalMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!novoDataHora.value) {
         novoAgendamentoModalMsg.textContent = '❌ Selecione a data e hora';
         novoAgendamentoModalMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!novoBarbearia.value) {
         novoAgendamentoModalMsg.textContent = '❌ Selecione a barbearia';
         novoAgendamentoModalMsg.className = 'error-msg';
@@ -2661,10 +2630,10 @@ window.addEventListener('load', () => {
      barbearia_id: novoBarbearia.value,
      barbeiro_id: novoBarbeiro.value || null,
      status: 'Pendente'
-     
+   
           }])
           .select();
-    
+  
         if (error) {
           console.error('❌ Erro ao criar agendamento:', error);
           novoAgendamentoModalMsg.textContent = '❌ Erro: ' + error.message;
@@ -2673,12 +2642,12 @@ window.addEventListener('load', () => {
           console.log('✅ Agendamento criado:', data);
           novoAgendamentoModalMsg.textContent = '✅ Agendamento criado com sucesso!';
           novoAgendamentoModalMsg.className = 'success-msg';
-      
+    
           await refreshAgendamentos();
           await refreshAgenda();
           await refreshAgendaHoje(); // ✅ NOVO
           await refreshMetrics();
-      
+    
           setTimeout(() => {
             novoAgendamentoModal.classList.add('hidden');
           }, 1000);
@@ -2700,46 +2669,46 @@ window.addEventListener('load', () => {
             barbearias (nome)
           `)
           .order('created_at', { ascending: false });
-    
+  
         if (error) {
           console.error('❌ Erro ao carregar vendas:', error);
           tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
           return;
         }
-    
+  
         if (data && data.length > 0) {
           const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-      
+    
           // Buscar todos os agendamentos para verificar se a venda foi agendada
           const { data: agendamentos, error: agendError } = await supabaseClient
             .from('agendamentos')
             .select('cliente_nome, servico, data_hora');
-      
+    
           tableVendas.innerHTML = data.map(row => {
             const data_criacao = new Date(row.created_at);
             const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
             const barbeiroNome = row.barbeiro_nome || 'N/A';
-        
+      
             // Verificar se existe um agendamento correspondente
             let foiAgendado = false;
             if (agendamentos && !agendError) {
               foiAgendado = agendamentos.some(ag => {
                 const agDataHora = new Date(ag.data_hora);
                 const vendaData = new Date(row.created_at);
-            
+          
                 // Verifica se o serviço é similar e se a data é próxima (mesmo dia)
                 const mesmoServico = ag.servico && row.descricao && 
                   ag.servico.toLowerCase().includes(row.descricao.toLowerCase());
                 const mesmoDia = agDataHora.toDateString() === vendaData.toDateString();
-            
+          
                 return mesmoServico && mesmoDia;
               });
             }
-        
+      
             const agendadoBadge = foiAgendado 
               ? '<span class="status-badge agendado-sim">✓ Sim</span>'
               : '<span class="status-badge agendado-nao">✗ Não</span>';
-        
+      
             const acoesHtml = isBarbeiro ? '' : `
               <td>
                 <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_nome || ''}')">
@@ -2750,7 +2719,7 @@ window.addEventListener('load', () => {
                 </button>
               </td>
             `;
-        
+      
             return `
               <tr>
                 <td>${row.descricao || 'N/A'}</td>
@@ -2777,19 +2746,19 @@ window.addEventListener('load', () => {
     // --- ABRIR MODAL DE EDIÇÃO AGENDAMENTO ---
     function openEditModal(id, clienteNome, servico, dataHora, barbeiroId, barbeariaId) {
       currentEditId = id;
-  
+
       editClienteNome.value = clienteNome;
       editServico.value = servico;
-  
+
       const date = new Date(dataHora);
       const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
       editDataHora.value = localDate.toISOString().slice(0, 16);
-  
+
       editBarbeiro.value = barbeiroId || '';
       editBarbearia.value = barbeariaId;
       editMsg.textContent = '';
       editMsg.className = '';
-  
+
       editModal.classList.remove('hidden');
     }
 
@@ -2808,19 +2777,19 @@ window.addEventListener('load', () => {
         editMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!editServico.value.trim()) {
         editMsg.textContent = '❌ Digite o serviço';
         editMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!editDataHora.value) {
         editMsg.textContent = '❌ Selecione a data e hora';
         editMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!editBarbearia.value) {
         editMsg.textContent = '❌ Selecione a barbearia';
         editMsg.className = 'error-msg';
@@ -2829,7 +2798,7 @@ window.addEventListener('load', () => {
 
       // ✅ NOVO: Verificar conflito ao editar (excluindo o próprio agendamento)
       const dataHoraISO = new Date(editDataHora.value).toISOString();
-  
+
       if (editBarbeiro.value) {
         const { data: conflitos, error } = await supabaseClient
           .from('agendamentos')
@@ -2862,7 +2831,7 @@ window.addEventListener('load', () => {
           })
           .eq('id', currentEditId)
           .select();
-    
+  
         if (error) {
           console.error('❌ Erro ao atualizar agendamento:', error);
           editMsg.textContent = '❌ Erro: ' + error.message;
@@ -2871,12 +2840,12 @@ window.addEventListener('load', () => {
           console.log('✅ Agendamento atualizado:', data);
           editMsg.textContent = '✅ Agendamento atualizado com sucesso!';
           editMsg.className = 'success-msg';
-      
+    
           await refreshAgendamentos();
           await refreshAgenda();
           await refreshAgendaHoje(); // ✅ NOVO
           await refreshMetrics();
-      
+    
           setTimeout(() => {
             editModal.classList.add('hidden');
             currentEditId = null;
@@ -2925,7 +2894,7 @@ window.addEventListener('load', () => {
     // --- ABRIR MODAL DE EDIÇÃO VENDA ---
     function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
       currentEditVendaId = id;
-  
+
       editDescricaoVenda.value = descricao;
       editValorVenda.value = parseFloat(valor);
       editFormaPagamentoVenda.value = formaPagamento;
@@ -2933,7 +2902,7 @@ window.addEventListener('load', () => {
       editBarbeiroNomeVenda.value = barbeiroNome || '';
       editVendaMsg.textContent = '';
       editVendaMsg.className = '';
-  
+
       editVendaModal.classList.remove('hidden');
     }
 
@@ -2952,19 +2921,19 @@ window.addEventListener('load', () => {
         editVendaMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!editValorVenda.value || parseFloat(editValorVenda.value) <= 0) {
         editVendaMsg.textContent = '❌ Digite um valor válido';
         editVendaMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!editFormaPagamentoVenda.value) {
         editVendaMsg.textContent = '❌ Selecione a forma de pagamento';
         editVendaMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!editBarbeariaVenda.value) {
         editVendaMsg.textContent = '❌ Selecione a barbearia';
         editVendaMsg.className = 'error-msg';
@@ -2986,7 +2955,7 @@ window.addEventListener('load', () => {
           })
           .eq('id', currentEditVendaId)
           .select();
-    
+  
         if (error) {
           console.error('❌ Erro ao atualizar venda:', error);
           editVendaMsg.textContent = '❌ Erro: ' + error.message;
@@ -2995,12 +2964,12 @@ window.addEventListener('load', () => {
           console.log('✅ Venda atualizada:', data);
           editVendaMsg.textContent = '✅ Venda atualizada com sucesso!';
           editVendaMsg.className = 'success-msg';
-      
+    
           await refreshVendas();
           await refreshMetricasVendas();
           await refreshMetrics();
           await refreshResumoBarbeiros();
-      
+    
           setTimeout(() => {
             editVendaModal.classList.add('hidden');
             currentEditVendaId = null;
@@ -3051,19 +3020,19 @@ window.addEventListener('load', () => {
         vendaMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!valorVenda.value || parseFloat(valorVenda.value) <= 0) {
         vendaMsg.textContent = '❌ Digite um valor válido';
         vendaMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!selectFormaPagamento.value) {
         vendaMsg.textContent = '❌ Selecione a forma de pagamento';
         vendaMsg.className = 'error-msg';
         return;
       }
-  
+
       if (!selectBarbeariaVenda.value) {
         vendaMsg.textContent = '❌ Selecione a barbearia';
         vendaMsg.className = 'error-msg';
@@ -3084,7 +3053,7 @@ window.addEventListener('load', () => {
             barbeiro_nome: inputBarbeiroNome.value.trim() || null
           }])
           .select();
-    
+  
         if (error) {
           console.error('❌ Erro ao criar venda:', error);
           vendaMsg.textContent = '❌ Erro: ' + error.message;
@@ -3093,18 +3062,18 @@ window.addEventListener('load', () => {
           console.log('✅ Venda criada:', data);
           vendaMsg.textContent = '✅ Venda criada com sucesso!';
           vendaMsg.className = 'success-msg';
-      
+    
           descricaoVenda.value = '';
           valorVenda.value = '';
           selectFormaPagamento.value = '';
           selectBarbeariaVenda.value = '';
           inputBarbeiroNome.value = '';
-      
+    
           await refreshVendas();
           await refreshMetricasVendas();
           await refreshMetrics();
           await refreshResumoBarbeiros();
-      
+    
           setTimeout(() => {
             vendaMsg.textContent = '';
             vendaMsg.className = '';
@@ -3363,12 +3332,12 @@ window.addEventListener('load', () => {
     document.querySelectorAll('nav.sidebar a').forEach(link => {
       link.addEventListener('click', async (e) => {
         e.preventDefault();
-    
+  
         document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
-    
+  
         const section = link.getAttribute('data-section');
-    
+  
         document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
     if (section === 'dashboard') {
           dashboardSection.classList.remove('hidden');
@@ -3390,7 +3359,7 @@ window.addEventListener('load', () => {
           document.getElementById('comissoes').classList.remove('hidden');
           await carregarBarbeirosComissao();
         }
-    
+  
         console.log('📍 Navegando para:', section);
       });
 
@@ -3445,4 +3414,3 @@ window.addEventListener('load', () => {
   </script>
 </body>
 </html>
-
