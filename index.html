@@ -2,30 +2,7 @@
 
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <meta charset="UTF-8" />
-    <title>Dashboard Barbearia - Preto e Dourado</title>
-
-    <!-- Configurações para parecer um App Nativo -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Barbearia App">
-    <meta name="theme-color" content="#1a1a1a">
-
-    <!-- Ajuste de Zoom (Substituindo a sua linha antiga) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <!-- Ícone do App -->
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/484/484167.png">
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/484/484167.png">
-
-    <!-- Adicionando Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-    /* O resto do seu CSS... */
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard Barbearia - Preto e Dourado</title>
@@ -2256,17 +2233,16 @@ window.addEventListener('load', () => {
   </td>
 `;
     
-           return `
-  <tr>
-    <td data-label="Horário">${horario}</td>
-    <td data-label="Cliente">${row.cliente_nome || 'N/A'}</td>
-    <td data-label="Serviço">${row.servico || 'N/A'}</td>
-    <td data-label="Barbeiro">${barbeiroNome}</td>
-    <td data-label="Barbearia">${barbeariaNome}</td>
-    <td data-label="Status"><span class="status-badge ${statusClass}">${status}</span></td>
-    ${acoesHtml}
-  </tr>
-`;
+            return `
+              <tr>
+                <td>${row.cliente_nome || 'N/A'}</td>
+                <td>${row.servico || 'N/A'}</td>
+                <td>${dataHora.toLocaleString('pt-BR')}</td>
+                <td>${barbeiroNome}</td>
+                <td>${barbeariaNome}</td>
+                ${acoesHtml}
+              </tr>
+            `;
           }).join('');
           console.log('✅ Agendamentos carregados:', data.length);
         } else {
@@ -2776,17 +2752,17 @@ window.addEventListener('load', () => {
             `;
         
             return `
-  <tr>
-    <td data-label="Descrição">${row.descricao || 'N/A'}</td>
-    <td data-label="Valor">R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
-    <td data-label="Pagamento">${row.forma_pagamento || 'N/A'}</td>
-    <td data-label="Barbeiro">${barbeiroNome}</td>
-    <td data-label="Barbearia">${barbeariaNome}</td>
-    <td data-label="Data">${data_criacao.toLocaleString('pt-BR')}</td>
-    <td data-label="Agendado">${agendadoBadge}</td>
-    ${acoesHtml}
-  </tr>
-`;
+              <tr>
+                <td>${row.descricao || 'N/A'}</td>
+                <td>R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
+                <td>${row.forma_pagamento || 'N/A'}</td>
+                <td>${barbeiroNome}</td>
+                <td>${barbeariaNome}</td>
+                <td>${data_criacao.toLocaleString('pt-BR')}</td>
+                <td>${agendadoBadge}</td>
+                ${acoesHtml}
+              </tr>
+            `;
           }).join('');
           console.log('✅ Vendas carregadas:', data.length);
         } else {
@@ -3409,6 +3385,7 @@ window.addEventListener('load', () => {
           fechamentoSection.classList.remove('hidden');
           await setupFechamentoDefaults();
           await refreshFechamento();
+          await refreshHistoricoFechamentos();
         } else if (section === 'comissoes') {
           document.getElementById('comissoes').classList.remove('hidden');
           await carregarBarbeirosComissao();
