@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -648,26 +649,28 @@
       color: #95a5a6;
     }
 
-   @media (max-width: 900px) {
+@media (max-width: 900px) {
   nav.sidebar { display: none !important; }
+  .bottom-nav { display: flex; }
   body { flex-direction: column; }
   .form-row { flex-direction: column; }
   .agenda-controls { flex-direction: column; align-items: stretch; }
+}
 
-  /* Barra de Navegação Inferior */
-  .bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #1a1a1a;
-    border-top: 1px solid rgba(200,160,69,0.3);
-    justify-content: space-around;
-    padding: 12px 0;
-    z-index: 1000;
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
-  }
+/* Barra de Navegação Inferior */
+.bottom-nav {
+  display: none;  
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border-top: 1px solid rgba(200,160,69,0.3);
+  justify-content: space-around;
+  padding: 12px 0;
+  z-index: 1000;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+}
 
   .bottom-nav a {
     display: flex;
@@ -3432,35 +3435,39 @@ initApp();
   </script>
 
 
-<nav class="bottom-nav" id="bottomNav">
-  <a href="#" data-section="dashboard" class="active">
-    <span>🏠</span> Início
-  </a>
-  <a href="#" data-section="agenda">
-    <span>📅</span> Agenda
-  </a>
-  <a href="#" data-section="vendas">
-    <span>💰</span> Vendas
-  </a>
-  <a href="#" data-section="fechamento">
-    <span>🧾</span> Caixa
-  </a>
-  <a href="#" data-section="comissoes">
-    <span>✂️</span> Comissão
-  </a>
-</nav>
-
-    <script>
+<script>
   document.querySelectorAll('.bottom-nav a').forEach(link => {
-    link.addEventListener('click', function(e) {
+    link.addEventListener('click', async function(e) {
       e.preventDefault();
-      // Remove active de todos
+
       document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
-      // Adiciona active no clicado
       this.classList.add('active');
-      // Navega para a seção
+
+      document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
+
       const section = this.getAttribute('data-section');
-      if (typeof navigateTo === 'function') navigateTo(section);
+
+      if (section === 'dashboard') {
+        document.getElementById('dashboard').classList.remove('hidden');
+        await refreshDashboard();
+      } else if (section === 'agenda') {
+        document.getElementById('agenda').classList.remove('hidden');
+        await refreshAgenda();
+        await refreshAgendaHoje();
+      } else if (section === 'vendas') {
+        document.getElementById('vendas').classList.remove('hidden');
+        await refreshVendas();
+        await refreshMetricasVendas();
+        await refreshResumoBarbeiros();
+      } else if (section === 'fechamento') {
+        document.getElementById('fechamento').classList.remove('hidden');
+        await setupFechamentoDefaults();
+        await refreshFechamento();
+        await refreshHistoricoFechamentos();
+      } else if (section === 'comissoes') {
+        document.getElementById('comissoes').classList.remove('hidden');
+        await carregarBarbeirosComissao();
+      }
     });
   });
 </script>
