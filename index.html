@@ -3431,5 +3431,39 @@ initApp();
     }
   </script>
 
+
+<nav class="bottom-nav" id="bottomNav">
+  <a href="#" data-section="dashboard" class="active">
+    <span>🏠</span> Início
+  </a>
+  <a href="#" data-section="agenda">
+    <span>📅</span> Agenda
+  </a>
+  <a href="#" data-section="vendas">
+    <span>💰</span> Vendas
+  </a>
+  <a href="#" data-section="fechamento">
+    <span>🧾</span> Caixa
+  </a>
+  <a href="#" data-section="comissoes">
+    <span>✂️</span> Comissão
+  </a>
+</nav>
+
+    <script>
+  document.querySelectorAll('.bottom-nav a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Remove active de todos
+      document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
+      // Adiciona active no clicado
+      this.classList.add('active');
+      // Navega para a seção
+      const section = this.getAttribute('data-section');
+      if (typeof navigateTo === 'function') navigateTo(section);
+    });
+  });
+</script>
+
 </body>
 </html>
