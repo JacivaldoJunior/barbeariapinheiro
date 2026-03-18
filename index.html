@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1285,6 +1284,30 @@
     </div>
   </div>
 
+   <!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav" style="display:none;">
+  <a href="#" data-section="dashboard" class="active">
+    <span>🏠</span>
+    Dashboard
+  </a>
+  <a href="#" data-section="agenda">
+    <span>📅</span>
+    Agenda
+  </a>
+  <a href="#" data-section="vendas">
+    <span>💰</span>
+    Vendas
+  </a>
+  <a href="#" data-section="fechamento">
+    <span>🧾</span>
+    Caixa
+  </a>
+  <a href="#" data-section="comissoes">
+    <span>✂️</span>
+    Comissão
+  </a>
+</nav>
+
   <!-- Carregamento do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -1536,7 +1559,7 @@ btnLogout.addEventListener('click', async () => {
 
     function setUnauthenticated() {
       loginPanel.classList.remove('hidden');
-      document.getElementById('bottomNav').style.display = 'none';
+      const bn = document.getElementById('bottomNav'); if(bn) bn.style.display = 'none';
       dashboardSection.classList.add('hidden');
       agendaSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
@@ -1554,7 +1577,7 @@ btnLogout.addEventListener('click', async () => {
   userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
   btnLogout.classList.remove('hidden');
   loginPanel.classList.add('hidden');
-  document.getElementById('bottomNav').style.display = ''; // ← ADICIONA ESSA
+  document.getElementById('bottomNav').style.display = 'flex'; // mostra bottom nav no mobile
   setSidebarEnabled(true);
   lockMain(false);
   dashboardSection.classList.remove('hidden');
@@ -3477,29 +3500,6 @@ initApp();
 </script>
   
 
-   <!-- BOTTOM NAV -->
-<nav class="bottom-nav" id="bottomNav" style="display:none;">
-  <a href="#" data-section="dashboard" class="active">
-    <span>🏠</span>
-    Dashboard
-  </a>
-  <a href="#" data-section="agenda">
-    <span>📅</span>
-    Agenda
-  </a>
-  <a href="#" data-section="vendas">
-    <span>💰</span>
-    Vendas
-  </a>
-  <a href="#" data-section="fechamento">
-    <span>🧾</span>
-    Caixa
-  </a>
-  <a href="#" data-section="comissoes">
-    <span>✂️</span>
-    Comissão
-  </a>
-</nav>
 
 </body>
 </html>
