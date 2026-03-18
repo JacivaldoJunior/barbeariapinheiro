@@ -650,7 +650,7 @@
 
 /* Barra de Navegação Inferior - oculta por padrão no desktop */
 .bottom-nav {
-  display: none;
+  display: none; /* padrão: escondido */
   position: fixed;
   bottom: 0;
   left: 0;
@@ -661,6 +661,11 @@
   padding: 12px 0;
   z-index: 1000;
   box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+}
+
+/* Classe controlada pelo JS para mostrar a bottom nav */
+.bottom-nav.visible {
+  display: flex !important;
 }
 
 .bottom-nav a {
@@ -1283,7 +1288,7 @@
   </div>
 
    <!-- BOTTOM NAV -->
-<nav class="bottom-nav" id="bottomNav" style="display:none;">
+<nav class="bottom-nav" id="bottomNav">
   <a href="#" data-section="dashboard" class="active">
     <span>🏠</span>
     Dashboard
@@ -1557,7 +1562,7 @@ btnLogout.addEventListener('click', async () => {
 
     function setUnauthenticated() {
       loginPanel.classList.remove('hidden');
-      const bn = document.getElementById('bottomNav'); if(bn) bn.style.display = 'none';
+      const bn = document.getElementById('bottomNav'); if(bn) bn.classList.remove('visible');
       dashboardSection.classList.add('hidden');
       agendaSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
@@ -1576,7 +1581,7 @@ btnLogout.addEventListener('click', async () => {
   btnLogout.classList.remove('hidden');
   loginPanel.classList.add('hidden');
   if (window.innerWidth <= 900) {
-    document.getElementById('bottomNav').style.display = 'flex'; // mostra bottom nav no mobile
+    document.getElementById('bottomNav').classList.add('visible'); // mostra bottom nav no mobile
   }
   setSidebarEnabled(true);
   lockMain(false);
