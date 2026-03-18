@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -692,6 +693,9 @@
   main.content { 
     padding: 16px; 
     padding-bottom: 100px !important; 
+    position: relative;
+    z-index: 1;
+    overflow-x: hidden;
   }
 
   /* Tabelas viram Cards */
@@ -731,6 +735,26 @@
     margin: 4px 2px;
     width: 100%;
     font-size: 0.9rem;
+  }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background: #1a1a1a;
+    border-top: 1px solid rgba(200,160,69,0.3);
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+  }
+
+  .bottom-nav.hidden {
+    display: none !important;
   }
 }
 </style>
@@ -3359,40 +3383,96 @@ window.addEventListener('load', () => {
 
     btnFecharCaixa.addEventListener('click', fecharCaixa);
 
-    // --- NAVEGAÇÃO SIDEBAR ---
-    document.querySelectorAll('nav.sidebar a').forEach(link => {
-      link.addEventListener('click', async (e) => {
-        e.preventDefault();
-  
-        document.querySelectorAll('nav.sidebar a').forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-  
-        const section = link.getAttribute('data-section');
-  
-        document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
-    if (section === 'dashboard') {
-          dashboardSection.classList.remove('hidden');
-          await refreshDashboard();
-        } else if (section === 'agenda') {
-          agendaSection.classList.remove('hidden');
-          await refreshAgenda();
-        } else if (section === 'vendas') {
-          vendasSection.classList.remove('hidden');
-          await refreshVendas();
-          await refreshMetricasVendas();
-          await refreshResumoBarbeiros();
-        } else if (section === 'fechamento') {
-          fechamentoSection.classList.remove('hidden');
-          await setupFechamentoDefaults();
-          await refreshFechamento();
-          await refreshHistoricoFechamentos();
-        } else if (section === 'comissoes') {
-          document.getElementById('comissoes').classList.remove('hidden');
-          await carregarBarbeirosComissao();
-        }
-  
-        console.log('📍 Navegando para:', section);
+<script>
+  // ================================
+  // MELHORIA: Navegação Unificada + Animação + Vibração
+  // ================================
+
+  const ordemSecoes = ['dashboard', 'agenda', 'vendas', 'fechamento', 'comissoes'];
+  let secaoAtualIndex = 0;
+
+  function navegarPara(sectionId) {
+    // 1. Vibração (feedback tátil)
+    if (navigator.vibrate) navigator.vibrate(10);
+
+    // 2. Determina direção da animação
+    const novoIndex = ordemSecoes.indexOf(sectionId);
+    const direcao = novoIndex > secaoAtualIndex ? 'forward' : 'back';
+    secaoAtualIndex = novoIndex;
+
+    // 3. Esconde todas as seções
+    document.querySelectorAll('main.content > section').forEach(sec => {
+      sec.classList.remove('active', 'slide-forward', 'slide-back');
+      sec.classList.add('hidden');
+    });
+
+    // 4. Mostra a seção alvo com animação
+    const target = document.getElementById(sectionId);
+    if (target) {
+      target.classList.remove('hidden');
+      target.classList.add(direcao === 'forward' ? 'slide-forward' : 'slide-back');
+
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          target.classList.add('active');
+        }, 10);
       });
+    }
+
+    // 5. Atualiza estado visual dos menus
+    document.querySelectorAll('nav.sidebar a, .bottom-nav a').forEach(link => {
+      link.classList.toggle('active', link.dataset.section === sectionId);
+    });
+
+    // 6. Carrega os dados da seção
+    carregarDadosDaSecao(sectionId);
+  }
+
+  async function carregarDadosDaSecao(section) {
+    switch (section) {
+      case 'dashboard':
+        await refreshDashboard();
+        break;
+      case 'agenda':
+        await refreshAgenda();
+        await refreshAgendaHoje();
+        break;
+      case 'vendas':
+        await refreshVendas();
+        await refreshMetricasVendas();
+        await refreshResumoBarbeiros();
+        break;
+      case 'fechamento':
+        await setupFechamentoDefaults();
+        await refreshFechamento();
+        await refreshHistoricoFechamentos();
+        break;
+      case 'comissoes':
+        await carregarBarbeirosComissao();
+        break;
+    }
+  }
+
+  // 7. Evento de clique unificado
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[data-section]');
+    if (link) {
+      e.preventDefault();
+      navegarPara(link.dataset.section);
+    }
+  });
+
+  // 8. Ajuste da Bottom Nav no resize
+  window.addEventListener('resize', () => {
+    const bn = document.getElementById('bottomNav');
+    if (!bn || !currentUser) return;
+    if (window.innerWidth <= 900) {
+      bn.classList.add('visible');
+    } else {
+      bn.classList.remove('visible');
+    }
+  });
+</script>
 
   }); // fecha o forEach corretamente
 
