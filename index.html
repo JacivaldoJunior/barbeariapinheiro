@@ -1319,662 +1319,389 @@
 </nav>
 
   <!-- Carregamento do Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================
+   SCRIPT CONSOLIDADO (SUBSTITUIR TODOS OS SCRIPTS ATUAIS)
+   ============================ */
 
-  <script>
-    const SUPABASE_URL = 'https://zchtdtylhelrgxdkvgnx.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaHRkdHlsaGVscmd4ZGt2Z254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTY3MzgsImV4cCI6MjA3NjczMjczOH0.q3SDbmT6VPWyCdK6vm1R2d-9IUGksE8rprJPmlYl524';
+const SUPABASE_URL = 'https://zchtdtylhelrgxdkvgnx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjaHRkdHlsaGVscmd4ZGt2Z254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTY3MzgsImV4cCI6MjA3NjczMjczOH0.q3SDbmT6VPWyCdK6vm1R2d-9IUGksE8rprJPmlYl524';
 
-   // --- FUNÇÃO PARA ENVIAR WHATSAPP ---
+let supabaseClient = null;
+let currentUser = null;
+let currentProfile = null;
+let currentEditId = null;
+let currentEditVendaId = null;
+let currentFinalizarAgendamento = null;
+let _authInitialized = false;
+
+// UI references (existem no DOM)
+const loginPanel = document.getElementById('loginPanel');
+const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const loginMsg = document.getElementById('loginMsg');
+const btnToRegister = document.getElementById('btnToRegister');
+const userInfo = document.getElementById('userInfo');
+const btnLogout = document.getElementById('btnLogout');
+
+const dashboardSection = document.getElementById('dashboard');
+const agendaSection = document.getElementById('agenda');
+const vendasSection = document.getElementById('vendas');
+const fechamentoSection = document.getElementById('fechamento');
+const tableBody = document.querySelector('#tableAgenda tbody');
+const vendasHojeEl = document.getElementById('vendasHoje');
+const countAgendamentosEl = document.getElementById('countAgendamentos');
+const ticketMedioEl = document.getElementById('ticketMedio');
+
+// Agenda
+const tableAgenda = document.querySelector('#tableAgenda tbody');
+const agendaFiltroData = document.getElementById('agendaFiltroData');
+const agendaFiltroBarbeiro = document.getElementById('agendaFiltroBarbeiro');
+const btnNovoAgendamentoAgenda = document.getElementById('btnNovoAgendamentoAgenda');
+const agendaHojeList = document.getElementById('agendaHojeList');
+const agendaHojeData = document.getElementById('agendaHojeData');
+
+// Vendas
+const descricaoVenda = document.getElementById('descricaoVenda');
+const valorVenda = document.getElementById('valorVenda');
+const selectFormaPagamento = document.getElementById('selectFormaPagamento');
+const selectBarbeariaVenda = document.getElementById('selectBarbeariaVenda');
+const inputBarbeiroNome = document.getElementById('inputBarbeiroNome');
+const btnCriarVenda = document.getElementById('btnCriarVenda');
+const vendaMsg = document.getElementById('vendaMsg');
+const tableVendas = document.querySelector('#tableVendas tbody');
+const totalVendasEl = document.getElementById('totalVendas');
+const countVendasEl = document.getElementById('countVendas');
+const ticketMedioVendasEl = document.getElementById('ticketMedioVendas');
+const barbeirosStatsEl = document.getElementById('barbeirosStats');
+
+// Modais e campos
+const editModal = document.getElementById('editModal');
+const editClienteNome = document.getElementById('editClienteNome');
+const editServico = document.getElementById('editServico');
+const editDataHora = document.getElementById('editDataHora');
+const editBarbeiro = document.getElementById('editBarbeiro');
+const editBarbearia = document.getElementById('editBarbearia');
+const editMsg = document.getElementById('editMsg');
+const btnCancelEdit = document.getElementById('btnCancelEdit');
+const btnSaveEdit = document.getElementById('btnSaveEdit');
+
+const editVendaModal = document.getElementById('editVendaModal');
+const editDescricaoVenda = document.getElementById('editDescricaoVenda');
+const editValorVenda = document.getElementById('editValorVenda');
+const editFormaPagamentoVenda = document.getElementById('editFormaPagamentoVenda');
+const editBarbeariaVenda = document.getElementById('editBarbeariaVenda');
+const editBarbeiroNomeVenda = document.getElementById('editBarbeiroNomeVenda');
+const editVendaMsg = document.getElementById('editVendaMsg');
+const btnCancelEditVenda = document.getElementById('btnCancelEditVenda');
+const btnSaveEditVenda = document.getElementById('btnSaveEditVenda');
+
+const novoAgendamentoModal = document.getElementById('novoAgendamentoModal');
+const novoClienteNome = document.getElementById('novoClienteNome');
+const novoClienteTelefone = document.getElementById('novoClienteTelefone');
+const novoServico = document.getElementById('novoServico');
+const novoDataHora = document.getElementById('novoDataHora');
+const novoBarbeiro = document.getElementById('novoBarbeiro');
+const novoBarbearia = document.getElementById('novoBarbearia');
+const novoAgendamentoModalMsg = document.getElementById('novoAgendamentoModalMsg');
+const btnCancelNovoAgendamento = document.getElementById('btnCancelNovoAgendamento');
+const btnSalvarNovoAgendamento = document.getElementById('btnSalvarNovoAgendamento');
+
+const finalizarAtendimentoModal = document.getElementById('finalizarAtendimentoModal');
+const finalizarCliente = document.getElementById('finalizarCliente');
+const finalizarDescricao = document.getElementById('finalizarDescricao');
+const finalizarValor = document.getElementById('finalizarValor');
+const finalizarFormaPagamento = document.getElementById('finalizarFormaPagamento');
+const finalizarBarbeiro = document.getElementById('finalizarBarbeiro');
+const finalizarMsg = document.getElementById('finalizarMsg');
+const btnCancelFinalizar = document.getElementById('btnCancelFinalizar');
+const btnConfirmarFinalizar = document.getElementById('btnConfirmarFinalizar');
+
+const fechamentoSelectBarbearia = document.getElementById('fechamentoSelectBarbearia');
+const fechamentoInicio = document.getElementById('fechamentoInicio');
+const fechamentoFim = document.getElementById('fechamentoFim');
+const btnAtualizarFechamento = document.getElementById('btnAtualizarFechamento');
+const fechamentoTotalEl = document.getElementById('fechamentoTotal');
+const fechamentoQuantidadeEl = document.getElementById('fechamentoQuantidade');
+const fechamentoPorFormaEl = document.getElementById('fechamentoPorForma');
+const tableFechamentoVendasBody = document.querySelector('#tableFechamentoVendas tbody');
+const fechamentoObs = document.getElementById('fechamentoObs');
+const btnFecharCaixa = document.getElementById('btnFecharCaixa');
+const fechamentoMsg = document.getElementById('fechamentoMsg');
+const tableHistoricoFechamentosBody = document.querySelector('#tableHistoricoFechamentos tbody');
+
+const comissaoSelectBarbeiro = document.getElementById('comissaoSelectBarbeiro');
+const percentualComissao = document.getElementById('percentualComissao');
+const btnCalcularComissao = document.getElementById('btnCalcularComissao');
+
 function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
   if (!telefone || telefone.trim() === "" || telefone === "undefined" || telefone === "null") {
     alert("Atenção: Este cliente não possui um número de telefone cadastrado no agendamento.");
     return;
   }
 
-  // Remove qualquer caractere que não seja número (espaços, parênteses, traços)
   const telLimpo = telefone.replace(/\D/g, '');
-
-  // Formata a data e hora para a mensagem ficar bonita
   const data = new Date(dataHora);
   const dataFormatada = data.toLocaleDateString('pt-BR');
   const horaFormatada = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-  // Cria o texto da mensagem (o %0A serve para pular linha)
   const mensagem = `Olá *${nomeCliente}*! ✂️%0AAqui é da Barbearia. Estou passando para confirmar seu agendamento de *${servico}* no dia *${dataFormatada}* às *${horaFormatada}*.%0A%0APodemos confirmar?`;
-
-  // Monta o link. Se o número não começar com 55 (Brasil), ele adiciona automaticamente.
   const ddi = telLimpo.startsWith('55') ? '' : '55';
   const link = `https://api.whatsapp.com/send?phone=${ddi}${telLimpo}&text=${mensagem}`;
-
-  // Abre em uma nova aba
   window.open(link, '_blank');
 }
-    
 
-    let supabaseClient = null;
-    let currentUser = null;
-    let currentProfile = null;
-    let currentEditId = null;
-    let currentEditVendaId = null;
-    let currentFinalizarAgendamento = null; // ✅ NOVO
-
-
-
-
-    async function initApp() {
-      try {
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.info('✅ Supabase conectado.');
-        initAuth();
-      } catch (err) {
-        console.error('❌ Erro ao iniciar Supabase:', err);
-      }
-    }
-
-    // --- Referências de UI ---
-    const loginPanel = document.getElementById('loginPanel');
-    const loginForm = document.getElementById('loginForm');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const loginMsg = document.getElementById('loginMsg');
-    const btnToRegister = document.getElementById('btnToRegister');
-    const userInfo = document.getElementById('userInfo');
-    const btnLogout = document.getElementById('btnLogout');
-    const dashboardSection = document.getElementById('dashboard');
-    const agendaSection = document.getElementById('agenda');
-    const vendasSection = document.getElementById('vendas');
-    const tableBody = document.querySelector('#tableAgenda tbody');
-    const vendasHojeEl = document.getElementById('vendasHoje');
-    const countAgendamentosEl = document.getElementById('countAgendamentos');
-    const ticketMedioEl = document.getElementById('ticketMedio');
-
-// --- LÓGICA DE LOGIN ---
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  loginMsg.textContent = 'Entrando...';
-  loginMsg.className = 'muted';
-
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: emailInput.value,
-    password: passwordInput.value
-  });
-
-  if (error) {
-    loginMsg.textContent = '❌ ' + error.message;
-    loginMsg.className = 'error-msg';
-  } else {
-    loginMsg.textContent = '✅ Login realizado com sucesso!';
-    loginMsg.className = 'success-msg';
-    // O handleSignedIn será chamado automaticamente pelo onAuthStateChange
+async function initApp() {
+  try {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.info('✅ Supabase conectado.');
+    await initAuth();
+  } catch (err) {
+    console.error('❌ Erro ao iniciar Supabase:', err);
   }
-});
+}
 
-// --- LÓGICA DE CRIAR CONTA ---
-btnToRegister.addEventListener('click', async () => {
-  const email = prompt('Digite o e-mail para a nova conta:');
-  const password = prompt('Digite a senha (mínimo 6 caracteres):');
-
-  if (email && password) {
-    loginMsg.textContent = 'Registrando...';
-    const { data, error } = await supabaseClient.auth.signUp({
-      email: email,
-      password: password
-    });
-
-    if (error) {
-      loginMsg.textContent = '❌ ' + error.message;
-      loginMsg.className = 'error-msg';
-      alert('Erro ao registrar: ' + error.message);
+/* -----------------------
+   Autenticação & UI base
+   ----------------------- */
+async function initAuth() {
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    if (data?.session) {
+      _authInitialized = true;
+      await handleSignedIn(data.session.user);
     } else {
-      loginMsg.textContent = '✅ Registro realizado! Verifique seu e-mail.';
-      loginMsg.className = 'success-msg';
-      alert('Conta criada com sucesso! Verifique a caixa de entrada do seu e-mail para confirmar.');
-    }
-  }
-});
-
-
-
-// --- LOGOUT COMPLETO ---
-btnLogout.addEventListener('click', async () => {
-  const { error } = await supabaseClient.auth.signOut();
-  if (error) {
-    console.error('❌ Erro ao sair:', error.message);
-  } else {
-    console.log('✅ Usuário desconectado');
-    // Limpa os dados locais
-    currentUser = null;
-    currentProfile = null;
-    // A UI voltará para o login automaticamente pelo onAuthStateChange que chama setUnauthenticated()
-  }
-});
-
-    // Agenda
-    const tableAgenda = document.querySelector('#tableAgenda tbody');
-    const agendaFiltroData = document.getElementById('agendaFiltroData');
-    const agendaFiltroBarbeiro = document.getElementById('agendaFiltroBarbeiro');
-    const btnNovoAgendamentoAgenda = document.getElementById('btnNovoAgendamentoAgenda');
-    const agendaHojeList = document.getElementById('agendaHojeList'); // ✅ NOVO
-    const agendaHojeData = document.getElementById('agendaHojeData'); // ✅ NOVO
-
-    // Vendas
-    const descricaoVenda = document.getElementById('descricaoVenda');
-    const valorVenda = document.getElementById('valorVenda');
-    const selectFormaPagamento = document.getElementById('selectFormaPagamento');
-    const selectBarbeariaVenda = document.getElementById('selectBarbeariaVenda');
-    const inputBarbeiroNome = document.getElementById('inputBarbeiroNome');
-    const btnCriarVenda = document.getElementById('btnCriarVenda');
-    const vendaMsg = document.getElementById('vendaMsg');
-    const tableVendas = document.querySelector('#tableVendas tbody');
-    const totalVendasEl = document.getElementById('totalVendas');
-    const countVendasEl = document.getElementById('countVendas');
-    const ticketMedioVendasEl = document.getElementById('ticketMedioVendas');
-    const barbeirosStatsEl = document.getElementById('barbeirosStats');
-
-    // Modal de edição agendamento
-    const editModal = document.getElementById('editModal');
-    const editClienteNome = document.getElementById('editClienteNome');
-    const editServico = document.getElementById('editServico');
-    const editDataHora = document.getElementById('editDataHora');
-    const editBarbeiro = document.getElementById('editBarbeiro');
-    const editBarbearia = document.getElementById('editBarbearia');
-    const editMsg = document.getElementById('editMsg');
-    const btnCancelEdit = document.getElementById('btnCancelEdit');
-    const btnSaveEdit = document.getElementById('btnSaveEdit');
-
-    // Modal de edição venda
-    const editVendaModal = document.getElementById('editVendaModal');
-    const editDescricaoVenda = document.getElementById('editDescricaoVenda');
-    const editValorVenda = document.getElementById('editValorVenda');
-    const editFormaPagamentoVenda = document.getElementById('editFormaPagamentoVenda');
-    const editBarbeariaVenda = document.getElementById('editBarbeariaVenda');
-    const editBarbeiroNomeVenda = document.getElementById('editBarbeiroNomeVenda');
-    const editVendaMsg = document.getElementById('editVendaMsg');
-    const btnCancelEditVenda = document.getElementById('btnCancelEditVenda');
-    const btnSaveEditVenda = document.getElementById('btnSaveEditVenda');
-
-    // Modal de novo agendamento
-    const novoAgendamentoModal = document.getElementById('novoAgendamentoModal');
-    const novoClienteNome = document.getElementById('novoClienteNome');
-    const novoServico = document.getElementById('novoServico');
-    const novoDataHora = document.getElementById('novoDataHora');
-    const novoBarbeiro = document.getElementById('novoBarbeiro');
-    const novoBarbearia = document.getElementById('novoBarbearia');
-    const novoAgendamentoModalMsg = document.getElementById('novoAgendamentoModalMsg');
-    const btnCancelNovoAgendamento = document.getElementById('btnCancelNovoAgendamento');
-    const btnSalvarNovoAgendamento = document.getElementById('btnSalvarNovoAgendamento');
-
-    // ✅ NOVO: Modal de finalizar atendimento
-    const finalizarAtendimentoModal = document.getElementById('finalizarAtendimentoModal');
-    const finalizarCliente = document.getElementById('finalizarCliente');
-    const finalizarDescricao = document.getElementById('finalizarDescricao');
-    const finalizarValor = document.getElementById('finalizarValor');
-    const finalizarFormaPagamento = document.getElementById('finalizarFormaPagamento');
-    const finalizarBarbeiro = document.getElementById('finalizarBarbeiro');
-    const finalizarMsg = document.getElementById('finalizarMsg');
-    const btnCancelFinalizar = document.getElementById('btnCancelFinalizar');
-    const btnConfirmarFinalizar = document.getElementById('btnConfirmarFinalizar');
-
-    // FECHAMENTO DE CAIXA - Referências
-    const fechamentoSection = document.getElementById('fechamento');
-    const fechamentoSelectBarbearia = document.getElementById('fechamentoSelectBarbearia');
-    const fechamentoInicio = document.getElementById('fechamentoInicio');
-    const fechamentoFim = document.getElementById('fechamentoFim');
-    const btnAtualizarFechamento = document.getElementById('btnAtualizarFechamento');
-    const fechamentoTotalEl = document.getElementById('fechamentoTotal');
-    const fechamentoQuantidadeEl = document.getElementById('fechamentoQuantidade');
-    const fechamentoPorFormaEl = document.getElementById('fechamentoPorForma');
-    const tableFechamentoVendasBody = document.querySelector('#tableFechamentoVendas tbody');
-    const fechamentoObs = document.getElementById('fechamentoObs');
-    const btnFecharCaixa = document.getElementById('btnFecharCaixa');
-    const fechamentoMsg = document.getElementById('fechamentoMsg');
-    const tableHistoricoFechamentosBody = document.querySelector('#tableHistoricoFechamentos tbody');
-
-    function setSidebarEnabled(enabled) {
-      const sidebar = document.querySelector('nav.sidebar');
-      if (enabled) sidebar.classList.remove('hidden');
-      else sidebar.classList.add('hidden');
+      setUnauthenticated();
     }
 
-    function lockMain(locked) {
-      const main = document.querySelector('main.content');
-      if (locked) main.classList.add('locked');
-      else main.classList.remove('locked');
-    }
-
-    let _authInitialized = false; // flag para evitar dupla chamada
-
-    async function initAuth() {
-      const { data } = await supabaseClient.auth.getSession();
-      if (data.session) {
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        if (_authInitialized) return;
         _authInitialized = true;
-        handleSignedIn(data.session.user);
+        await handleSignedIn(session.user);
       } else {
+        _authInitialized = false;
         setUnauthenticated();
       }
+    });
+  } catch (err) {
+    console.error('Erro initAuth', err);
+    setUnauthenticated();
+  }
+}
 
-      supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (session) {
-          if (_authInitialized) return; // já foi chamado pelo getSession, ignora
-          _authInitialized = true;
-          handleSignedIn(session.user);
-        } else {
-          _authInitialized = false;
-          setUnauthenticated();
-        }
-      });
-    }
+function setUnauthenticated() {
+  if (loginPanel) loginPanel.classList.remove('hidden');
+  const bn = document.getElementById('bottomNav'); if (bn) bn.classList.remove('visible');
+  if (dashboardSection) dashboardSection.classList.add('hidden');
+  if (agendaSection) agendaSection.classList.add('hidden');
+  if (vendasSection) vendasSection.classList.add('hidden');
+  if (fechamentoSection) fechamentoSection.classList.add('hidden');
+  if (userInfo) userInfo.textContent = 'Não autenticado';
+  if (btnLogout) btnLogout.classList.add('hidden');
+  setSidebarEnabled(false);
+  lockMain(true);
+  currentUser = null;
+  currentProfile = null;
+}
 
-    function setUnauthenticated() {
-      loginPanel.classList.remove('hidden');
-      const bn = document.getElementById('bottomNav'); if(bn) bn.classList.remove('visible');
-      dashboardSection.classList.add('hidden');
-      agendaSection.classList.add('hidden');
-      vendasSection.classList.add('hidden');
-      fechamentoSection.classList.add('hidden');
-      userInfo.textContent = 'Não autenticado';
-      btnLogout.classList.add('hidden');
-      setSidebarEnabled(false);
-      lockMain(true);
-      currentUser = null;
-      currentProfile = null;
-    }
-
-    async function handleSignedIn(user) {
+async function handleSignedIn(user) {
   currentUser = user;
-  userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
-  btnLogout.classList.remove('hidden');
-  loginPanel.classList.add('hidden');
+  if (userInfo) userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
+  if (btnLogout) btnLogout.classList.remove('hidden');
+  if (loginPanel) loginPanel.classList.add('hidden');
   if (window.innerWidth <= 900) {
-    document.getElementById('bottomNav').classList.add('visible'); // mostra bottom nav no mobile
+    const bn = document.getElementById('bottomNav'); if (bn) bn.classList.add('visible');
   }
   setSidebarEnabled(true);
   lockMain(false);
-  dashboardSection.classList.remove('hidden');
+  if (dashboardSection) dashboardSection.classList.remove('hidden');
 
-      console.log('✅ Usuário autenticado:', user.email);
+  console.log('✅ Usuário autenticado:', user.email);
 
-      await carregarProfile(user.id);
-      await initializeBarbearias();
-      await loadBarbearias();
-      await loadBarbeiros();
-      await refreshAgendamentos();
-      await refreshDashboard(); // ✅ Atualizado
-      await refreshVendas();
-      await refreshMetricasVendas();
-      await refreshResumoBarbeiros();
-      await refreshAgenda();
-      await refreshAgendaHoje(); // ✅ NOVO
-
-      // Definir data de hoje no filtro
-      const hoje = new Date().toISOString().split('T')[0];
-      agendaFiltroData.value = hoje;
-
-      // FECHAMENTO - Setup inicial
-      await setupFechamentoDefaults();
-      await refreshFechamento();
-      await refreshHistoricoFechamentos();
-    }
-
-    // --- CARREGAR PROFILE DO USUÁRIO ---
-    async function carregarProfile(userId) {
-      try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
-          .select('id, barbearia_id, role, barbearias(id, nome)')
-          .eq('id', userId)
-          .single();
-
-        if (error) {
-          console.error('❌ Erro ao carregar profile:', error);
-          alert('⚠️ Erro ao carregar perfil do usuário. Verifique se o profile existe na tabela profiles.');
-          return;
-        }
-
-        currentProfile = data;
-        console.log('✅ Profile carregado:', currentProfile);
-
-        atualizarUIporRole();
-
-      } catch (err) {
-        console.error('❌ Erro inesperado ao carregar profile:', err);
-      }
-    }
-
-    // --- ATUALIZAR UI CONFORME O ROLE ---
-    function atualizarUIporRole() {
-      if (!currentProfile) return;
-
-      const role = currentProfile.role || 'barbeiro';
-      const barbeariaId = currentProfile.barbearia_id;
-      const barbeariaNome = currentProfile.barbearias?.nome || 'N/A';
-
-      console.log(`👤 Role: ${role} | Barbearia: ${barbeariaNome} (${barbeariaId})`);
-
-      const roleBadge = role === 'gerente' 
-        ? '<span class="role-badge role-gerente">📋 Gerente</span>'
-        : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>';
-
-      userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
-
-      const isGerente = (role === 'gerente');
-
-      // Habilita ou desabilita os selects conforme o cargo
-      const selectsParaDesativar = [
-        'selectBarbeariaVenda',
-        'fechamentoSelectBarbearia',
-        'novoBarbearia'
-      ];
-
-      selectsParaDesativar.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = !isGerente;
-      });
-
-      // Para barbeiros, define automaticamente a barbearia
-      if (!isGerente) {
-        const selectsParaFixar = [
-          'selectBarbeariaVenda',
-          'fechamentoSelectBarbearia'
-        ];
-        selectsParaFixar.forEach(id => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.value = barbeariaId;
-          }
-        });
-      }
-
-      // Esconde menus e ações exclusivas de gerente
-      const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
-      if (linkFechamento) {
-        if (isGerente) {
-          linkFechamento.classList.remove('hidden');
-        } else {
-          linkFechamento.classList.add('hidden');
-        }
-      }
-
-      console.log(isGerente ? '🔓 Modo Gerente' : '🔒 Modo Barbeiro');
-    }
-
-    // --- INICIALIZAR BARBEARIAS PADRÃO ---
-    async function initializeBarbearias() {
-      try {
-        const { data: existing, error: checkError } = await supabaseClient
-          .from('barbearias')
-          .select('id')
-          .limit(1);
-
-        if (checkError) {
-          console.error('❌ Erro ao verificar barbearias:', checkError);
-          return;
-        }
-
-        if (existing && existing.length > 0) {
-          console.log('✅ Barbearias já existem no banco');
-          return;
-        }
-
-        const { data, error } = await supabaseClient
-          .from('barbearias')
-          .insert([
-            { nome: 'Barbearia Nova Cidade' },
-            { nome: 'Barbearia Centro' }
-          ])
-          .select();
-
-        if (error) {
-          console.error('❌ Erro ao criar barbearias padrão:', error);
-        } else {
-          console.log('✅ Barbearias padrão criadas:', data);
-        }
-      } catch (err) {
-        console.error('❌ Erro ao inicializar barbearias:', err);
-      }
-    }
-
-    // --- CARREGAR BARBEARIAS ---
-    async function loadBarbearias() {
-      try {
-        let query = supabaseClient
-          .from('barbearias')
-          .select('id, nome')
-          .order('nome');
-
-        const { data, error } = await query;
-  
-        if (error) {
-          console.error('❌ Erro ao carregar barbearias:', error);
-          return;
-        }
-  
-        if (data && data.length > 0) {
-          const options = '<option value="">Selecione a barbearia</option>' +
-            data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
-    
-          // Lista de selects que devem ser preenchidos
-          const selects = [
-            'selectBarbeariaVenda',
-            'editBarbeariaVenda',
-            'novoBarbearia',
-            'editBarbearia',
-            'fechamentoSelectBarbearia'
-          ];
-
-          selects.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = options;
-          });
-
-          console.log('✅ Barbearias carregadas em todos os selects:', data.length);
-        } else {
-          console.warn('⚠️ Nenhuma barbearia encontrada');
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar barbearias:', err);
-      }
-    }
-
-    // --- CARREGAR BARBEIROS ---
-    async function loadBarbeiros() {
-      try {
-        let query = supabaseClient
-          .from('profiles')
-          .select('id, barbearia_id, barbearias(nome)')
-          .eq('role', 'barbeiro')
-          .order('barbearia_id');
-
-        if (currentProfile && currentProfile.role === 'barbeiro') {
-          query = query.eq('barbearia_id', currentProfile.barbearia_id);
-        }
-
-        const { data, error } = await query;
-  
-        if (error) {
-          console.error('❌ Erro ao carregar barbeiros:', error);
-          if (editBarbeiro) editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          if (novoBarbeiro) novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
-          return;
-        }
-  
-        if (data && data.length > 0) {
-          const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
-            data.map(b => {
-              const barbeariaNome = b.barbearias?.nome || 'N/A';
-              return `<option value="${b.id}">${barbeariaNome}</option>`;
-            }).join('');
-    
-          const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
-            data.map(b => {
-              const barbeariaNome = b.barbearias?.nome || 'N/A';
-              return `<option value="${b.id}">${barbeariaNome}</option>`;
-            }).join('');
-    
-          if (editBarbeiro) editBarbeiro.innerHTML = options;
-          if (novoBarbeiro) novoBarbeiro.innerHTML = options;
-          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = filtroOptions;
-
-          // Preenche o select de comissão também
-          const comissaoSelect = document.getElementById('comissaoSelectBarbeiro');
-          if (comissaoSelect) {
-            comissaoSelect.innerHTML = '<option value="">Selecione o Barbeiro</option>' +
-              data.map(b => {
-                const barbeariaNome = b.barbearias?.nome || 'N/A';
-                return `<option value="${b.id}">${barbeariaNome}</option>`;
-              }).join('');
-          }
-    
-          console.log('✅ Barbeiros carregados:', data.length);
-        } else {
-          if (editBarbeiro) editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          if (novoBarbeiro) novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
-          console.warn('⚠️ Nenhum barbeiro encontrado');
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar barbeiros:', err);
-      }
-    }
-
-    // ✅ NOVO: VERIFICAR CONFLITO DE HORÁRIO
-    async function verificarConflito(dataHora, barbeiroId) {
-      if (!barbeiroId) return false; // Se não tem barbeiro, não há conflito
-
-      try {
-        const { data, error } = await supabaseClient
-          .from('agendamentos')
-          .select('id')
-          .eq('barbeiro_id', barbeiroId)
-          .eq('data_hora', dataHora)
-          .neq('status', 'Cancelado');
-
-        if (error) {
-          console.error('❌ Erro ao verificar conflito:', error);
-          return false;
-        }
-
-        return data && data.length > 0;
-      } catch (err) {
-        console.error('❌ Erro ao verificar conflito:', err);
-        return false;
-      }
-    }
-
-    // --- DASHBOARD CORRIGIDO (COLE NO LUGAR DA FUNÇÃO ANTIGA) ---
-async function refreshDashboard() {
-    try {
-        console.log('Iniciando atualização do Dashboard...');
-        const hoje = new Date().toISOString().split('T')[0];
-
-        // 1) Busca os dados (usando a coluna 'data' que confirmamos existir)
-        const { data: vHoje, error: errHoje } = await supabaseClient
-            .from('vendas')
-            .select('*')
-            .gte('data', `${hoje}T00:00:00`);
-
-        if (errHoje) throw errHoje;
-
-        // 2) Cálculos dos Cards
-        const totalHoje = vHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-        const ticketMedio = vHoje?.length > 0 ? totalHoje / vHoje.length : 0;
-  
-        // Cálculo de Clientes Únicos (usando nome do cliente ou barbeiro como base)
-        const clientesUnicos = new Set(vHoje?.map(v => v.cliente_nome || v.barbeiro_nome)).size;
-
-        // Atualiza os Cards com segurança
-        if(document.getElementById('faturamentoHoje')) document.getElementById('faturamentoHoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
-        if(document.getElementById('faturamentoMes')) document.getElementById('faturamentoMes').textContent = `R$ ${totalHoje.toFixed(2)}`; // Ajustar para mês depois
-        if(document.getElementById('atendimentosHoje')) document.getElementById('atendimentosHoje').textContent = vHoje?.length || 0;
-        if(document.getElementById('clientesMes')) document.getElementById('clientesMes').textContent = clientesUnicos || 0;
-        if(document.getElementById('ticketMedio')) document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
-
-        // 3) GRÁFICOS - Correção do erro "destroy is not a function"
-  
-        // Função auxiliar para criar gráficos sem erro
-        const renderChart = (chartId, type, labels, data, globalVarName, label) => {
-            const ctx = document.getElementById(chartId);
-            if (!ctx) return;
-
-            // Destrói instância existente via Chart.getChart (API oficial do Chart.js v3+)
-            const existing = Chart.getChart(ctx);
-            if (existing) existing.destroy();
-            // Também limpa a variável global se existir
-            if (window[globalVarName]) { try { window[globalVarName].destroy(); } catch(e){} window[globalVarName] = null; }
-
-            window[globalVarName] = new Chart(ctx, {
-                type: type,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        backgroundColor: ['#d4af37', '#f1c40f', '#b8860b', '#eee8aa'],
-                        borderColor: '#1a1a1a',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#fff' } } }
-                }
-            });
-        };
-
-        // Exemplo: Gráfico de Serviços (ajuste os campos conforme seu banco)
-        const servicosContagem = {};
-        vHoje.forEach(v => {
-            const s = v.servico_nome || 'Outros';
-            servicosContagem[s] = (servicosContagem[s] || 0) + 1;
-        });
-
-        renderChart(
-            'graficoServicos', 
-            'doughnut', 
-            Object.keys(servicosContagem), 
-            Object.values(servicosContagem), 
-            'graficoServicosObj', 
-            'Serviços'
-        );
-
-        // Repita o renderChart para os outros (Faturamento e Pagamento)
-        renderChart('graficoFaturamento', 'bar', [hoje], [totalHoje], 'graficoFaturamentoObj', 'Faturamento');
-
-        console.log('Dashboard atualizado com sucesso!');
-
-    } catch (error) {
-        console.error('Erro geral no Dashboard:', error);
-    }
+  await carregarProfile(user.id);
+  await initializeBarbearias();
+  await loadBarbearias();
+  await loadBarbeiros();
+  await refreshAgendamentos();
+  await refreshDashboard();
+  await refreshVendas();
+  await refreshMetricasVendas();
+  await refreshResumoBarbeiros();
+  await refreshAgenda();
+  await refreshAgendaHoje();
+  const hoje = new Date().toISOString().split('T')[0];
+  if (agendaFiltroData) agendaFiltroData.value = hoje;
+  await setupFechamentoDefaults();
+  await refreshFechamento();
+  await refreshHistoricoFechamentos();
 }
 
-    // --- Dashboard para Barbeiro ---
+function setSidebarEnabled(enabled) {
+  const sidebar = document.querySelector('nav.sidebar');
+  if (!sidebar) return;
+  if (enabled) sidebar.classList.remove('hidden');
+  else sidebar.classList.add('hidden');
+}
 
-// --- Início do ajuste 2: filtros e atualização de gráficos ---
+function lockMain(locked) {
+  const main = document.querySelector('main.content');
+  if (!main) return;
+  if (locked) main.classList.add('locked');
+  else main.classList.remove('locked');
+}
+
+/* -----------------------
+   Barbearias / Barbeiros
+   ----------------------- */
+async function initializeBarbearias() {
+  try {
+    const { data: existing, error: checkError } = await supabaseClient.from('barbearias').select('id').limit(1);
+    if (checkError) {
+      console.error('❌ Erro ao verificar barbearias:', checkError);
+      return;
+    }
+    if (existing && existing.length > 0) return;
+
+    const { data, error } = await supabaseClient.from('barbearias').insert([{ nome: 'Barbearia Nova Cidade' }, { nome: 'Barbearia Centro' }]).select();
+    if (error) console.error('❌ Erro ao criar barbearias padrão:', error);
+    else console.log('✅ Barbearias padrão criadas:', data);
+  } catch (err) {
+    console.error('❌ Erro ao inicializar barbearias:', err);
+  }
+}
+
+async function loadBarbearias() {
+  try {
+    const { data, error } = await supabaseClient.from('barbearias').select('id, nome').order('nome');
+    if (error) { console.error('❌ Erro ao carregar barbearias:', error); return; }
+    if (!data) return;
+
+    const options = '<option value="">Selecione a barbearia</option>' + data.map(b => `<option value="${b.id}">${b.nome}</option>`).join('');
+    const selects = ['selectBarbeariaVenda','editBarbeariaVenda','novoBarbearia','editBarbearia','fechamentoSelectBarbearia'];
+    selects.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = options; });
+    console.log('✅ Barbearias carregadas:', data.length);
+  } catch (err) { console.error('❌ Erro ao carregar barbearias:', err); }
+}
+
+async function loadBarbeiros() {
+  try {
+    let query = supabaseClient.from('profiles').select('id, barbearia_id, barbearias(nome)').eq('role','barbeiro').order('barbearia_id');
+    if (currentProfile && currentProfile.role === 'barbeiro') query = query.eq('barbearia_id', currentProfile.barbearia_id);
+    const { data, error } = await query;
+    if (error) {
+      console.error('❌ Erro ao carregar barbeiros:', error);
+      if (editBarbeiro) editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+      if (novoBarbeiro) novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+      if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+      return;
+    }
+    if (!data) return;
+
+    const options = '<option value="">Selecione o barbeiro (opcional)</option>' + data.map(b => {
+      const barbeariaNome = b.barbearias?.nome || 'N/A';
+      return `<option value="${b.id}">${barbeariaNome}</option>`;
+    }).join('');
+    const filtroOptions = '<option value="">Todos os Barbeiros</option>' + data.map(b => {
+      const barbeariaNome = b.barbearias?.nome || 'N/A';
+      return `<option value="${b.id}">${barbeariaNome}</option>`;
+    }).join('');
+
+    if (editBarbeiro) editBarbeiro.innerHTML = options;
+    if (novoBarbeiro) novoBarbeiro.innerHTML = options;
+    if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = filtroOptions;
+
+    if (comissaoSelectBarbeiro) {
+      comissaoSelectBarbeiro.innerHTML = '<option value="">Selecione o Barbeiro</option>' +
+        data.map(b => `<option value="${b.id}">${b.barbearias?.nome || 'N/A'}</option>`).join('');
+    }
+
+    console.log('✅ Barbeiros carregados:', data.length);
+  } catch (err) { console.error('❌ Erro ao carregar barbeiros:', err); }
+}
+
+/* -----------------------
+   Conflito de horário
+   ----------------------- */
+async function verificarConflito(dataHora, barbeiroId) {
+  if (!barbeiroId) return false;
+  try {
+    const { data, error } = await supabaseClient.from('agendamentos').select('id').eq('barbeiro_id', barbeiroId).eq('data_hora', dataHora).neq('status', 'Cancelado');
+    if (error) { console.error('Erro verificarConflito', error); return false; }
+    return data && data.length > 0;
+  } catch (err) {
+    console.error('Erro verificarConflito', err);
+    return false;
+  }
+}
+
+/* -----------------------
+   DASHBOARD (Gráficos e Cards)
+   ----------------------- */
 let graficoFaturamentoObj = null;
 let graficoServicosObj = null;
+
+async function refreshDashboard() {
+  try {
+    console.log('Iniciando atualização do Dashboard...');
+    const hoje = new Date().toISOString().split('T')[0];
+
+    const { data: vHoje = [], error: errHoje } = await supabaseClient.from('vendas').select('*').gte('data', `${hoje}T00:00:00`);
+    if (errHoje) throw errHoje;
+
+    const totalHoje = vHoje.reduce((acc, v) => acc + parseFloat(v.total || 0), 0);
+    const ticketMedio = vHoje.length > 0 ? totalHoje / vHoje.length : 0;
+    const clientesUnicos = new Set(vHoje.map(v => v.cliente_nome || v.barbeiro_nome)).size;
+
+    if (document.getElementById('faturamentoHoje')) document.getElementById('faturamentoHoje').textContent = `R$ ${totalHoje.toFixed(2)}`;
+    if (document.getElementById('faturamentoMes')) document.getElementById('faturamentoMes').textContent = `R$ ${totalHoje.toFixed(2)}`;
+    if (document.getElementById('atendimentosHoje')) document.getElementById('atendimentosHoje').textContent = vHoje.length || 0;
+    if (document.getElementById('clientesMes')) document.getElementById('clientesMes').textContent = clientesUnicos || 0;
+    if (document.getElementById('ticketMedio')) document.getElementById('ticketMedio').textContent = `R$ ${ticketMedio.toFixed(2)}`;
+
+    const servicosContagem = {};
+    vHoje.forEach(v => {
+      const s = v.servico_nome || v.descricao || 'Outros';
+      servicosContagem[s] = (servicosContagem[s] || 0) + 1;
+    });
+
+    const renderChart = (chartId, type, labels, dataArr, globalVarName, label) => {
+      const ctx = document.getElementById(chartId);
+      if (!ctx) return;
+      const existing = Chart.getChart(ctx);
+      if (existing) existing.destroy();
+      if (window[globalVarName]) { try { window[globalVarName].destroy(); } catch(e){} window[globalVarName] = null; }
+
+      window[globalVarName] = new Chart(ctx, {
+        type,
+        data: { labels, datasets: [{ label, data: dataArr, backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], borderColor: '#1a1a1a', borderWidth: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+      });
+    };
+
+    renderChart('graficoServicos', 'doughnut', Object.keys(servicosContagem), Object.values(servicosContagem), 'graficoServicosObj', 'Serviços');
+    renderChart('graficoFaturamento', 'bar', [hoje], [totalHoje], 'graficoFaturamentoObj', 'Faturamento');
+
+    console.log('Dashboard atualizado com sucesso!');
+  } catch (error) {
+    console.error('Erro geral no Dashboard:', error);
+  }
+}
 
 async function atualizarGraficoFaturamentoComFiltro() {
   try {
     const inicio = document.getElementById('filtroDataInicio')?.value;
     const fim = document.getElementById('filtroDataFim')?.value;
     if (!inicio || !fim) return;
-
     const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
     const fimISO = new Date(fim + 'T23:59:59').toISOString();
 
-    const { data: vendas, error } = await supabaseClient
-      .from('vendas')
-      .select('total, created_at')
-      .gte('created_at', inicioISO)
-      .lte('created_at', fimISO);
-
+    const { data: vendas = [], error } = await supabaseClient.from('vendas').select('total, created_at').gte('created_at', inicioISO).lte('created_at', fimISO);
     if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
 
     const faturamentoPorDia = {};
-    (vendas || []).forEach(v => {
+    vendas.forEach(v => {
       const dia = new Date(v.created_at).toISOString().split('T')[0];
       faturamentoPorDia[dia] = (faturamentoPorDia[dia] || 0) + parseFloat(v.total || 0);
     });
@@ -1993,9 +1720,7 @@ async function atualizarGraficoFaturamentoComFiltro() {
       data: { labels, datasets: [{ label: 'Faturamento', data: dataValues, backgroundColor: '#d4af37', borderColor: '#1a1a1a', borderWidth: 1 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
     });
-  } catch (err) {
-    console.error('Erro ao atualizar gráfico de faturamento:', err);
-  }
+  } catch (err) { console.error('Erro ao atualizar gráfico de faturamento:', err); }
 }
 
 async function atualizarGraficoServicosComFiltro() {
@@ -2003,20 +1728,14 @@ async function atualizarGraficoServicosComFiltro() {
     const inicio = document.getElementById('filtroServicoDataInicio')?.value;
     const fim = document.getElementById('filtroServicoDataFim')?.value;
     if (!inicio || !fim) return;
-
     const inicioISO = new Date(inicio + 'T00:00:00').toISOString();
     const fimISO = new Date(fim + 'T23:59:59').toISOString();
 
-    const { data: vendas, error } = await supabaseClient
-      .from('vendas')
-      .select('descricao, created_at')
-      .gte('created_at', inicioISO)
-      .lte('created_at', fimISO);
-
+    const { data: vendas = [], error } = await supabaseClient.from('vendas').select('descricao, created_at').gte('created_at', inicioISO).lte('created_at', fimISO);
     if (error) { console.error('Erro ao buscar vendas filtradas:', error); return; }
 
     const servicosContagem = {};
-    (vendas || []).forEach(v => {
+    vendas.forEach(v => {
       const serv = (v.descricao || 'Outros').trim();
       servicosContagem[serv] = (servicosContagem[serv] || 0) + 1;
     });
@@ -2026,1568 +1745,781 @@ async function atualizarGraficoServicosComFiltro() {
 
     const ctx = document.getElementById('graficoServicos');
     if (!ctx) return;
-    if (graficoServicosObj && graficoServicosObj.destroy) graficoServicosObj.destroy();
+    const existing = Chart.getChart(ctx);
+    if (existing) existing.destroy();
+    if (graficoServicosObj) { try { graficoServicosObj.destroy(); } catch(e){} graficoServicosObj = null; }
 
     graficoServicosObj = new Chart(ctx, {
       type: 'doughnut',
       data: { labels, datasets: [{ label: 'Serviços', data: dataValues, backgroundColor: ['#d4af37','#f1c40f','#b8860b','#eee8aa'], borderColor: '#1a1a1a', borderWidth: 1 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
     });
+
+  } catch (err) { console.error('Erro ao atualizar gráfico de serviços:', err); }
+}
+
+/* -----------------------
+   Agenda / Agendamentos
+   ----------------------- */
+async function refreshAgendamentos() {
+  try {
+    const { data, error } = await supabaseClient.from('agendamentos').select(`
+      *,
+      barbearias (nome),
+      profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
+    `).order('data_hora', { ascending: true });
+
+    if (error) {
+      console.error('❌ Erro ao carregar agendamentos:', error);
+      if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
+      return;
+    }
+    if (!data || data.length === 0) {
+      if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
+      return;
+    }
+
+    const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+
+    const html = data.map(row => {
+      const dataHora = new Date(row.data_hora);
+      const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+      const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
+      const acoesHtml = isBarbeiro ? '' : `
+        <td>
+          <button class="btn-whatsapp" onclick="enviarConfirmacaoWhatsapp('${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.cliente_telefone || ''}')">📱 WhatsApp</button>
+          <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">Editar</button>
+          <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">Excluir</button>
+        </td>
+      `;
+      return `<tr>
+        <td>${row.cliente_nome || 'N/A'}</td>
+        <td>${row.servico || 'N/A'}</td>
+        <td>${dataHora.toLocaleString('pt-BR')}</td>
+        <td>${barbeiroNome}</td>
+        <td>${barbeariaNome}</td>
+        ${acoesHtml}
+      </tr>`;
+    }).join('');
+
+    if (tableBody) tableBody.innerHTML = html;
+    console.log('✅ Agendamentos carregados:', data.length);
   } catch (err) {
-    console.error('Erro ao atualizar gráfico de serviços:', err);
+    console.error('❌ Erro ao carregar agendamentos:', err);
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
   }
 }
 
-// Event listeners (verifica existência dos elementos antes)
+async function refreshAgenda() {
+  try {
+    let query = supabaseClient.from('agendamentos').select(`
+      *,
+      barbearias (nome),
+      profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
+    `).order('data_hora', { ascending: true });
+
+    if (agendaFiltroData?.value) {
+      const dataInicio = `${agendaFiltroData.value}T00:00:00`;
+      const dataFim = `${agendaFiltroData.value}T23:59:59`;
+      query = query.gte('data_hora', dataInicio).lte('data_hora', dataFim);
+    }
+    if (agendaFiltroBarbeiro?.value) query = query.eq('barbeiro_id', agendaFiltroBarbeiro.value);
+
+    const { data, error } = await query;
+    if (error) { console.error('❌ Erro ao carregar agenda:', error); if (tableAgenda) tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>'; return; }
+    if (!data || data.length === 0) { if (tableAgenda) tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum agendamento encontrado para esta data</td></tr>'; return; }
+
+    const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+
+    const html = data.map(row => {
+      const dataHora = new Date(row.data_hora);
+      const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+      const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
+      const status = row.status || 'Pendente';
+      let statusClass = 'status-pendente';
+      if (status === 'Confirmado') statusClass = 'status-confirmado';
+      if (status === 'Cancelado') statusClass = 'status-cancelado';
+
+      const acoesHtml = isBarbeiro ? '' : `
+        <td>
+          <button class="btn-whatsapp" onclick="enviarConfirmacaoWhatsapp('${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.cliente_telefone || ''}')">📱 WhatsApp</button>
+          <button class="btn-finalizar" onclick="abrirFinalizarAtendimento('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.barbearia_id}', '${row.barbeiro_id || ''}')">💰 Finalizar</button>
+          <button class="btn-confirmar" onclick="confirmarAgendamento('${row.id}')">✓ Confirmar</button>
+          <button class="btn-cancelar" onclick="cancelarAgendamento('${row.id}')">✗ Cancelar</button>
+          <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">Editar</button>
+          <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">Excluir</button>
+        </td>
+      `;
+
+      return `<tr>
+        <td>${horario}</td>
+        <td>${row.cliente_nome || 'N/A'}</td>
+        <td>${row.servico || 'N/A'}</td>
+        <td>${barbeiroNome}</td>
+        <td>${barbeariaNome}</td>
+        <td><span class="status-badge ${statusClass}">${status}</span></td>
+        ${acoesHtml}
+      </tr>`;
+    }).join('');
+
+    if (tableAgenda) tableAgenda.innerHTML = html;
+    console.log('✅ Agenda carregada:', data.length);
+  } catch (err) {
+    console.error('❌ Erro ao carregar agenda:', err);
+    if (tableAgenda) tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+  }
+}
+
+async function refreshAgendaHoje() {
+  try {
+    const hoje = new Date().toISOString().split('T')[0];
+    if (agendaHojeData) agendaHojeData.textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const dataInicio = `${hoje}T00:00:00`;
+    const dataFim = `${hoje}T23:59:59`;
+    const { data, error } = await supabaseClient.from('agendamentos').select(`*, profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))`).gte('data_hora', dataInicio).lte('data_hora', dataFim).neq('status', 'Cancelado').order('data_hora', { ascending: true });
+    if (error) { console.error('Erro ao carregar agenda de hoje:', error); if (agendaHojeList) agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Erro ao carregar</div>'; return; }
+    if (!data || data.length === 0) { if (agendaHojeList) agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Nenhum agendamento para hoje</div>'; return; }
+    if (agendaHojeList) agendaHojeList.innerHTML = data.map(row => {
+      const dataHora = new Date(row.data_hora);
+      const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
+      return `<div class="agenda-hoje-item"><div class="horario">${horario}</div><div class="cliente">${row.cliente_nome || 'N/A'}</div><div class="servico">${row.servico || 'N/A'} • ${barbeiroNome}</div></div>`;
+    }).join('');
+  } catch (err) {
+    console.error('Erro ao carregar agenda de hoje:', err);
+    if (agendaHojeList) agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Erro ao carregar</div>';
+  }
+}
+
+function abrirFinalizarAtendimento(id, clienteNome, servico, barbeariaId, barbeiroId) {
+  currentFinalizarAgendamento = { id, clienteNome, servico, barbeariaId, barbeiroId };
+  if (finalizarCliente) finalizarCliente.value = clienteNome;
+  if (finalizarDescricao) finalizarDescricao.value = servico;
+  if (finalizarValor) finalizarValor.value = '';
+  if (finalizarFormaPagamento) finalizarFormaPagamento.value = '';
+  if (finalizarBarbeiro) finalizarBarbeiro.value = '';
+  if (finalizarMsg) { finalizarMsg.textContent = ''; finalizarMsg.className = ''; }
+
+  // buscar nome barbeiro (opcional)
+  (async () => {
+    if (barbeiroId) {
+      try {
+        const { data, error } = await supabaseClient.from('profiles').select('barbearias(nome)').eq('id', barbeiroId).single();
+        if (!error && data) {
+          if (finalizarBarbeiro) finalizarBarbeiro.value = data.barbearias?.nome || '';
+        }
+      } catch (err) { console.error('Erro buscar barbeiro', err); }
+    }
+  })();
+
+  if (finalizarAtendimentoModal) finalizarAtendimentoModal.classList.remove('hidden');
+}
+
+if (btnCancelFinalizar) btnCancelFinalizar.addEventListener('click', () => { if (finalizarAtendimentoModal) finalizarAtendimentoModal.classList.add('hidden'); currentFinalizarAgendamento = null; });
+
+if (btnConfirmarFinalizar) btnConfirmarFinalizar.addEventListener('click', async () => {
+  if (!currentFinalizarAgendamento) return;
+  if (!finalizarValor.value || parseFloat(finalizarValor.value) <= 0) { finalizarMsg.textContent = '❌ Digite um valor válido'; finalizarMsg.className = 'error-msg'; return; }
+  if (!finalizarFormaPagamento.value) { finalizarMsg.textContent = '❌ Selecione a forma de pagamento'; finalizarMsg.className = 'error-msg'; return; }
+
+  try {
+    finalizarMsg.textContent = 'Finalizando atendimento...'; finalizarMsg.className = 'muted';
+
+    const { data: vendaData, error: vendaError } = await supabaseClient.from('vendas').insert([{
+      descricao: finalizarDescricao.value.trim(),
+      total: parseFloat(finalizarValor.value),
+      forma_pagamento: finalizarFormaPagamento.value,
+      barbearia_id: currentFinalizarAgendamento.barbeariaId,
+      barbeiro_nome: finalizarBarbeiro.value.trim() || null
+    }]).select();
+
+    if (vendaError) { console.error('Erro criar venda', vendaError); finalizarMsg.textContent = '❌ Erro ao criar venda: ' + vendaError.message; finalizarMsg.className = 'error-msg'; return; }
+
+    const { error: deleteError } = await supabaseClient.from('agendamentos').delete().eq('id', currentFinalizarAgendamento.id);
+    if (deleteError) { console.error('Erro excluir agendamento', deleteError); finalizarMsg.textContent = '❌ Erro ao excluir agendamento: ' + deleteError.message; finalizarMsg.className = 'error-msg'; return; }
+
+    finalizarMsg.textContent = '✅ Atendimento finalizado com sucesso!'; finalizarMsg.className = 'success-msg';
+    await refreshAgendamentos(); await refreshAgenda(); await refreshAgendaHoje(); await refreshVendas(); await refreshMetrics(); await refreshMetricasVendas(); await refreshResumoBarbeiros();
+
+    setTimeout(() => { if (finalizarAtendimentoModal) finalizarAtendimentoModal.classList.add('hidden'); currentFinalizarAgendamento = null; }, 1500);
+  } catch (err) { console.error('Erro finalizar atendimento', err); finalizarMsg.textContent = '❌ Erro ao finalizar atendimento'; finalizarMsg.className = 'error-msg'; }
+});
+
+/* confirma / cancela */
+async function confirmarAgendamento(id) {
+  try {
+    const { error } = await supabaseClient.from('agendamentos').update({ status: 'Confirmado' }).eq('id', id);
+    if (error) { console.error('Erro confirmar', error); alert('❌ Erro ao confirmar agendamento'); return; }
+    await refreshAgenda(); await refreshAgendaHoje(); await refreshAgendamentos(); await refreshMetrics();
+  } catch (err) { console.error(err); alert('❌ Erro ao confirmar agendamento'); }
+}
+async function cancelarAgendamento(id) {
+  if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
+  try {
+    const { error } = await supabaseClient.from('agendamentos').update({ status: 'Cancelado' }).eq('id', id);
+    if (error) { console.error('Erro cancelar', error); alert('❌ Erro ao cancelar agendamento'); return; }
+    await refreshAgenda(); await refreshAgendaHoje(); await refreshAgendamentos(); await refreshMetrics();
+  } catch (err) { console.error(err); alert('❌ Erro ao cancelar agendamento'); }
+}
+
+/* Eventos da Agenda */
+if (agendaFiltroData) agendaFiltroData.addEventListener('change', async () => { await refreshAgenda(); await refreshAgendaHoje(); });
+if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.addEventListener('change', refreshAgenda);
+
+if (btnNovoAgendamentoAgenda) btnNovoAgendamentoAgenda.addEventListener('click', () => {
+  if (novoClienteNome) novoClienteNome.value = '';
+  if (novoServico) novoServico.value = '';
+  if (novoDataHora) novoDataHora.value = '';
+  if (novoBarbeiro) novoBarbeiro.value = '';
+  if (novoBarbearia) novoBarbearia.value = '';
+  if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = ''; novoAgendamentoModalMsg.className = ''; }
+  if (currentProfile && currentProfile.role === 'barbeiro') { if (novoBarbearia) { novoBarbearia.value = currentProfile.barbearia_id; novoBarbearia.disabled = true; } } else if (novoBarbearia) novoBarbearia.disabled = false;
+  if (novoAgendamentoModal) novoAgendamentoModal.classList.remove('hidden');
+});
+if (btnCancelNovoAgendamento) btnCancelNovoAgendamento.addEventListener('click', () => { if (novoAgendamentoModal) novoAgendamentoModal.classList.add('hidden'); });
+
+if (btnSalvarNovoAgendamento) btnSalvarNovoAgendamento.addEventListener('click', async () => {
+  if (!novoClienteNome?.value?.trim()) { if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = '❌ Digite o nome do cliente'; novoAgendamentoModalMsg.className = 'error-msg'; } return; }
+  if (!novoServico?.value?.trim()) { if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = '❌ Digite o serviço'; novoAgendamentoModalMsg.className = 'error-msg'; } return; }
+  if (!novoDataHora?.value) { if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = '❌ Selecione a data e hora'; novoAgendamentoModalMsg.className = 'error-msg'; } return; }
+  if (!novoBarbearia?.value) { if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = '❌ Selecione a barbearia'; novoAgendamentoModalMsg.className = 'error-msg'; } return; }
+
+  const dataHoraISO = new Date(novoDataHora.value).toISOString();
+  const temConflito = await verificarConflito(dataHoraISO, novoBarbeiro?.value);
+  if (temConflito) { novoAgendamentoModalMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!'; novoAgendamentoModalMsg.className = 'warning-msg'; return; }
+
+  try {
+    if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = 'Criando agendamento...'; novoAgendamentoModalMsg.className = 'muted'; }
+    const { data, error } = await supabaseClient.from('agendamentos').insert([{
+      cliente_nome: novoClienteNome.value.trim(),
+      cliente_telefone: (document.getElementById('novoClienteTelefone')?.value || '').trim() || null,
+      servico: novoServico.value.trim(),
+      data_hora: dataHoraISO,
+      barbearia_id: novoBarbearia.value,
+      barbeiro_id: novoBarbeiro.value || null,
+      status: 'Pendente'
+    }]).select();
+
+    if (error) { console.error('Erro criar agendamento', error); if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = '❌ Erro: ' + error.message; novoAgendamentoModalMsg.className = 'error-msg'; } return; }
+
+    if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = '✅ Agendamento criado com sucesso!'; novoAgendamentoModalMsg.className = 'success-msg'; }
+    await refreshAgendamentos(); await refreshAgenda(); await refreshAgendaHoje(); await refreshMetrics();
+    setTimeout(() => { if (novoAgendamentoModal) novoAgendamentoModal.classList.add('hidden'); }, 1000);
+  } catch (err) { console.error(err); if (novoAgendamentoModalMsg) { novoAgendamentoModalMsg.textContent = '❌ Erro ao criar agendamento'; novoAgendamentoModalMsg.className = 'error-msg'; } }
+});
+
+/* -----------------------
+   VENDAS CRUD
+   ----------------------- */
+async function refreshVendas() {
+  try {
+    const { data, error } = await supabaseClient.from('vendas').select('*, barbearias (nome)').order('created_at', { ascending: false });
+    if (error) { console.error('Erro carregar vendas', error); if (tableVendas) tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>'; return; }
+    if (!data || data.length === 0) { if (tableVendas) tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhuma venda encontrada</td></tr>'; return; }
+
+    const { data: agendamentos = [] } = await supabaseClient.from('agendamentos').select('cliente_nome, servico, data_hora');
+
+    const html = data.map(row => {
+      const data_criacao = new Date(row.created_at);
+      const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
+      const barbeiroNome = row.barbeiro_nome || 'N/A';
+      let foiAgendado = false;
+      if (agendamentos) {
+        foiAgendado = agendamentos.some(ag => {
+          const agDataHora = new Date(ag.data_hora);
+          const vendaData = new Date(row.created_at);
+          const mesmoServico = ag.servico && row.descricao && ag.servico.toLowerCase().includes(row.descricao.toLowerCase());
+          const mesmoDia = agDataHora.toDateString() === vendaData.toDateString();
+          return mesmoServico && mesmoDia;
+        });
+      }
+      const agendadoBadge = foiAgendado ? '<span class="status-badge agendado-sim">✓ Sim</span>' : '<span class="status-badge agendado-nao">✗ Não</span>';
+      const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
+      const acoesHtml = isBarbeiro ? '' : `<td><button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_nome || ''}')">Editar</button><button class="btn-delete" onclick="deleteVenda('${row.id}')">Excluir</button></td>`;
+      return `<tr>
+        <td>${row.descricao || 'N/A'}</td>
+        <td>R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
+        <td>${row.forma_pagamento || 'N/A'}</td>
+        <td>${barbeiroNome}</td>
+        <td>${barbeariaNome}</td>
+        <td>${data_criacao.toLocaleString('pt-BR')}</td>
+        <td>${agendadoBadge}</td>
+        ${acoesHtml}
+      </tr>`;
+    }).join('');
+
+    if (tableVendas) tableVendas.innerHTML = html;
+    console.log('✅ Vendas carregadas:', data.length);
+  } catch (err) {
+    console.error('Erro refreshVendas', err);
+    if (tableVendas) tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
+  }
+}
+
+function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
+  currentEditVendaId = id;
+  if (editDescricaoVenda) editDescricaoVenda.value = descricao;
+  if (editValorVenda) editValorVenda.value = parseFloat(valor);
+  if (editFormaPagamentoVenda) editFormaPagamentoVenda.value = formaPagamento;
+  if (editBarbeariaVenda) editBarbeariaVenda.value = barbeariaId;
+  if (editBarbeiroNomeVenda) editBarbeiroNomeVenda.value = barbeiroNome || '';
+  if (editVendaMsg) { editVendaMsg.textContent = ''; editVendaMsg.className = ''; }
+  if (editVendaModal) editVendaModal.classList.remove('hidden');
+}
+
+if (btnCancelEditVenda) btnCancelEditVenda.addEventListener('click', () => { if (editVendaModal) editVendaModal.classList.add('hidden'); currentEditVendaId = null; });
+
+if (btnSaveEditVenda) btnSaveEditVenda.addEventListener('click', async () => {
+  if (!currentEditVendaId) return;
+  if (!editDescricaoVenda?.value?.trim()) { editVendaMsg.textContent = '❌ Digite a descrição'; editVendaMsg.className = 'error-msg'; return; }
+  if (!editValorVenda?.value || parseFloat(editValorVenda.value) <= 0) { editVendaMsg.textContent = '❌ Digite um valor válido'; editVendaMsg.className = 'error-msg'; return; }
+  if (!editFormaPagamentoVenda?.value) { editVendaMsg.textContent = '❌ Selecione a forma de pagamento'; editVendaMsg.className = 'error-msg'; return; }
+  if (!editBarbeariaVenda?.value) { editVendaMsg.textContent = '❌ Selecione a barbearia'; editVendaMsg.className = 'error-msg'; return; }
+
+  try {
+    editVendaMsg.textContent = 'Salvando...'; editVendaMsg.className = 'muted';
+    const { data, error } = await supabaseClient.from('vendas').update({
+      descricao: editDescricaoVenda.value.trim(),
+      total: parseFloat(editValorVenda.value),
+      forma_pagamento: editFormaPagamentoVenda.value,
+      barbearia_id: editBarbeariaVenda.value,
+      barbeiro_nome: editBarbeiroNomeVenda.value.trim() || null
+    }).eq('id', currentEditVendaId).select();
+
+    if (error) { console.error('Erro atualizar venda', error); editVendaMsg.textContent = '❌ Erro: ' + error.message; editVendaMsg.className = 'error-msg'; return; }
+    editVendaMsg.textContent = '✅ Venda atualizada com sucesso!'; editVendaMsg.className = 'success-msg';
+    await refreshVendas(); await refreshMetricasVendas(); await refreshMetrics(); await refreshResumoBarbeiros();
+    setTimeout(() => { if (editVendaModal) editVendaModal.classList.add('hidden'); currentEditVendaId = null; }, 1000);
+  } catch (err) { console.error(err); editVendaMsg.textContent = '❌ Erro ao atualizar venda'; editVendaMsg.className = 'error-msg'; }
+});
+
+async function deleteVenda(id) {
+  if (!confirm("Tem certeza que deseja excluir esta venda?")) return;
+  try {
+    const { error } = await supabaseClient.from('vendas').delete().eq('id', id);
+    if (error) { alert("❌ Erro ao excluir: " + error.message); console.error(error); return; }
+    await refreshVendas(); await refreshMetricasVendas(); await refreshMetrics(); await refreshResumoBarbeiros();
+  } catch (err) { console.error(err); alert("❌ Erro inesperado ao excluir."); }
+}
+
+/* criação venda */
+if (btnCriarVenda) btnCriarVenda.addEventListener('click', async () => {
+  if (!descricaoVenda?.value?.trim()) { vendaMsg.textContent = '❌ Digite a descrição'; vendaMsg.className = 'error-msg'; return; }
+  if (!valorVenda?.value || parseFloat(valorVenda.value) <= 0) { vendaMsg.textContent = '❌ Digite um valor válido'; vendaMsg.className = 'error-msg'; return; }
+  if (!selectFormaPagamento?.value) { vendaMsg.textContent = '❌ Selecione a forma de pagamento'; vendaMsg.className = 'error-msg'; return; }
+  if (!selectBarbeariaVenda?.value) { vendaMsg.textContent = '❌ Selecione a barbearia'; vendaMsg.className = 'error-msg'; return; }
+
+  try {
+    vendaMsg.textContent = 'Criando venda...'; vendaMsg.className = 'muted';
+    const { data, error } = await supabaseClient.from('vendas').insert([{
+      descricao: descricaoVenda.value.trim(),
+      total: parseFloat(valorVenda.value),
+      forma_pagamento: selectFormaPagamento.value,
+      barbearia_id: selectBarbeariaVenda.value,
+      barbeiro_nome: inputBarbeiroNome.value.trim() || null
+    }]).select();
+
+    if (error) { vendaMsg.textContent = '❌ Erro: ' + error.message; vendaMsg.className = 'error-msg'; console.error(error); return; }
+    vendaMsg.textContent = '✅ Venda criada com sucesso!'; vendaMsg.className = 'success-msg';
+    descricaoVenda.value = ''; valorVenda.value = ''; selectFormaPagamento.value = ''; selectBarbeariaVenda.value = ''; inputBarbeiroNome.value = '';
+    await refreshVendas(); await refreshMetricasVendas(); await refreshMetrics(); await refreshResumoBarbeiros();
+    setTimeout(() => { vendaMsg.textContent = ''; vendaMsg.className = ''; }, 3000);
+  } catch (err) { console.error('Erro criar venda', err); vendaMsg.textContent = '❌ Erro ao criar venda'; vendaMsg.className = 'error-msg'; }
+});
+
+/* -----------------------
+   FECHAMENTO DE CAIXA
+   ----------------------- */
+function toLocalDatetimeValue(date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+function getFechamentoBarbeariaId() {
+  if (currentProfile && currentProfile.role === 'barbeiro') return currentProfile.barbearia_id;
+  return fechamentoSelectBarbearia?.value || '';
+}
+async function getUltimoFechamentoFim(barbeariaId) {
+  const { data, error } = await supabaseClient.from('fechamentos_caixa').select('fim_periodo').eq('barbearia_id', barbeariaId).order('fim_periodo', { ascending: false }).limit(1);
+  if (error) return null;
+  return data && data[0] ? data[0].fim_periodo : null;
+}
+async function setupFechamentoDefaults() {
+  const barbeariaId = getFechamentoBarbeariaId(); if (!barbeariaId) return;
+  const now = new Date(); if (fechamentoFim) fechamentoFim.value = toLocalDatetimeValue(now);
+  const lastFim = await getUltimoFechamentoFim(barbeariaId);
+  if (lastFim) { fechamentoInicio.value = toLocalDatetimeValue(new Date(lastFim)); } else { const start = new Date(); start.setHours(0,0,0,0); fechamentoInicio.value = toLocalDatetimeValue(start); }
+}
+async function refreshFechamento() {
+  try {
+    const barbeariaId = getFechamentoBarbeariaId();
+    if (!barbeariaId) {
+      if (fechamentoTotalEl) fechamentoTotalEl.textContent = 'R$ 0,00';
+      if (fechamentoQuantidadeEl) fechamentoQuantidadeEl.textContent = '0';
+      if (fechamentoPorFormaEl) fechamentoPorFormaEl.textContent = '--';
+      if (tableFechamentoVendasBody) tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Selecione a barbearia</td></tr>';
+      return;
+    }
+    if (!fechamentoInicio.value || !fechamentoFim.value) await setupFechamentoDefaults();
+    const inicioIso = new Date(fechamentoInicio.value).toISOString();
+    const fimIso = new Date(fechamentoFim.value).toISOString();
+
+    const { data: vendas = [], error } = await supabaseClient.from('vendas').select('id, descricao, total, forma_pagamento, barbeiro_nome, created_at, fechamento_id').eq('barbearia_id', barbeariaId).is('fechamento_id', null).gte('created_at', inicioIso).lte('created_at', fimIso).order('created_at', { ascending: true });
+    if (error) { console.error('Erro refreshFechamento', error); if (tableFechamentoVendasBody) tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>'; return; }
+
+    const total = vendas.reduce((acc,v)=> acc + parseFloat(v.total || 0), 0);
+    const qtd = vendas.length;
+    const porForma = {};
+    vendas.forEach(v => { const forma = v.forma_pagamento || '(Sem forma)'; porForma[forma] = (porForma[forma] || 0) + parseFloat(v.total || 0); });
+
+    if (fechamentoTotalEl) fechamentoTotalEl.textContent = `R$ ${total.toFixed(2)}`;
+    if (fechamentoQuantidadeEl) fechamentoQuantidadeEl.textContent = String(qtd);
+    const porFormaHtml = Object.keys(porForma).length ? Object.entries(porForma).map(([f,s])=>`<div>${f}: <span style="color:#fff;font-weight:700;">R$ ${s.toFixed(2)}</span></div>`).join('') : '<span class="muted">—</span>';
+    if (fechamentoPorFormaEl) fechamentoPorFormaEl.innerHTML = porFormaHtml;
+
+    if (vendas && vendas.length > 0) {
+      if (tableFechamentoVendasBody) tableFechamentoVendasBody.innerHTML = vendas.map(v => {
+        const dt = new Date(v.created_at).toLocaleString('pt-BR');
+        return `<tr><td>${v.descricao || 'N/A'}</td><td>R$ ${parseFloat(v.total || 0).toFixed(2)}</td><td>${v.forma_pagamento || 'N/A'}</td><td>${v.barbeiro_nome || 'N/A'}</td><td>${dt}</td></tr>`;
+      }).join('');
+    } else {
+      if (tableFechamentoVendasBody) tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sem vendas em aberto no período</td></tr>';
+    }
+  } catch (err) { console.error('Erro no refreshFechamento', err); }
+}
+async function refreshHistoricoFechamentos() {
+  try {
+    const barbeariaId = getFechamentoBarbeariaId();
+    if (!barbeariaId) { if (tableHistoricoFechamentosBody) tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Selecione a barbearia</td></tr>'; return; }
+    const { data, error } = await supabaseClient.from('fechamentos_caixa').select('inicio_periodo, fim_periodo, total, quantidade, totais_por_forma, created_at').eq('barbearia_id', barbeariaId).order('created_at', { ascending: false }).limit(20);
+    if (error) { console.error('Erro historico', error); if (tableHistoricoFechamentosBody) tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>'; return; }
+    if (!data || data.length === 0) { if (tableHistoricoFechamentosBody) tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum fechamento ainda</td></tr>'; return; }
+    if (tableHistoricoFechamentosBody) tableHistoricoFechamentosBody.innerHTML = data.map(f => {
+      const ini = new Date(f.inicio_periodo).toLocaleString('pt-BR');
+      const fim = new Date(f.fim_periodo).toLocaleString('pt-BR');
+      const criado = new Date(f.created_at).toLocaleString('pt-BR');
+      const porForma = f.totais_por_forma ? Object.entries(f.totais_por_forma).map(([k,v])=>`${k}: R$ ${Number(v).toFixed(2)}`).join(' | ') : '';
+      return `<tr><td>${ini}</td><td>${fim}</td><td>${f.quantidade ?? 0}</td><td>R$ ${parseFloat(f.total || 0).toFixed(2)}</td><td>${porForma || '—'}</td><td>${criado}</td></tr>`;
+    }).join('');
+  } catch (err) { console.error(err); }
+}
+async function fecharCaixa() {
+  if (!currentProfile || currentProfile.role !== 'gerente') { fechamentoMsg.textContent = '❌ Apenas gerente pode fechar o caixa'; fechamentoMsg.className = 'error-msg'; return; }
+  const barbeariaId = getFechamentoBarbeariaId(); if (!barbeariaId) { fechamentoMsg.textContent = '❌ Selecione a barbearia'; fechamentoMsg.className = 'error-msg'; return; }
+  if (!fechamentoInicio.value || !fechamentoFim.value) { fechamentoMsg.textContent = '❌ Informe início e fim'; fechamentoMsg.className = 'error-msg'; return; }
+  const inicioIso = new Date(fechamentoInicio.value).toISOString(); const fimIso = new Date(fechamentoFim.value).toISOString();
+  if (!confirm('Confirmar fechamento de caixa? As vendas desse período serão finalizadas.')) return;
+  try {
+    fechamentoMsg.textContent = 'Fechando caixa...'; fechamentoMsg.className = 'muted';
+    const { data, error } = await supabaseClient.rpc('fechar_caixa', { p_barbearia_id: barbeariaId, p_inicio: inicioIso, p_fim: fimIso, p_observacao: fechamentoObs.value.trim() || null });
+    if (error) { console.error('Erro fechar caixa', error); fechamentoMsg.textContent = '❌ ' + error.message; fechamentoMsg.className = 'error-msg'; return; }
+    fechamentoMsg.textContent = '✅ Caixa fechado com sucesso!'; fechamentoMsg.className = 'success-msg';
+    await refreshVendas(); await refreshMetricasVendas(); await refreshMetrics(); await refreshFechamento(); await refreshHistoricoFechamentos();
+    setTimeout(() => { fechamentoMsg.textContent = ''; fechamentoMsg.className = ''; }, 3000);
+  } catch (err) { console.error(err); fechamentoMsg.textContent = '❌ Erro inesperado ao fechar caixa'; fechamentoMsg.className = 'error-msg'; }
+}
+
+if (btnAtualizarFechamento) btnAtualizarFechamento.addEventListener('click', async () => { await refreshFechamento(); await refreshHistoricoFechamentos(); });
+if (fechamentoSelectBarbearia) fechamentoSelectBarbearia.addEventListener('change', async () => { await setupFechamentoDefaults(); await refreshFechamento(); await refreshHistoricoFechamentos(); });
+if (btnFecharCaixa) btnFecharCaixa.addEventListener('click', fecharCaixa);
+
+/* -----------------------
+   Comissões
+   ----------------------- */
+async function carregarBarbeirosComissao() {
+  const select = document.getElementById('comissaoSelectBarbeiro');
+  if (!select) return;
+  try {
+    const { data, error } = await supabaseClient.from('vendas').select('barbeiro_nome');
+    if (error) { console.error(error); return; }
+    const nomes = [...new Set((data || []).map(v => v.barbeiro_nome).filter(n => n))];
+    select.innerHTML = '<option value="">Selecione o Barbeiro</option>' + nomes.map(n => `<option value="${n}">${n}</option>`).join('');
+  } catch (err) { console.error(err); }
+}
+
+async function calcularComissoes() {
+  const nome = document.getElementById('comissaoSelectBarbeiro')?.value;
+  const perc = parseFloat(document.getElementById('percentualComissao')?.value || 0) / 100;
+  const tbody = document.querySelector('#tableComissoes tbody');
+  if (!nome) return alert("Selecione um barbeiro");
+  try {
+    const { data: vendas, error } = await supabaseClient.from('vendas').select('*').eq('barbeiro_nome', nome).order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    if (!tbody) return;
+    let bruto = 0, liquida = 0;
+    tbody.innerHTML = (vendas || []).map(v => {
+      const vTotal = parseFloat(v.total || 0);
+      const vComis = vTotal * perc;
+      bruto += vTotal; liquida += vComis;
+      return `<tr><td>${new Date(v.created_at).toLocaleDateString('pt-BR')}</td><td>${v.descricao || 'Serviço'}</td><td>R$ ${vTotal.toFixed(2)}</td><td>R$ ${vComis.toFixed(2)}</td></tr>`;
+    }).join('');
+    document.getElementById('comissaoTotalBruto').textContent = `R$ ${bruto.toFixed(2)}`;
+    document.getElementById('comissaoLiquida').textContent = `R$ ${liquida.toFixed(2)}`;
+    document.getElementById('comissaoCasa').textContent = `R$ ${(bruto - liquida).toFixed(2)}`;
+  } catch (err) { console.error('Erro calcularComissoes', err); }
+}
+
+setTimeout(() => { if (btnCalcularComissao) btnCalcularComissao.addEventListener('click', calcularComissoes); }, 500);
+
+/* -----------------------
+   Métricas e Resumo
+   ----------------------- */
+async function refreshMetrics() {
+  try {
+    const hoje = new Date().toISOString().split('T')[0];
+    const { data: vendas = [], error: vendasError } = await supabaseClient.from('vendas').select('total').gte('created_at', hoje);
+    if (!vendasError) { const total = vendas.reduce((acc,c)=>acc+parseFloat(c.total||0),0); if (vendasHojeEl) vendasHojeEl.textContent = `R$ ${total.toFixed(2)}`; }
+    const { data: agendamentos = [], error: agendError } = await supabaseClient.from('agendamentos').select('id', { count: 'exact' });
+    if (!agendError) { if (countAgendamentosEl) countAgendamentosEl.textContent = agendamentos.length || '0'; if (ticketMedioEl) { if (vendas && vendas.length>0 && agendamentos.length>0) { const total = vendas.reduce((acc,c)=>acc+parseFloat(c.total||0),0); const ticketMedio = total/agendamentos.length; ticketMedioEl.textContent = `R$ ${ticketMedio.toFixed(2)}` } else ticketMedioEl.textContent = 'R$ 0,00'; } }
+  } catch (err) { console.error('Erro refreshMetrics', err); }
+}
+
+async function refreshMetricasVendas() {
+  try {
+    const { data: vendas = [], error } = await supabaseClient.from('vendas').select('total');
+    if (!error) {
+      const total = vendas.reduce((acc,c)=>acc+parseFloat(c.total||0),0);
+      const quantidade = vendas.length;
+      const ticketMedio = quantidade>0 ? total/quantidade : 0;
+      if (totalVendasEl) totalVendasEl.textContent = `R$ ${total.toFixed(2)}`;
+      if (countVendasEl) countVendasEl.textContent = quantidade;
+      if (ticketMedioVendasEl) ticketMedioVendasEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
+    }
+  } catch (err) { console.error('Erro refreshMetricasVendas', err); }
+}
+
+async function refreshResumoBarbeiros() {
+  try {
+    const { data: vendas = [], error } = await supabaseClient.from('vendas').select('barbeiro_nome, total');
+    if (error) { console.error('Erro refreshResumoBarbeiros', error); return; }
+    const resumo = {};
+    vendas.forEach(v => {
+      const nome = v.barbeiro_nome || 'Sem barbeiro';
+      if (!resumo[nome]) resumo[nome] = { count:0, total:0 };
+      resumo[nome].count++; resumo[nome].total += parseFloat(v.total || 0);
+    });
+    let html = '';
+    Object.keys(resumo).forEach(nome => {
+      const s = resumo[nome];
+      html += `<div class="barbeiro-stats"><div class="name">✂️ ${nome}</div><div class="stats"><div>Cortes: <span>${s.count}</span></div><div>Total: <span>R$ ${s.total.toFixed(2)}</span></div></div></div>`;
+    });
+    if (barbeirosStatsEl) barbeirosStatsEl.innerHTML = html || '<p class="muted">Nenhuma venda registrada ainda.</p>';
+  } catch (err) { console.error('Erro refreshResumoBarbeiros', err); }
+}
+
+/* -----------------------
+   Edit Agendamento
+   ----------------------- */
+function openEditModal(id, clienteNome, servico, dataHora, barbeiroId, barbeariaId) {
+  currentEditId = id;
+  if (editClienteNome) editClienteNome.value = clienteNome;
+  if (editServico) editServico.value = servico;
+  if (editDataHora) {
+    const date = new Date(dataHora);
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    editDataHora.value = localDate.toISOString().slice(0,16);
+  }
+  if (editBarbeiro) editBarbeiro.value = barbeiroId || '';
+  if (editBarbearia) editBarbearia.value = barbeariaId;
+  if (editMsg) { editMsg.textContent = ''; editMsg.className = ''; }
+  if (editModal) editModal.classList.remove('hidden');
+}
+
+if (btnCancelEdit) btnCancelEdit.addEventListener('click', () => { if (editModal) editModal.classList.add('hidden'); currentEditId = null; });
+
+if (btnSaveEdit) btnSaveEdit.addEventListener('click', async () => {
+  if (!currentEditId) return;
+  if (!editClienteNome?.value?.trim()) { editMsg.textContent = '❌ Digite o nome do cliente'; editMsg.className = 'error-msg'; return; }
+  if (!editServico?.value?.trim()) { editMsg.textContent = '❌ Digite o serviço'; editMsg.className = 'error-msg'; return; }
+  if (!editDataHora?.value) { editMsg.textContent = '❌ Selecione a data e hora'; editMsg.className = 'error-msg'; return; }
+  if (!editBarbearia?.value) { editMsg.textContent = '❌ Selecione a barbearia'; editMsg.className = 'error-msg'; return; }
+
+  const dataHoraISO = new Date(editDataHora.value).toISOString();
+  if (editBarbeiro?.value) {
+    const { data: conflitos = [], error } = await supabaseClient.from('agendamentos').select('id').eq('barbeiro_id', editBarbeiro.value).eq('data_hora', dataHoraISO).neq('id', currentEditId).neq('status','Cancelado');
+    if (!error && conflitos.length>0) { editMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!'; editMsg.className = 'warning-msg'; return; }
+  }
+
+  try {
+    editMsg.textContent = 'Salvando...'; editMsg.className = 'muted';
+    const { data, error } = await supabaseClient.from('agendamentos').update({
+      cliente_nome: editClienteNome.value.trim(),
+      cliente_telefone: (document.getElementById('editClienteTelefone')?.value || '').trim() || null,
+      servico: editServico.value.trim(),
+      data_hora: dataHoraISO,
+      barbearia_id: editBarbearia.value,
+      barbeiro_id: editBarbeiro.value || null
+    }).eq('id', currentEditId).select();
+
+    if (error) { editMsg.textContent = '❌ Erro: ' + error.message; editMsg.className = 'error-msg'; console.error(error); return; }
+    editMsg.textContent = '✅ Agendamento atualizado com sucesso!'; editMsg.className = 'success-msg';
+    await refreshAgendamentos(); await refreshAgenda(); await refreshAgendaHoje(); await refreshMetrics();
+    setTimeout(() => { if (editModal) editModal.classList.add('hidden'); currentEditId = null; }, 1000);
+  } catch (err) { console.error(err); editMsg.textContent = '❌ Erro ao atualizar agendamento'; editMsg.className = 'error-msg'; }
+});
+
+/* Excluir agendamento */
+async function deleteAgendamento(id) {
+  if (!confirm("Tem certeza que deseja excluir este agendamento?")) return;
+  try {
+    const { error } = await supabaseClient.from('agendamentos').delete().eq('id', id);
+    if (error) { alert("❌ Erro ao excluir: " + error.message); console.error(error); return; }
+    await refreshAgendamentos(); await refreshAgenda(); await refreshAgendaHoje(); await refreshMetrics();
+  } catch (err) { console.error(err); alert("❌ Erro inesperado ao excluir."); }
+}
+
+/* -----------------------
+   Navegação unificada + animação
+   ----------------------- */
+const ordemSecoes = ['dashboard','agenda','vendas','fechamento','comissoes'];
+let secaoAtualIndex = 0;
+
+async function navegarPara(sectionId) {
+  if (!sectionId) return;
+  if (navigator.vibrate) navigator.vibrate(10);
+  const novoIndex = ordemSecoes.indexOf(sectionId);
+  const direcao = (novoIndex > secaoAtualIndex) ? 'forward' : 'back';
+  secaoAtualIndex = (novoIndex === -1) ? secaoAtualIndex : novoIndex;
+
+  document.querySelectorAll('main.content > section').forEach(sec => {
+    sec.classList.remove('active','slide-forward','slide-back');
+    sec.classList.add('hidden');
+  });
+
+  const target = document.getElementById(sectionId);
+  if (target) {
+    target.classList.remove('hidden');
+    target.classList.add(direcao === 'forward' ? 'slide-forward' : 'slide-back');
+    requestAnimationFrame(()=> setTimeout(()=> target.classList.add('active'), 10));
+  }
+
+  document.querySelectorAll('nav.sidebar a, .bottom-nav a').forEach(link => {
+    link.classList.toggle('active', link.dataset.section === sectionId);
+  });
+
+  await carregarDadosDaSecao(sectionId);
+}
+
+async function carregarDadosDaSecao(section) {
+  try {
+    switch(section) {
+      case 'dashboard': await refreshDashboard(); break;
+      case 'agenda': await refreshAgenda(); await refreshAgendaHoje(); break;
+      case 'vendas': await refreshVendas(); await refreshMetricasVendas(); await refreshResumoBarbeiros(); break;
+      case 'fechamento': await setupFechamentoDefaults(); await refreshFechamento(); await refreshHistoricoFechamentos(); break;
+      case 'comissoes': await carregarBarbeirosComissao(); break;
+    }
+  } catch (err) { console.error('Erro carregarDadosDaSecao', err); }
+}
+
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[data-section]');
+  if (link) {
+    e.preventDefault();
+    navegarPara(link.dataset.section);
+  }
+});
+
+// Ajuste bottom nav visibilidade
+function ajustarBottomNav() {
+  const bn = document.getElementById('bottomNav');
+  if (!bn) return;
+  if (window.innerWidth <= 900 && currentUser) { bn.classList.add('visible'); bn.style.display = 'flex'; }
+  else { bn.classList.remove('visible'); bn.style.display = 'none'; }
+}
+window.addEventListener('resize', ajustarBottomNav);
+
+/* -----------------------
+   Login / Registro / Logout
+   ----------------------- */
+if (loginForm) loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (loginMsg) { loginMsg.textContent = 'Entrando...'; loginMsg.className = 'muted'; }
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email: emailInput.value, password: passwordInput.value });
+    if (error) { if (loginMsg) { loginMsg.textContent = '❌ ' + error.message; loginMsg.className = 'error-msg'; } }
+    else { if (loginMsg) { loginMsg.textContent = '✅ Login realizado com sucesso!'; loginMsg.className = 'success-msg'; } }
+  } catch (err) { console.error('Erro login', err); if (loginMsg) { loginMsg.textContent = '❌ Erro ao logar'; loginMsg.className = 'error-msg'; } }
+});
+
+if (btnToRegister) btnToRegister.addEventListener('click', async () => {
+  const email = prompt('Digite o e-mail para a nova conta:');
+  const password = prompt('Digite a senha (mínimo 6 caracteres):');
+  if (!email || !password) return;
+  if (loginMsg) { loginMsg.textContent = 'Registrando...'; loginMsg.className = 'muted'; }
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
+  if (error) { if (loginMsg) { loginMsg.textContent = '❌ ' + error.message; loginMsg.className = 'error-msg'; } alert('Erro ao registrar: ' + error.message); }
+  else { if (loginMsg) { loginMsg.textContent = '✅ Registro realizado! Verifique seu e-mail.'; loginMsg.className = 'success-msg'; } alert('Conta criada com sucesso! Verifique o e-mail.'); }
+});
+
+if (btnLogout) btnLogout.addEventListener('click', async () => {
+  try {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) { console.error('Erro logout', error); } else { currentUser = null; currentProfile = null; console.log('Usuário desconectado'); }
+  } catch (err) { console.error('Erro logout', err); }
+});
+
+/* -----------------------
+   Carregar profile e UI por role
+   ----------------------- */
+async function carregarProfile(userId) {
+  try {
+    const { data, error } = await supabaseClient.from('profiles').select('id, barbearia_id, role, barbearias(id, nome)').eq('id', userId).single();
+    if (error) { console.error('Erro carregar profile', error); alert('⚠️ Erro ao carregar perfil do usuário.'); return; }
+    currentProfile = data;
+    atualizarUIporRole();
+  } catch (err) { console.error('Erro carregarProfile', err); }
+}
+
+function atualizarUIporRole() {
+  if (!currentProfile) return;
+  const role = currentProfile.role || 'barbeiro';
+  const barbeariaId = currentProfile.barbearia_id;
+  const barbeariaNome = currentProfile.barbearias?.nome || 'N/A';
+  const roleBadge = role === 'gerente' ? '<span class="role-badge role-gerente">📋 Gerente</span>' : '<span class="role-badge role-barbeiro">✂️ Barbeiro</span>';
+  if (userInfo) userInfo.innerHTML = `<span class="user-chip">${currentUser.email}${roleBadge}</span>`;
+  const isGerente = (role === 'gerente');
+  const selectsParaDesativar = ['selectBarbeariaVenda','fechamentoSelectBarbearia','novoBarbearia'];
+  selectsParaDesativar.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !isGerente; });
+  if (!isGerente) {
+    ['selectBarbeariaVenda','fechamentoSelectBarbearia'].forEach(id => { const el = document.getElementById(id); if (el) el.value = barbeariaId; });
+  }
+  const linkFechamento = document.querySelector('nav.sidebar a[data-section="fechamento"]');
+  if (linkFechamento) { if (isGerente) linkFechamento.classList.remove('hidden'); else linkFechamento.classList.add('hidden'); }
+}
+
+/* -----------------------
+   Inicialização: atribuir listeners de filtros / gráficos
+   ----------------------- */
 document.getElementById('btnFiltrarFaturamento')?.addEventListener('click', atualizarGraficoFaturamentoComFiltro);
 document.getElementById('btnFiltrarServicos')?.addEventListener('click', atualizarGraficoServicosComFiltro);
 
-// Inicializa filtros com últimos 7 dias (se os inputs estiverem presentes)
 window.addEventListener('load', () => {
-  const hoje = new Date();
-  const seteDias = new Date();
-  seteDias.setDate(hoje.getDate() - 7);
+  const hoje = new Date(); const seteDias = new Date(); seteDias.setDate(hoje.getDate()-7);
   const fmt = d => d.toISOString().split('T')[0];
-
   if (document.getElementById('filtroDataInicio') && document.getElementById('filtroDataFim')) {
     document.getElementById('filtroDataInicio').value = fmt(seteDias);
     document.getElementById('filtroDataFim').value = fmt(hoje);
     atualizarGraficoFaturamentoComFiltro();
   }
-
   if (document.getElementById('filtroServicoDataInicio') && document.getElementById('filtroServicoDataFim')) {
     document.getElementById('filtroServicoDataInicio').value = fmt(seteDias);
     document.getElementById('filtroServicoDataFim').value = fmt(hoje);
     atualizarGraficoServicosComFiltro();
   }
 });
-// --- Fim do ajuste 2 ---
 
-    async function refreshDashboardBarbeiro() {
-      const barbeiroId = currentProfile?.id;
-      const hoje = new Date().toISOString().split('T')[0];
-
-      // Clientes hoje
-      const { count: clientesHoje } = await supabaseClient
-        .from('vendas')
-        .select('*', { count: 'exact' })
-        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      document.getElementById('clientesHojeBarbeiro').textContent = clientesHoje || 0;
-
-      // Faturamento hoje
-      const { data: vendasHoje } = await supabaseClient
-        .from('vendas')
-        .select('total')
-        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      const total = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-      document.getElementById('faturamentoHojeBarbeiro').textContent = `R$ ${total.toFixed(2)}`;
-
-      // Próximo horário
-      const { data: proximos } = await supabaseClient
-        .from('agendamentos')
-        .select('data_hora, cliente_nome')
-        .eq('barbeiro_id', barbeiroId)
-        .gte('data_hora', new Date().toISOString())
-        .order('data_hora', { ascending: true })
-        .limit(1);
-      if (proximos && proximos[0]) {
-        const data = new Date(proximos[0].data_hora);
-        document.getElementById('proximoHorarioBarbeiro').innerHTML = `
-          ${data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - 
-          <strong>${proximos[0].cliente_nome}</strong>
-        `;
-      } else {
-        document.getElementById('proximoHorarioBarbeiro').textContent = 'Nenhum agendamento';
-      }
-    }
-
- // --- MÉTRICAS DASHBOARD ---
-    async function refreshMetrics() {
-      try {
-        const hoje = new Date().toISOString().split('T')[0];
-        const { data: vendas, error: vendasError } = await supabaseClient
-          .from('vendas')
-          .select('total')
-          .gte('created_at', hoje);
-  
-        if (!vendasError && vendas) {
-          const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
-          vendasHojeEl.textContent = `R$ ${total.toFixed(2)}`;
-          console.log('✅ Vendas hoje:', total);
-        } else {
-          vendasHojeEl.textContent = 'R$ 0,00';
-        }
-
-        const { data: agendamentos, error: agendError } = await supabaseClient
-          .from('agendamentos')
-          .select('id', { count: 'exact' });
-  
-        if (!agendError && agendamentos) {
-          countAgendamentosEl.textContent = agendamentos.length;
-    
-          if (vendas && vendas.length > 0 && agendamentos.length > 0) {
-            const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
-            const ticketMedio = total / agendamentos.length;
-            ticketMedioEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
-          } else {
-            ticketMedioEl.textContent = 'R$ 0,00';
-          }
-        } else {
-          countAgendamentosEl.textContent = '0';
-          ticketMedioEl.textContent = 'R$ 0,00';
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar métricas:', err);
-      }
-    }
-
-    // --- MÉTRICAS VENDAS ---
-    async function refreshMetricasVendas() {
-      try {
-        const { data: vendas, error } = await supabaseClient
-          .from('vendas')
-          .select('total');
-  
-        if (!error && vendas) {
-          const total = vendas.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
-          const quantidade = vendas.length;
-          const ticketMedio = quantidade > 0 ? total / quantidade : 0;
-    
-          totalVendasEl.textContent = `R$ ${total.toFixed(2)}`;
-          countVendasEl.textContent = quantidade;
-          ticketMedioVendasEl.textContent = `R$ ${ticketMedio.toFixed(2)}`;
-    
-          console.log('✅ Métricas de vendas atualizadas');
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar métricas de vendas:', err);
-      }
-    }
-
-    // --- RESUMO POR BARBEIRO ---
-    async function refreshResumoBarbeiros() {
-      try {
-        const { data: vendas, error } = await supabaseClient
-          .from('vendas')
-          .select('barbeiro_nome, total');
-
-        if (error) {
-          console.error('❌ Erro ao carregar vendas para resumo:', error);
-          return;
-        }
-
-        const resumo = {};
-
-        vendas.forEach(v => {
-          const barbeiroNome = v.barbeiro_nome || 'Sem barbeiro';
-          if (!resumo[barbeiroNome]) {
-            resumo[barbeiroNome] = { count: 0, total: 0 };
-          }
-          resumo[barbeiroNome].count++;
-          resumo[barbeiroNome].total += parseFloat(v.total || 0);
-        });
-
-        let html = '';
-
-        Object.keys(resumo).forEach(nome => {
-          const stats = resumo[nome];
-
-          html += `
-            <div class="barbeiro-stats">
-              <div class="name">✂️ ${nome}</div>
-              <div class="stats">
-                <div>Cortes: <span>${stats.count}</span></div>
-                <div>Total: <span>R$ ${stats.total.toFixed(2)}</span></div>
-              </div>
-            </div>
-          `;
-        });
-
-        barbeirosStatsEl.innerHTML = html || '<p class="muted">Nenhuma venda registrada ainda.</p>';
-
-      } catch (err) {
-        console.error('❌ Erro ao gerar resumo por barbeiro:', err);
-      }
-    }
-
-    // --- AGENDAMENTOS ---
-    async function refreshAgendamentos() {
-      try {
-        const { data, error } = await supabaseClient
-          .from('agendamentos')
-          .select(`
-            *,
-            barbearias (nome),
-            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
-          `)
-          .order('data_hora', { ascending: true });
-  
-        if (error) {
-          console.error('❌ Erro ao carregar agendamentos:', error);
-          tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar agendamentos</td></tr>';
-          return;
-        }
-  
-        if (data && data.length > 0) {
-          const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-    
-          tableBody.innerHTML = data.map(row => {
-            const dataHora = new Date(row.data_hora);
-            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
-            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
- 
-
-              const acoesHtml = isBarbeiro ? '' : `
-  <td>
-    <!-- ADICIONE A LINHA ABAIXO -->
-    <button class="btn-whatsapp" onclick="enviarConfirmacaoWhatsapp('${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.cliente_telefone || ''}')">
-      📱 WhatsApp
-    </button>
-
-    <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
-      Editar
-    </button>
-    <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
-      Excluir
-    </button>
-  </td>
-`;
-  
-            return `
-              <tr>
-                <td>${row.cliente_nome || 'N/A'}</td>
-                <td>${row.servico || 'N/A'}</td>
-                <td>${dataHora.toLocaleString('pt-BR')}</td>
-                <td>${barbeiroNome}</td>
-                <td>${barbeariaNome}</td>
-                ${acoesHtml}
-              </tr>
-            `;
-          }).join('');
-          console.log('✅ Agendamentos carregados:', data.length);
-        } else {
-          tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum agendamento encontrado</td></tr>';
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar agendamentos:', err);
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
-      }
-    }
-
-    // --- AGENDA ---
-    async function refreshAgenda() {
-      try {
-        let query = supabaseClient
-          .from('agendamentos')
-          .select(`
-            *,
-            barbearias (nome),
-            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
-          `)
-          .order('data_hora', { ascending: true });
-
-        // Filtro por data
-        if (agendaFiltroData.value) {
-          const dataInicio = `${agendaFiltroData.value}T00:00:00`;
-          const dataFim = `${agendaFiltroData.value}T23:59:59`;
-    
-          query = query
-            .gte('data_hora', dataInicio)
-            .lte('data_hora', dataFim);
-        }
-
-        // Filtro por barbeiro
-        if (agendaFiltroBarbeiro.value) {
-          query = query.eq('barbeiro_id', agendaFiltroBarbeiro.value);
-        }
-
-        const { data, error } = await query;
-  
-        if (error) {
-          console.error('❌ Erro ao carregar agenda:', error);
-          tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar agenda</td></tr>';
-          return;
-        }
-  
-        if (data && data.length > 0) {
-          const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-    
-          tableAgenda.innerHTML = data.map(row => {
-            const dataHora = new Date(row.data_hora);
-            const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
-            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
-            const status = row.status || 'Pendente';
-      
-            let statusClass = 'status-pendente';
-            if (status === 'Confirmado') statusClass = 'status-confirmado';
-            if (status === 'Cancelado') statusClass = 'status-cancelado';
-      
-           // ✅ NOVO: Adicionar botão Finalizar Atendimento
-            const acoesHtml = isBarbeiro ? '' : `
-              <td>
-                <!-- BOTÃO WHATSAPP ADICIONADO AQUI -->
-                <button class="btn-whatsapp" onclick="enviarConfirmacaoWhatsapp('${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.cliente_telefone || ''}')">
-                  📱 WhatsApp
-                </button>
-
-                <button class="btn-finalizar" onclick="abrirFinalizarAtendimento('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.barbearia_id}', '${row.barbeiro_id || ''}')">
-                  💰 Finalizar
-                </button>
-                <button class="btn-confirmar" onclick="confirmarAgendamento('${row.id}')">
-                  ✓ Confirmar
-                </button>
-                <button class="btn-cancelar" onclick="cancelarAgendamento('${row.id}')">
-                  ✗ Cancelar
-                </button>
-                <button class="btn-edit" onclick="openEditModal('${row.id}', '${row.cliente_nome}', '${row.servico}', '${row.data_hora}', '${row.barbeiro_id || ''}', '${row.barbearia_id}')">
-                  Editar
-                </button>
-                <button class="btn-delete" onclick="deleteAgendamento('${row.id}')">
-                  Excluir
-                </button>
-              </td>
-            `;
-          
-      
-            return `
-              <tr>
-                <td>${horario}</td>
-                <td>${row.cliente_nome || 'N/A'}</td>
-                <td>${row.servico || 'N/A'}</td>
-                <td>${barbeiroNome}</td>
-                <td>${barbeariaNome}</td>
-                <td><span class="status-badge ${statusClass}">${status}</span></td>
-                ${acoesHtml}
-              </tr>
-            `;
-          }).join('');
-          console.log('✅ Agenda carregada:', data.length);
-        } else {
-          tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhum agendamento encontrado para esta data</td></tr>';
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar agenda:', err);
-        tableAgenda.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
-      }
-    }
-
-    // ✅ NOVO: ATUALIZAR AGENDA DE HOJE (CARD LATERAL)
-    async function refreshAgendaHoje() {
-      try {
-        const hoje = new Date().toISOString().split('T')[0];
-        agendaHojeData.textContent = new Date().toLocaleDateString('pt-BR', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        });
-
-        const dataInicio = `${hoje}T00:00:00`;
-        const dataFim = `${hoje}T23:59:59`;
-
-        const { data, error } = await supabaseClient
-          .from('agendamentos')
-          .select(`
-            *,
-            profiles!agendamentos_barbeiro_id_fkey (barbearias(nome))
-          `)
-          .gte('data_hora', dataInicio)
-          .lte('data_hora', dataFim)
-          .neq('status', 'Cancelado')
-          .order('data_hora', { ascending: true });
-
-        if (error) {
-          console.error('❌ Erro ao carregar agenda de hoje:', error);
-          agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Erro ao carregar</div>';
-          return;
-        }
-
-        if (data && data.length > 0) {
-          agendaHojeList.innerHTML = data.map(row => {
-            const dataHora = new Date(row.data_hora);
-            const horario = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            const barbeiroNome = row.profiles?.barbearias?.nome || 'Não atribuído';
-
-            return `
-              <div class="agenda-hoje-item">
-                <div class="horario">${horario}</div>
-                <div class="cliente">${row.cliente_nome || 'N/A'}</div>
-                <div class="servico">${row.servico || 'N/A'} • ${barbeiroNome}</div>
-              </div>
-            `;
-          }).join('');
-        } else {
-          agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Nenhum agendamento para hoje</div>';
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar agenda de hoje:', err);
-        agendaHojeList.innerHTML = '<div class="agenda-hoje-vazio">Erro ao carregar</div>';
-      }
-    }
-
-    // ✅ NOVO: ABRIR MODAL FINALIZAR ATENDIMENTO
-    async function abrirFinalizarAtendimento(id, clienteNome, servico, barbeariaId, barbeiroId) {
-      currentFinalizarAgendamento = { id, clienteNome, servico, barbeariaId, barbeiroId };
-
-      finalizarCliente.value = clienteNome;
-      finalizarDescricao.value = servico;
-      finalizarValor.value = '';
-      finalizarFormaPagamento.value = '';
-      finalizarBarbeiro.value = '';
-      finalizarMsg.textContent = '';
-      finalizarMsg.className = '';
-
-      // Buscar nome do barbeiro se tiver ID
-      if (barbeiroId) {
-        try {
-          const { data, error } = await supabaseClient
-            .from('profiles')
-            .select('barbearias(nome)')
-            .eq('id', barbeiroId)
-            .single();
-
-          if (!error && data) {
-            finalizarBarbeiro.value = data.barbearias?.nome || '';
-          }
-        } catch (err) {
-          console.error('❌ Erro ao buscar barbeiro:', err);
-        }
-      }
-
-      finalizarAtendimentoModal.classList.remove('hidden');
-    }
-
-    // ✅ NOVO: FECHAR MODAL FINALIZAR
-    btnCancelFinalizar.addEventListener('click', () => {
-      finalizarAtendimentoModal.classList.add('hidden');
-      currentFinalizarAgendamento = null;
-    });
-
-    // ✅ NOVO: CONFIRMAR FINALIZAR ATENDIMENTO
-    btnConfirmarFinalizar.addEventListener('click', async () => {
-      if (!currentFinalizarAgendamento) return;
-
-      if (!finalizarValor.value || parseFloat(finalizarValor.value) <= 0) {
-        finalizarMsg.textContent = '❌ Digite um valor válido';
-        finalizarMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!finalizarFormaPagamento.value) {
-        finalizarMsg.textContent = '❌ Selecione a forma de pagamento';
-        finalizarMsg.className = 'error-msg';
-        return;
-      }
-
-      try {
-        finalizarMsg.textContent = 'Finalizando atendimento...';
-        finalizarMsg.className = 'muted';
-
-        // 1. Criar venda
-        const { data: vendaData, error: vendaError } = await supabaseClient
-          .from('vendas')
-          .insert([{
-            descricao: finalizarDescricao.value.trim(),
-            total: parseFloat(finalizarValor.value),
-            forma_pagamento: finalizarFormaPagamento.value,
-            barbearia_id: currentFinalizarAgendamento.barbeariaId,
-            barbeiro_nome: finalizarBarbeiro.value.trim() || null
-          }])
-          .select();
-
-        if (vendaError) {
-          console.error('❌ Erro ao criar venda:', vendaError);
-          finalizarMsg.textContent = '❌ Erro ao criar venda: ' + vendaError.message;
-          finalizarMsg.className = 'error-msg';
-          return;
-        }
-
-        // 2. Excluir agendamento
-        const { error: deleteError } = await supabaseClient
-          .from('agendamentos')
-          .delete()
-          .eq('id', currentFinalizarAgendamento.id);
-
-        if (deleteError) {
-          console.error('❌ Erro ao excluir agendamento:', deleteError);
-          finalizarMsg.textContent = '❌ Erro ao excluir agendamento: ' + deleteError.message;
-          finalizarMsg.className = 'error-msg';
-          return;
-        }
-
-        console.log('✅ Atendimento finalizado e convertido em venda');
-        finalizarMsg.textContent = '✅ Atendimento finalizado com sucesso!';
-        finalizarMsg.className = 'success-msg';
-
-        // Atualizar todas as views
-        await refreshAgendamentos();
-        await refreshAgenda();
-        await refreshAgendaHoje();
-        await refreshVendas();
-        await refreshMetrics();
-        await refreshMetricasVendas();
-        await refreshResumoBarbeiros();
-
-        setTimeout(() => {
-          finalizarAtendimentoModal.classList.add('hidden');
-          currentFinalizarAgendamento = null;
-        }, 1500);
-
-      } catch (err) {
-        console.error('❌ Erro ao finalizar atendimento:', err);
-        finalizarMsg.textContent = '❌ Erro ao finalizar atendimento';
-        finalizarMsg.className = 'error-msg';
-      }
-    });
-
-    // --- CONFIRMAR AGENDAMENTO ---
-    async function confirmarAgendamento(id) {
-      try {
-        const { error } = await supabaseClient
-          .from('agendamentos')
-          .update({ status: 'Confirmado' })
-          .eq('id', id);
-
-        if (error) {
-          console.error('❌ Erro ao confirmar agendamento:', error);
-          alert('❌ Erro ao confirmar agendamento');
-          return;
-        }
-
-        console.log('✅ Agendamento confirmado');
-        await refreshAgenda();
-     
-        await refreshAgendaHoje(); // ✅ NOVO
-        await refreshAgendamentos();
-        await refreshMetrics();
-      } catch (err) {
-        console.error('❌ Erro ao confirmar agendamento:', err);
-        alert('❌ Erro ao confirmar agendamento');
-      }
-    }
-
-    // --- CANCELAR AGENDAMENTO ---
-    async function cancelarAgendamento(id) {
-      if (!confirm('Tem certeza que deseja cancelar este agendamento?')) {
-        return;
-      }
-
-      try {
-        const { error } = await supabaseClient
-          .from('agendamentos')
-          .update({ status: 'Cancelado' })
-          .eq('id', id);
-
-        if (error) {
-          console.error('❌ Erro ao cancelar agendamento:', error);
-          alert('❌ Erro ao cancelar agendamento');
-          return;
-        }
-
-        console.log('✅ Agendamento cancelado');
-        await refreshAgenda();
-        await refreshAgendaHoje(); // ✅ NOVO
-        await refreshAgendamentos();
-        await refreshMetrics();
-      } catch (err) {
-        console.error('❌ Erro ao cancelar agendamento:', err);
-        alert('❌ Erro ao cancelar agendamento');
-      }
-    }
-
-    // --- FILTROS DA AGENDA ---
-    agendaFiltroData.addEventListener('change', async () => {
-      await refreshAgenda();
-      await refreshAgendaHoje(); // ✅ NOVO
-    });
-    agendaFiltroBarbeiro.addEventListener('change', refreshAgenda);
-
-    // --- ABRIR MODAL DE NOVO AGENDAMENTO ---
-    btnNovoAgendamentoAgenda.addEventListener('click', () => {
-      // Limpar campos
-      novoClienteNome.value = '';
-      novoServico.value = '';
-      novoDataHora.value = '';
-      novoBarbeiro.value = '';
-      novoBarbearia.value = '';
-      novoAgendamentoModalMsg.textContent = '';
-      novoAgendamentoModalMsg.className = '';
-
-      // Se for barbeiro, pré-selecionar a barbearia
-      if (currentProfile && currentProfile.role === 'barbeiro') {
-        novoBarbearia.value = currentProfile.barbearia_id;
-        novoBarbearia.disabled = true;
-      } else {
-        novoBarbearia.disabled = false;
-      }
-
-      // Abrir modal
-      novoAgendamentoModal.classList.remove('hidden');
-    });
-
-    // --- FECHAR MODAL DE NOVO AGENDAMENTO ---
-    btnCancelNovoAgendamento.addEventListener('click', () => {
-      novoAgendamentoModal.classList.add('hidden');
-    });
-
-    // --- SALVAR NOVO AGENDAMENTO ---
-    btnSalvarNovoAgendamento.addEventListener('click', async () => {
-      if (!novoClienteNome.value.trim()) {
-        novoAgendamentoModalMsg.textContent = '❌ Digite o nome do cliente';
-        novoAgendamentoModalMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!novoServico.value.trim()) {
-        novoAgendamentoModalMsg.textContent = '❌ Digite o serviço';
-        novoAgendamentoModalMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!novoDataHora.value) {
-        novoAgendamentoModalMsg.textContent = '❌ Selecione a data e hora';
-        novoAgendamentoModalMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!novoBarbearia.value) {
-        novoAgendamentoModalMsg.textContent = '❌ Selecione a barbearia';
-        novoAgendamentoModalMsg.className = 'error-msg';
-        return;
-      }
-
-      // ✅ NOVO: Verificar conflito de horário
-      const dataHoraISO = new Date(novoDataHora.value).toISOString();
-      const temConflito = await verificarConflito(dataHoraISO, novoBarbeiro.value);
-
-      if (temConflito) {
-        novoAgendamentoModalMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!';
-        novoAgendamentoModalMsg.className = 'warning-msg';
-        return;
-      }
-
-      try {
-        novoAgendamentoModalMsg.textContent = 'Criando agendamento...';
-        novoAgendamentoModalMsg.className = 'muted';
-
-        const { data, error } = await supabaseClient
-    .from('agendamentos')
-    .insert([{
-     cliente_nome: novoClienteNome.value.trim(),
-     cliente_telefone: document.getElementById('novoClienteTelefone').value.trim() || null, // ✅ ADICIONE ESSA LINHA
-     servico: novoServico.value.trim(),
-     data_hora: dataHoraISO,
-     barbearia_id: novoBarbearia.value,
-     barbeiro_id: novoBarbeiro.value || null,
-     status: 'Pendente'
-   
-          }])
-          .select();
-  
-        if (error) {
-          console.error('❌ Erro ao criar agendamento:', error);
-          novoAgendamentoModalMsg.textContent = '❌ Erro: ' + error.message;
-          novoAgendamentoModalMsg.className = 'error-msg';
-        } else {
-          console.log('✅ Agendamento criado:', data);
-          novoAgendamentoModalMsg.textContent = '✅ Agendamento criado com sucesso!';
-          novoAgendamentoModalMsg.className = 'success-msg';
-    
-          await refreshAgendamentos();
-          await refreshAgenda();
-          await refreshAgendaHoje(); // ✅ NOVO
-          await refreshMetrics();
-    
-          setTimeout(() => {
-            novoAgendamentoModal.classList.add('hidden');
-          }, 1000);
-        }
-      } catch (err) {
-        console.error('❌ Erro ao criar agendamento:', err);
-        novoAgendamentoModalMsg.textContent = '❌ Erro ao criar agendamento';
-        novoAgendamentoModalMsg.className = 'error-msg';
-      }
-    });
-
-    // --- VENDAS ---
-    async function refreshVendas() {
-      try {
-        const { data, error } = await supabaseClient
-          .from('vendas')
-          .select(`
-            *,
-            barbearias (nome)
-          `)
-          .order('created_at', { ascending: false });
-  
-        if (error) {
-          console.error('❌ Erro ao carregar vendas:', error);
-          tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar vendas</td></tr>';
-          return;
-        }
-  
-        if (data && data.length > 0) {
-          const isBarbeiro = currentProfile && currentProfile.role === 'barbeiro';
-    
-          // Buscar todos os agendamentos para verificar se a venda foi agendada
-          const { data: agendamentos, error: agendError } = await supabaseClient
-            .from('agendamentos')
-            .select('cliente_nome, servico, data_hora');
-    
-          tableVendas.innerHTML = data.map(row => {
-            const data_criacao = new Date(row.created_at);
-            const barbeariaNome = row.barbearias?.nome || row.barbearia_id || 'N/A';
-            const barbeiroNome = row.barbeiro_nome || 'N/A';
-      
-            // Verificar se existe um agendamento correspondente
-            let foiAgendado = false;
-            if (agendamentos && !agendError) {
-              foiAgendado = agendamentos.some(ag => {
-                const agDataHora = new Date(ag.data_hora);
-                const vendaData = new Date(row.created_at);
-          
-                // Verifica se o serviço é similar e se a data é próxima (mesmo dia)
-                const mesmoServico = ag.servico && row.descricao && 
-                  ag.servico.toLowerCase().includes(row.descricao.toLowerCase());
-                const mesmoDia = agDataHora.toDateString() === vendaData.toDateString();
-          
-                return mesmoServico && mesmoDia;
-              });
-            }
-      
-            const agendadoBadge = foiAgendado 
-              ? '<span class="status-badge agendado-sim">✓ Sim</span>'
-              : '<span class="status-badge agendado-nao">✗ Não</span>';
-      
-            const acoesHtml = isBarbeiro ? '' : `
-              <td>
-                <button class="btn-edit" onclick="openEditVendaModal('${row.id}', '${row.descricao}', '${row.total}', '${row.forma_pagamento}', '${row.barbearia_id}', '${row.barbeiro_nome || ''}')">
-                  Editar
-                </button>
-                <button class="btn-delete" onclick="deleteVenda('${row.id}')">
-                  Excluir
-                </button>
-              </td>
-            `;
-      
-            return `
-              <tr>
-                <td>${row.descricao || 'N/A'}</td>
-                <td>R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
-                <td>${row.forma_pagamento || 'N/A'}</td>
-                <td>${barbeiroNome}</td>
-                <td>${barbeariaNome}</td>
-                <td>${data_criacao.toLocaleString('pt-BR')}</td>
-                <td>${agendadoBadge}</td>
-                ${acoesHtml}
-              </tr>
-            `;
-          }).join('');
-          console.log('✅ Vendas carregadas:', data.length);
-        } else {
-          tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;">Nenhuma venda encontrada</td></tr>';
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar vendas:', err);
-        tableVendas.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
-      }
-    }
-
-    // --- ABRIR MODAL DE EDIÇÃO AGENDAMENTO ---
-    function openEditModal(id, clienteNome, servico, dataHora, barbeiroId, barbeariaId) {
-      currentEditId = id;
-
-      editClienteNome.value = clienteNome;
-      editServico.value = servico;
-
-      const date = new Date(dataHora);
-      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-      editDataHora.value = localDate.toISOString().slice(0, 16);
-
-      editBarbeiro.value = barbeiroId || '';
-      editBarbearia.value = barbeariaId;
-      editMsg.textContent = '';
-      editMsg.className = '';
-
-      editModal.classList.remove('hidden');
-    }
-
-    // --- FECHAR MODAL AGENDAMENTO ---
-    btnCancelEdit.addEventListener('click', () => {
-      editModal.classList.add('hidden');
-      currentEditId = null;
-    });
-
-    // --- SALVAR EDIÇÃO AGENDAMENTO ---
-    btnSaveEdit.addEventListener('click', async () => {
-      if (!currentEditId) return;
-
-      if (!editClienteNome.value.trim()) {
-        editMsg.textContent = '❌ Digite o nome do cliente';
-        editMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!editServico.value.trim()) {
-        editMsg.textContent = '❌ Digite o serviço';
-        editMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!editDataHora.value) {
-        editMsg.textContent = '❌ Selecione a data e hora';
-        editMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!editBarbearia.value) {
-        editMsg.textContent = '❌ Selecione a barbearia';
-        editMsg.className = 'error-msg';
-        return;
-      }
-
-      // ✅ NOVO: Verificar conflito ao editar (excluindo o próprio agendamento)
-      const dataHoraISO = new Date(editDataHora.value).toISOString();
-
-      if (editBarbeiro.value) {
-        const { data: conflitos, error } = await supabaseClient
-          .from('agendamentos')
-          .select('id')
-          .eq('barbeiro_id', editBarbeiro.value)
-          .eq('data_hora', dataHoraISO)
-          .neq('id', currentEditId)
-          .neq('status', 'Cancelado');
-
-        if (!error && conflitos && conflitos.length > 0) {
-          editMsg.textContent = '⚠️ Conflito de Horário: Este barbeiro já possui um agendamento neste horário!';
-          editMsg.className = 'warning-msg';
-          return;
-        }
-      }
-
-      try {
-        editMsg.textContent = 'Salvando...';
-        editMsg.className = 'muted';
-
-        const { data, error } = await supabaseClient
-          .from('agendamentos')
-          .update({
-            cliente_nome: editClienteNome.value.trim(),
-            cliente_telefone: document.getElementById('editClienteTelefone').value.trim() || null,
-            servico: editServico.value.trim(),
-            data_hora: dataHoraISO,
-            barbearia_id: editBarbearia.value,
-            barbeiro_id: editBarbeiro.value || null
-          })
-          .eq('id', currentEditId)
-          .select();
-  
-        if (error) {
-          console.error('❌ Erro ao atualizar agendamento:', error);
-          editMsg.textContent = '❌ Erro: ' + error.message;
-          editMsg.className = 'error-msg';
-        } else {
-          console.log('✅ Agendamento atualizado:', data);
-          editMsg.textContent = '✅ Agendamento atualizado com sucesso!';
-          editMsg.className = 'success-msg';
-    
-          await refreshAgendamentos();
-          await refreshAgenda();
-          await refreshAgendaHoje(); // ✅ NOVO
-          await refreshMetrics();
-    
-          setTimeout(() => {
-            editModal.classList.add('hidden');
-            currentEditId = null;
-          }, 1000);
-        }
-      } catch (err) {
-        console.error('❌ Erro ao atualizar agendamento:', err);
-        editMsg.textContent = '❌ Erro ao atualizar agendamento';
-        editMsg.className = 'error-msg';
-      }
-    });
-
-    // --- EXCLUIR AGENDAMENTO ---
-    async function deleteAgendamento(id) {
-      if (!confirm("Tem certeza que deseja excluir este agendamento?")) {
-        return;
-      }
-
-      try {
-        const { error } = await supabaseClient
-          .from('agendamentos')
-          .delete()
-          .eq('id', id);
-
-        if (error) {
-          alert("❌ Erro ao excluir: " + error.message);
-          console.error(error);
-          return;
-        }
-
-        console.log("✅ Agendamento excluído com sucesso!");
-
-        await refreshAgendamentos();
-        await refreshAgenda();
-        await refreshAgendaHoje(); // ✅ NOVO
-        await refreshMetrics();
-
-      } catch (err) {
-        console.error("❌ Erro ao excluir agendamento:", err);
-        alert("❌ Erro inesperado ao excluir.");
-      }
-    }
-
- 
-
-    // --- ABRIR MODAL DE EDIÇÃO VENDA ---
-    function openEditVendaModal(id, descricao, valor, formaPagamento, barbeariaId, barbeiroNome) {
-      currentEditVendaId = id;
-
-      editDescricaoVenda.value = descricao;
-      editValorVenda.value = parseFloat(valor);
-      editFormaPagamentoVenda.value = formaPagamento;
-      editBarbeariaVenda.value = barbeariaId;
-      editBarbeiroNomeVenda.value = barbeiroNome || '';
-      editVendaMsg.textContent = '';
-      editVendaMsg.className = '';
-
-      editVendaModal.classList.remove('hidden');
-    }
-
-    // --- FECHAR MODAL VENDA ---
-    btnCancelEditVenda.addEventListener('click', () => {
-      editVendaModal.classList.add('hidden');
-      currentEditVendaId = null;
-    });
-
-    // --- SALVAR EDIÇÃO VENDA ---
-    btnSaveEditVenda.addEventListener('click', async () => {
-      if (!currentEditVendaId) return;
-
-      if (!editDescricaoVenda.value.trim()) {
-        editVendaMsg.textContent = '❌ Digite a descrição';
-        editVendaMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!editValorVenda.value || parseFloat(editValorVenda.value) <= 0) {
-        editVendaMsg.textContent = '❌ Digite um valor válido';
-        editVendaMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!editFormaPagamentoVenda.value) {
-        editVendaMsg.textContent = '❌ Selecione a forma de pagamento';
-        editVendaMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!editBarbeariaVenda.value) {
-        editVendaMsg.textContent = '❌ Selecione a barbearia';
-        editVendaMsg.className = 'error-msg';
-        return;
-      }
-
-      try {
-        editVendaMsg.textContent = 'Salvando...';
-        editVendaMsg.className = 'muted';
-
-        const { data, error } = await supabaseClient
-          .from('vendas')
-          .update({
-            descricao: editDescricaoVenda.value.trim(),
-            total: parseFloat(editValorVenda.value),
-            forma_pagamento: editFormaPagamentoVenda.value,
-            barbearia_id: editBarbeariaVenda.value,
-            barbeiro_nome: editBarbeiroNomeVenda.value.trim() || null
-          })
-          .eq('id', currentEditVendaId)
-          .select();
-  
-        if (error) {
-          console.error('❌ Erro ao atualizar venda:', error);
-          editVendaMsg.textContent = '❌ Erro: ' + error.message;
-          editVendaMsg.className = 'error-msg';
-        } else {
-          console.log('✅ Venda atualizada:', data);
-          editVendaMsg.textContent = '✅ Venda atualizada com sucesso!';
-          editVendaMsg.className = 'success-msg';
-    
-          await refreshVendas();
-          await refreshMetricasVendas();
-          await refreshMetrics();
-          await refreshResumoBarbeiros();
-    
-          setTimeout(() => {
-            editVendaModal.classList.add('hidden');
-            currentEditVendaId = null;
-          }, 1000);
-        }
-      } catch (err) {
-        console.error('❌ Erro ao atualizar venda:', err);
-        editVendaMsg.textContent = '❌ Erro ao atualizar venda';
-        editVendaMsg.className = 'error-msg';
-      }
-    });
-
-    // --- EXCLUIR VENDA ---
-    async function deleteVenda(id) {
-      if (!confirm("Tem certeza que deseja excluir esta venda?")) {
-        return;
-      }
-
-      try {
-        const { error } = await supabaseClient
-          .from('vendas')
-          .delete()
-          .eq('id', id);
-
-        if (error) {
-          alert("❌ Erro ao excluir: " + error.message);
-          console.error(error);
-          return;
-        }
-
-        console.log("✅ Venda excluída com sucesso!");
-
-        await refreshVendas();
-        await refreshMetricasVendas();
-        await refreshMetrics();
-        await refreshResumoBarbeiros();
-
-      } catch (err) {
-        console.error("❌ Erro ao excluir venda:", err);
-        alert("❌ Erro inesperado ao excluir.");
-      }
-    }
-
-    // --- CRIAR VENDA ---
-    btnCriarVenda.addEventListener('click', async () => {
-      if (!descricaoVenda.value.trim()) {
-        vendaMsg.textContent = '❌ Digite a descrição';
-        vendaMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!valorVenda.value || parseFloat(valorVenda.value) <= 0) {
-        vendaMsg.textContent = '❌ Digite um valor válido';
-        vendaMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!selectFormaPagamento.value) {
-        vendaMsg.textContent = '❌ Selecione a forma de pagamento';
-        vendaMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!selectBarbeariaVenda.value) {
-        vendaMsg.textContent = '❌ Selecione a barbearia';
-        vendaMsg.className = 'error-msg';
-        return;
-      }
-
-      try {
-        vendaMsg.textContent = 'Criando venda...';
-        vendaMsg.className = 'muted';
-
-        const { data, error } = await supabaseClient
-          .from('vendas')
-          .insert([{
-            descricao: descricaoVenda.value.trim(),
-            total: parseFloat(valorVenda.value),
-            forma_pagamento: selectFormaPagamento.value,
-            barbearia_id: selectBarbeariaVenda.value,
-            barbeiro_nome: inputBarbeiroNome.value.trim() || null
-          }])
-          .select();
-  
-        if (error) {
-          console.error('❌ Erro ao criar venda:', error);
-          vendaMsg.textContent = '❌ Erro: ' + error.message;
-          vendaMsg.className = 'error-msg';
-        } else {
-          console.log('✅ Venda criada:', data);
-          vendaMsg.textContent = '✅ Venda criada com sucesso!';
-          vendaMsg.className = 'success-msg';
-    
-          descricaoVenda.value = '';
-          valorVenda.value = '';
-          selectFormaPagamento.value = '';
-          selectBarbeariaVenda.value = '';
-          inputBarbeiroNome.value = '';
-    
-          await refreshVendas();
-          await refreshMetricasVendas();
-          await refreshMetrics();
-          await refreshResumoBarbeiros();
-    
-          setTimeout(() => {
-            vendaMsg.textContent = '';
-            vendaMsg.className = '';
-          }, 3000);
-        }
-      } catch (err) {
-        console.error('❌ Erro ao criar venda:', err);
-        vendaMsg.textContent = '❌ Erro ao criar venda';
-        vendaMsg.className = 'error-msg';
-      }
-    });
-
-    // ========== FECHAMENTO DE CAIXA - FUNÇÕES ==========
-
-    function toLocalDatetimeValue(date) {
-      const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-      return local.toISOString().slice(0, 16);
-    }
-
-    function getFechamentoBarbeariaId() {
-      if (currentProfile && currentProfile.role === 'barbeiro') return currentProfile.barbearia_id;
-      return fechamentoSelectBarbearia.value || '';
-    }
-
-    async function getUltimoFechamentoFim(barbeariaId) {
-      const { data, error } = await supabaseClient
-        .from('fechamentos_caixa')
-        .select('fim_periodo')
-        .eq('barbearia_id', barbeariaId)
-        .order('fim_periodo', { ascending: false })
-        .limit(1);
-
-      if (error) return null;
-      return data && data[0] ? data[0].fim_periodo : null;
-    }
-
-    async function setupFechamentoDefaults() {
-      const barbeariaId = getFechamentoBarbeariaId();
-      if (!barbeariaId) return;
-
-      const now = new Date();
-      fechamentoFim.value = toLocalDatetimeValue(now);
-
-      const lastFim = await getUltimoFechamentoFim(barbeariaId);
-      if (lastFim) {
-        fechamentoInicio.value = toLocalDatetimeValue(new Date(lastFim));
-      } else {
-        const start = new Date();
-        start.setHours(0, 0, 0, 0);
-        fechamentoInicio.value = toLocalDatetimeValue(start);
-      }
-    }
-
-    async function refreshFechamento() {
-      try {
-        const barbeariaId = getFechamentoBarbeariaId();
-        if (!barbeariaId) {
-          fechamentoTotalEl.textContent = 'R$ 0,00';
-          fechamentoQuantidadeEl.textContent = '0';
-          fechamentoPorFormaEl.textContent = '--';
-          tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Selecione a barbearia</td></tr>';
-          return;
-        }
-
-        if (!fechamentoInicio.value || !fechamentoFim.value) {
-          await setupFechamentoDefaults();
-        }
-
-        const inicioIso = new Date(fechamentoInicio.value).toISOString();
-        const fimIso = new Date(fechamentoFim.value).toISOString();
-
-        const { data: vendas, error } = await supabaseClient
-          .from('vendas')
-          .select('id, descricao, total, forma_pagamento, barbeiro_nome, created_at, fechamento_id')
-          .eq('barbearia_id', barbeariaId)
-          .is('fechamento_id', null)
-          .gte('created_at', inicioIso)
-          .lte('created_at', fimIso)
-          .order('created_at', { ascending: true });
-
-        if (error) {
-          console.error('❌ Erro ao carregar vendas do fechamento:', error);
-          tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
-          return;
-        }
-
-        const total = (vendas || []).reduce((acc, v) => acc + parseFloat(v.total || 0), 0);
-        const qtd = (vendas || []).length;
-
-        const porForma = {};
-        (vendas || []).forEach(v => {
-          const forma = v.forma_pagamento || '(Sem forma)';
-          porForma[forma] = (porForma[forma] || 0) + parseFloat(v.total || 0);
-        });
-
-        fechamentoTotalEl.textContent = `R$ ${total.toFixed(2)}`;
-        fechamentoQuantidadeEl.textContent = String(qtd);
-
-        const porFormaHtml = Object.keys(porForma).length
-          ? Object.entries(porForma)
-              .map(([forma, soma]) => `<div>${forma}: <span style="color:#fff;font-weight:700;">R$ ${soma.toFixed(2)}</span></div>`)
-              .join('')
-          : '<span class="muted">—</span>';
-
-        fechamentoPorFormaEl.innerHTML = porFormaHtml;
-
-        if (vendas && vendas.length > 0) {
-          tableFechamentoVendasBody.innerHTML = vendas.map(v => {
-            const dt = new Date(v.created_at).toLocaleString('pt-BR');
-            return `
-              <tr>
-                <td>${v.descricao || 'N/A'}</td>
-                <td>R$ ${parseFloat(v.total || 0).toFixed(2)}</td>
-                <td>${v.forma_pagamento || 'N/A'}</td>
-                <td>${v.barbeiro_nome || 'N/A'}</td>
-                <td>${dt}</td>
-              </tr>
-            `;
-          }).join('');
-        } else {
-          tableFechamentoVendasBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sem vendas em aberto no período</td></tr>';
-        }
-      } catch (err) {
-        console.error('❌ Erro no refreshFechamento:', err);
-      }
-    }
-
-    async function refreshHistoricoFechamentos() {
-      try {
-        const barbeariaId = getFechamentoBarbeariaId();
-        if (!barbeariaId) {
-          tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Selecione a barbearia</td></tr>';
-          return;
-        }
-
-        const { data, error } = await supabaseClient
-          .from('fechamentos_caixa')
-          .select('inicio_periodo, fim_periodo, total, quantidade, totais_por_forma, created_at')
-          .eq('barbearia_id', barbeariaId)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (error) {
-          console.error('❌ Erro ao carregar histórico:', error);
-          tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f44336;">Erro ao carregar</td></tr>';
-          return;
-        }
-
-        if (data && data.length > 0) {
-          tableHistoricoFechamentosBody.innerHTML = data.map(f => {
-            const ini = new Date(f.inicio_periodo).toLocaleString('pt-BR');
-            const fim = new Date(f.fim_periodo).toLocaleString('pt-BR');
-            const criado = new Date(f.created_at).toLocaleString('pt-BR');
-            const porForma = f.totais_por_forma
-              ? Object.entries(f.totais_por_forma).map(([k, v]) => `${k}: R$ ${Number(v).toFixed(2)}`).join(' | ')
-              : '';
-            return `
-              <tr>
-                <td>${ini}</td>
-                <td>${fim}</td>
-                <td>${f.quantidade ?? 0}</td>
-                <td>R$ ${parseFloat(f.total || 0).toFixed(2)}</td>
-                <td>${porForma || '—'}</td>
-                <td>${criado}</td>
-              </tr>
-            `;
-          }).join('');
-        } else {
-          tableHistoricoFechamentosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum fechamento ainda</td></tr>';
-        }
-      } catch (err) {
-        console.error('❌ Erro no refreshHistoricoFechamentos:', err);
-      }
-    }
-
-    async function fecharCaixa() {
-      if (!currentProfile || currentProfile.role !== 'gerente') {
-        fechamentoMsg.textContent = '❌ Apenas gerente pode fechar o caixa';
-        fechamentoMsg.className = 'error-msg';
-        return;
-      }
-
-      const barbeariaId = getFechamentoBarbeariaId();
-      if (!barbeariaId) {
-        fechamentoMsg.textContent = '❌ Selecione a barbearia';
-        fechamentoMsg.className = 'error-msg';
-        return;
-      }
-
-      if (!fechamentoInicio.value || !fechamentoFim.value) {
-        fechamentoMsg.textContent = '❌ Informe início e fim';
-        fechamentoMsg.className = 'error-msg';
-        return;
-      }
-
-      const inicioIso = new Date(fechamentoInicio.value).toISOString();
-      const fimIso = new Date(fechamentoFim.value).toISOString();
-
-      if (!confirm('Confirmar fechamento de caixa? As vendas desse período serão finalizadas.')) {
-        return;
-      }
-
-      try {
-        fechamentoMsg.textContent = 'Fechando caixa...';
-        fechamentoMsg.className = 'muted';
-
-        const { data, error } = await supabaseClient.rpc('fechar_caixa', {
-          p_barbearia_id: barbeariaId,
-          p_inicio: inicioIso,
-          p_fim: fimIso,
-          p_observacao: fechamentoObs.value.trim() || null
-        });
-
-        if (error) {
-          console.error('❌ Erro ao fechar caixa:', error);
-          fechamentoMsg.textContent = '❌ ' + error.message;
-          fechamentoMsg.className = 'error-msg';
-          return;
-        }
-
-        fechamentoMsg.textContent = '✅ Caixa fechado com sucesso!';
-        fechamentoMsg.className = 'success-msg';
-
-        await refreshVendas();
-        await refreshMetricasVendas();
-        await refreshMetrics();
-        await refreshFechamento();
-        await refreshHistoricoFechamentos();
-
-        setTimeout(() => {
-          fechamentoMsg.textContent = '';
-          fechamentoMsg.className = '';
-        }, 3000);
-      } catch (err) {
-        console.error('❌ Erro inesperado ao fechar caixa:', err);
-        fechamentoMsg.textContent = '❌ Erro inesperado ao fechar caixa';
-        fechamentoMsg.className = 'error-msg';
-      }
-    }
-
-    // ✅ EVENT LISTENERS DO FECHAMENTO
-    btnAtualizarFechamento.addEventListener('click', async () => {
-      await refreshFechamento();
-      await refreshHistoricoFechamentos();
-    });
-
-    fechamentoSelectBarbearia.addEventListener('change', async () => {
-      await setupFechamentoDefaults();
-      await refreshFechamento();
-      await refreshHistoricoFechamentos();
-    });
-
-    btnFecharCaixa.addEventListener('click', fecharCaixa);
-
-<script>
-  // ================================
-  // MELHORIA: Navegação Unificada + Animação + Vibração
-  // ================================
-
-  const ordemSecoes = ['dashboard', 'agenda', 'vendas', 'fechamento', 'comissoes'];
-  let secaoAtualIndex = 0;
-
-  function navegarPara(sectionId) {
-    // 1. Vibração (feedback tátil)
-    if (navigator.vibrate) navigator.vibrate(10);
-
-    // 2. Determina direção da animação
-    const novoIndex = ordemSecoes.indexOf(sectionId);
-    const direcao = novoIndex > secaoAtualIndex ? 'forward' : 'back';
-    secaoAtualIndex = novoIndex;
-
-    // 3. Esconde todas as seções
-    document.querySelectorAll('main.content > section').forEach(sec => {
-      sec.classList.remove('active', 'slide-forward', 'slide-back');
-      sec.classList.add('hidden');
-    });
-
-    // 4. Mostra a seção alvo com animação
-    const target = document.getElementById(sectionId);
-    if (target) {
-      target.classList.remove('hidden');
-      target.classList.add(direcao === 'forward' ? 'slide-forward' : 'slide-back');
-
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          target.classList.add('active');
-        }, 10);
-      });
-    }
-
-    // 5. Atualiza estado visual dos menus
-    document.querySelectorAll('nav.sidebar a, .bottom-nav a').forEach(link => {
-      link.classList.toggle('active', link.dataset.section === sectionId);
-    });
-
-    // 6. Carrega os dados da seção
-    carregarDadosDaSecao(sectionId);
-  }
-
-  async function carregarDadosDaSecao(section) {
-    switch (section) {
-      case 'dashboard':
-        await refreshDashboard();
-        break;
-      case 'agenda':
-        await refreshAgenda();
-        await refreshAgendaHoje();
-        break;
-      case 'vendas':
-        await refreshVendas();
-        await refreshMetricasVendas();
-        await refreshResumoBarbeiros();
-        break;
-      case 'fechamento':
-        await setupFechamentoDefaults();
-        await refreshFechamento();
-        await refreshHistoricoFechamentos();
-        break;
-      case 'comissoes':
-        await carregarBarbeirosComissao();
-        break;
-    }
-  }
-
-  // 7. Evento de clique unificado
-  document.addEventListener('click', (e) => {
-    const link = e.target.closest('a[data-section]');
-    if (link) {
-      e.preventDefault();
-      navegarPara(link.dataset.section);
-    }
+/* -----------------------
+   Registro Service Worker
+   ----------------------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(()=> console.log('✅ PWA Service Worker registrado')).catch(err=> console.warn('SW erro:', err));
   });
+}
 
-  // 8. Ajuste da Bottom Nav no resize
-  window.addEventListener('resize', () => {
-    const bn = document.getElementById('bottomNav');
-    if (!bn || !currentUser) return;
-    if (window.innerWidth <= 900) {
-      bn.classList.add('visible');
-    } else {
-      bn.classList.remove('visible');
-    }
-  });
-</script>
-
-  }); // fecha o forEach corretamente
-
-    // --- LÓGICA DE COMISSÃO DE BARBEIROS ---
-    async function carregarBarbeirosComissao() {
-      const select = document.getElementById('comissaoSelectBarbeiro');
-      const { data, error } = await supabaseClient.from('vendas').select('barbeiro_nome');
-      if (!error && data) {
-        const nomes = [...new Set(data.map(v => v.barbeiro_nome).filter(n => n))];
-        select.innerHTML = '<option value="">Selecione o Barbeiro</option>' + 
-          nomes.map(n => `<option value="${n}">${n}</option>`).join('');
-      }
-    }
-
-    async function calcularComissoes() {
-      const nome = document.getElementById('comissaoSelectBarbeiro').value;
-      const perc = parseFloat(document.getElementById('percentualComissao').value) / 100;
-      const tbody = document.querySelector('#tableComissoes tbody');
-      if (!nome) return alert("Selecione um barbeiro");
-
-      const { data: vendas, error } = await supabaseClient
-        .from('vendas').select('*').eq('barbeiro_nome', nome).order('created_at', { ascending: false });
-
-      if (!error && vendas) {
-        let bruto = 0, liquida = 0;
-        tbody.innerHTML = vendas.map(v => {
-          const vTotal = parseFloat(v.total || 0);
-          const vComis = vTotal * perc;
-          bruto += vTotal; liquida += vComis;
-          return `<tr>
-            <td>${new Date(v.created_at).toLocaleDateString('pt-BR')}</td>
-            <td>${v.descricao || 'Serviço'}</td>
-            <td>R$ ${vTotal.toFixed(2)}</td>
-            <td>R$ ${vComis.toFixed(2)}</td>
-          </tr>`;
-        }).join('');
-        document.getElementById('comissaoTotalBruto').textContent = `R$ ${bruto.toFixed(2)}`;
-        document.getElementById('comissaoLiquida').textContent = `R$ ${liquida.toFixed(2)}`;
-        document.getElementById('comissaoCasa').textContent = `R$ ${(bruto - liquida).toFixed(2)}`;
-      }
-    }
-
-    setTimeout(() => {
-      const btnCalc = document.getElementById('btnCalcularComissao');
-      if(btnCalc) btnCalc.addEventListener('click', calcularComissoes);
-    }, 1000);
-
-
-
-
-  // Ajusta visibilidade da bottom nav ao redimensionar/rotacionar
-  window.addEventListener('resize', () => {
-    const bn = document.getElementById('bottomNav');
-    if (!bn || !currentUser) return;
-    if (window.innerWidth <= 900) {
-      bn.classList.add('visible');
-    } else {
-      bn.classList.remove('visible');
-    }
-  });
-
+/* -----------------------
+   Inicializa app agora
+   ----------------------- */
 initApp();
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('✅ PWA Service Worker registrado'))
-          .catch(err => console.warn('SW erro:', err));
-      });
-    }
-  </script>
-
-
-<script>
-  document.querySelectorAll('.bottom-nav a').forEach(link => {
-    link.addEventListener('click', async function(e) {
-      e.preventDefault();
-
-      document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
-      this.classList.add('active');
-
-      document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
-
-      const section = this.getAttribute('data-section');
-
-      if (section === 'dashboard') {
-        document.getElementById('dashboard').classList.remove('hidden');
-        await refreshDashboard();
-      } else if (section === 'agenda') {
-        document.getElementById('agenda').classList.remove('hidden');
-        await refreshAgenda();
-        await refreshAgendaHoje();
-      } else if (section === 'vendas') {
-        document.getElementById('vendas').classList.remove('hidden');
-        await refreshVendas();
-        await refreshMetricasVendas();
-        await refreshResumoBarbeiros();
-      } else if (section === 'fechamento') {
-        document.getElementById('fechamento').classList.remove('hidden');
-        await setupFechamentoDefaults();
-        await refreshFechamento();
-        await refreshHistoricoFechamentos();
-      } else if (section === 'comissoes') {
-        document.getElementById('comissoes').classList.remove('hidden');
-        await carregarBarbeirosComissao();
-      }
-    });
-  });
-
-
 </script>
-  
-
-
-</body>
-</html>
