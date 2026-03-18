@@ -3366,18 +3366,19 @@ window.addEventListener('load', () => {
     }, 1000);
 
     initApp();
-  </script>
 
 
-    <!-- SEU SISTEMA TODO -->
-
-  <!-- MENU MOBILE -->
+document.body.insertAdjacentHTML('beforeend', `
   <div class="bottom-nav">
     <a href="#" data-section="dashboard">🏠</a>
     <a href="#" data-section="agenda">📅</a>
     <a href="#" data-section="vendas">💰</a>
     <a href="#" data-section="config">⚙️</a>
   </div>
+`);
+
+
+  </script>
 
 
 
