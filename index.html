@@ -1688,60 +1688,70 @@ btnLogout.addEventListener('click', async () => {
       }
     }
 
-    // --- CARREGAR BARBEIROS ---
-    async function loadBarbeiros() {
-      try {
-        let query = supabaseClient
-          .from('profiles')
-          .select('id, barbearia_id, barbearias(nome)')
-          .eq('role', 'barbeiro')
-          .order('barbearia_id');
+   // --- CARREGAR BARBEIROS ---
+async function loadBarbeiros() {
+  try {
+    const selectBarbeiro = document.getElementById('selectBarbeiro');
+    const editBarbeiro = document.getElementById('editBarbeiro');
+    const novoBarbeiro = document.getElementById('novoBarbeiro');
+    const agendaFiltroBarbeiro = document.getElementById('agendaFiltroBarbeiro');
 
-        if (currentProfile && currentProfile.role === 'barbeiro') {
-          query = query.eq('barbearia_id', currentProfile.barbearia_id);
-        }
+    let query = supabaseClient
+      .from('profiles')
+      .select('id, barbearia_id, barbearias(nome)')
+      .eq('role', 'barbeiro')
+      .order('barbearia_id');
 
-        const { data, error } = await query;
-  
-        if (error) {
-          console.error('❌ Erro ao carregar barbeiros:', error);
-          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
-          return;
-        }
-  
-        if (data && data.length > 0) {
-          const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
-            data.map(b => {
-              const barbeariaNome = b.barbearias?.nome || 'N/A';
-              return `<option value="${b.id}">${barbeariaNome}</option>`;
-            }).join('');
-    
-          const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
-            data.map(b => {
-              const barbeariaNome = b.barbearias?.nome || 'N/A';
-              return `<option value="${b.id}">${barbeariaNome}</option>`;
-            }).join('');
-    
-          selectBarbeiro.innerHTML = options;
-          editBarbeiro.innerHTML = options;
-          novoBarbeiro.innerHTML = options;
-          agendaFiltroBarbeiro.innerHTML = filtroOptions;
-    
-          console.log('✅ Barbeiros carregados:', data.length);
-        } else {
-          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
-          console.warn('⚠️ Nenhum barbeiro encontrado');
-        }
-      } catch (err) {
-        console.error('❌ Erro ao carregar barbeiros:', err);
-      }
+    if (currentProfile && currentProfile.role === 'barbeiro') {
+      query = query.eq('barbearia_id', currentProfile.barbearia_id);
     }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('❌ Erro ao carregar barbeiros:', error);
+
+      if (selectBarbeiro) selectBarbeiro.innerHTML = '<option>Erro</option>';
+      if (editBarbeiro) editBarbeiro.innerHTML = '<option>Erro</option>';
+      if (novoBarbeiro) novoBarbeiro.innerHTML = '<option>Erro</option>';
+      if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option>Erro</option>';
+
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const options = '<option value="">Selecione</option>' +
+        data.map(b => {
+          const nome = b.barbearias?.nome || 'N/A';
+          return `<option value="${b.id}">${nome}</option>`;
+        }).join('');
+
+      const filtroOptions = '<option value="">Todos</option>' +
+        data.map(b => {
+          const nome = b.barbearias?.nome || 'N/A';
+          return `<option value="${b.id}">${nome}</option>`;
+        }).join('');
+
+      if (selectBarbeiro) selectBarbeiro.innerHTML = options;
+      if (editBarbeiro) editBarbeiro.innerHTML = options;
+      if (novoBarbeiro) novoBarbeiro.innerHTML = options;
+      if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = filtroOptions;
+
+      console.log('✅ Barbeiros carregados:', data.length);
+
+    } else {
+      if (selectBarbeiro) selectBarbeiro.innerHTML = '<option>Nenhum</option>';
+      if (editBarbeiro) editBarbeiro.innerHTML = '<option>Nenhum</option>';
+      if (novoBarbeiro) novoBarbeiro.innerHTML = '<option>Nenhum</option>';
+      if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option>Todos</option>';
+
+      console.warn('⚠️ Nenhum barbeiro encontrado');
+    }
+
+  } catch (err) {
+    console.error('❌ Erro ao carregar barbeiros:', err);
+  }
+}
 
     // ✅ NOVO: VERIFICAR CONFLITO DE HORÁRIO
     async function verificarConflito(dataHora, barbeiroId) {
