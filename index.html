@@ -803,14 +803,6 @@
 <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 24px;">
   <div class="card">
     <h2>Faturamento por período</h2>
-    <div style="height:220px;">
-      <canvas id="graficoFaturamento"></canvas>
-    </div>
-  </div>
-
-<section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 24px;">
-  <div class="card">
-    <h2>Faturamento por período</h2>
     <div style="margin-bottom: 10px;">
       <label for="filtroDataInicio">Início:</label>
       <input type="date" id="filtroDataInicio" />
@@ -832,15 +824,6 @@
       <input type="date" id="filtroServicoDataFim" />
       <button id="btnFiltrarServicos" class="btn" style="margin-left: 10px; padding: 4px 10px;">Filtrar</button>
     </div>
-    <div style="height:220px;">
-      <canvas id="graficoServicos"></canvas>
-    </div>
-  </div>
-
-</section>
-
-  <div class="card">
-    <h2>Serviços mais vendidos</h2>
     <div style="height:220px;">
       <canvas id="graficoServicos"></canvas>
     </div>
@@ -3455,7 +3438,11 @@ window.addEventListener('load', () => {
   window.addEventListener('resize', () => {
     const bn = document.getElementById('bottomNav');
     if (!bn || !currentUser) return;
-    bn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+    if (window.innerWidth <= 900) {
+      bn.classList.add('visible');
+    } else {
+      bn.classList.remove('visible');
+    }
   });
 
 initApp();
