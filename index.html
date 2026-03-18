@@ -1536,6 +1536,7 @@ btnLogout.addEventListener('click', async () => {
 
     function setUnauthenticated() {
       loginPanel.classList.remove('hidden');
+      document.getElementById('bottomNav').style.display = 'none';
       dashboardSection.classList.add('hidden');
       agendaSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
@@ -1549,13 +1550,14 @@ btnLogout.addEventListener('click', async () => {
     }
 
     async function handleSignedIn(user) {
-      currentUser = user;
-      userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
-      btnLogout.classList.remove('hidden');
-      loginPanel.classList.add('hidden');
-      setSidebarEnabled(true);
-      lockMain(false);
-      dashboardSection.classList.remove('hidden');
+  currentUser = user;
+  userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
+  btnLogout.classList.remove('hidden');
+  loginPanel.classList.add('hidden');
+  document.getElementById('bottomNav').style.display = ''; // ← ADICIONA ESSA
+  setSidebarEnabled(true);
+  lockMain(false);
+  dashboardSection.classList.remove('hidden');
 
       console.log('✅ Usuário autenticado:', user.email);
 
