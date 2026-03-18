@@ -648,17 +648,9 @@
       color: #95a5a6;
     }
 
-@media (max-width: 900px) {
-  nav.sidebar { display: none !important; }
-  .bottom-nav { display: flex; }
-  body { flex-direction: column; }
-  .form-row { flex-direction: column; }
-  .agenda-controls { flex-direction: column; align-items: stretch; }
-}
-
-/* Barra de Navegação Inferior */
+/* Barra de Navegação Inferior - oculta por padrão no desktop */
 .bottom-nav {
-  display: none;  
+  display: none;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -671,19 +663,25 @@
   box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
 }
 
-  .bottom-nav a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: #a88c3a;
-    font-size: 0.65rem;
-    font-weight: 600;
-    transition: 0.3s;
-  }
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #a88c3a;
+  font-size: 0.65rem;
+  font-weight: 600;
+  transition: 0.3s;
+}
 
-  .bottom-nav a.active { color: #fff; }
-  .bottom-nav span { font-size: 1.4rem; margin-bottom: 4px; }
+.bottom-nav a.active { color: #fff; }
+.bottom-nav span { font-size: 1.4rem; margin-bottom: 4px; }
+
+@media (max-width: 900px) {
+  nav.sidebar { display: none !important; }
+  body { flex-direction: column; }
+  .form-row { flex-direction: column; }
+  .agenda-controls { flex-direction: column; align-items: stretch; }
 
   /* Espaço para não ficar atrás da barra inferior */
   main.content { 
@@ -1577,7 +1575,9 @@ btnLogout.addEventListener('click', async () => {
   userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
   btnLogout.classList.remove('hidden');
   loginPanel.classList.add('hidden');
-  document.getElementById('bottomNav').style.display = 'flex'; // mostra bottom nav no mobile
+  if (window.innerWidth <= 900) {
+    document.getElementById('bottomNav').style.display = 'flex'; // mostra bottom nav no mobile
+  }
   setSidebarEnabled(true);
   lockMain(false);
   dashboardSection.classList.remove('hidden');
@@ -3445,6 +3445,13 @@ window.addEventListener('load', () => {
 
 
 
+
+  // Ajusta visibilidade da bottom nav ao redimensionar/rotacionar
+  window.addEventListener('resize', () => {
+    const bn = document.getElementById('bottomNav');
+    if (!bn || !currentUser) return;
+    bn.style.display = window.innerWidth <= 900 ? 'flex' : 'none';
+  });
 
 initApp();
   </script>
