@@ -1361,13 +1361,6 @@ function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
     const agendaSection = document.getElementById('agenda');
     const vendasSection = document.getElementById('vendas');
     const tableBody = document.querySelector('#tableAgenda tbody');
-    const selectBarbearia = document.getElementById('selectBarbearia');
-    const selectBarbeiro = document.getElementById('selectBarbeiro');
-    const clienteNome = document.getElementById('clienteNome');
-    const servicoInput = document.getElementById('servico');
-    const dataHoraInput = document.getElementById('dataHora');
-    const btnCriarAgendamento = document.getElementById('btnCriarAgendamento');
-    const agendamentoMsg = document.getElementById('agendamentoMsg');
     const vendasHojeEl = document.getElementById('vendasHoje');
     const countAgendamentosEl = document.getElementById('countAgendamentos');
     const ticketMedioEl = document.getElementById('ticketMedio');
@@ -1771,10 +1764,9 @@ btnLogout.addEventListener('click', async () => {
   
         if (error) {
           console.error('❌ Erro ao carregar barbeiros:', error);
-          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
-          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          if (editBarbeiro) editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          if (novoBarbeiro) novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
           return;
         }
   
@@ -1791,17 +1783,25 @@ btnLogout.addEventListener('click', async () => {
               return `<option value="${b.id}">${barbeariaNome}</option>`;
             }).join('');
     
-          selectBarbeiro.innerHTML = options;
-          editBarbeiro.innerHTML = options;
-          novoBarbeiro.innerHTML = options;
-          agendaFiltroBarbeiro.innerHTML = filtroOptions;
+          if (editBarbeiro) editBarbeiro.innerHTML = options;
+          if (novoBarbeiro) novoBarbeiro.innerHTML = options;
+          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = filtroOptions;
+
+          // Preenche o select de comissão também
+          const comissaoSelect = document.getElementById('comissaoSelectBarbeiro');
+          if (comissaoSelect) {
+            comissaoSelect.innerHTML = '<option value="">Selecione o Barbeiro</option>' +
+              data.map(b => {
+                const barbeariaNome = b.barbearias?.nome || 'N/A';
+                return `<option value="${b.id}">${barbeariaNome}</option>`;
+              }).join('');
+          }
     
           console.log('✅ Barbeiros carregados:', data.length);
         } else {
-          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          if (editBarbeiro) editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          if (novoBarbeiro) novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
           console.warn('⚠️ Nenhum barbeiro encontrado');
         }
       } catch (err) {
