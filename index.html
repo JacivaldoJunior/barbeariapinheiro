@@ -642,13 +642,42 @@
       color: #95a5a6;
     }
 
-    @media (max-width: 900px) {
-      nav.sidebar { display:none; }
-      body { flex-direction:column; }
-      main.content { padding:16px; }
-      .form-row { flex-direction: column; }
-      .agenda-controls { flex-direction: column; align-items: stretch; }
-    }
+   @media (max-width: 900px) {
+  nav.sidebar { display:none; }
+  body { flex-direction:column; }
+  main.content { padding:16px; }
+  .form-row { flex-direction: column; }
+  .agenda-controls { flex-direction: column; align-items: stretch; }
+}
+
+/* 🔥 AGORA FORA DO MEDIA */
+.bottom-nav {
+  display: none;
+}
+
+/* 🔥 OUTRO MEDIA SEPARADO */
+@media (max-width: 900px) {
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #0a0a0a;
+    border-top: 1px solid rgba(200,160,69,0.3);
+    display: flex !important;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 9999;
+  }
+
+  .bottom-nav a {
+    color: #C8A045;
+    text-decoration: none;
+    font-size: 20px;
+  }
+}
+
+
   </style>
 </head>
 <body>
@@ -3340,8 +3369,17 @@ window.addEventListener('load', () => {
   </script>
 
 
+    <!-- SEU SISTEMA TODO -->
 
-    initApp();
-  </script>
+  <!-- MENU MOBILE -->
+  <div class="bottom-nav">
+    <a href="#" data-section="dashboard">🏠</a>
+    <a href="#" data-section="agenda">📅</a>
+    <a href="#" data-section="vendas">💰</a>
+    <a href="#" data-section="config">⚙️</a>
+  </div>
+
+
+
 </body>
 </html>
