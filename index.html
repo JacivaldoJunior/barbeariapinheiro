@@ -1,8 +1,16 @@
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- PWA -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#C8A045" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Barbearia" />
   <title>Dashboard Barbearia - Preto e Dourado</title>
 
   <!-- ✅ Adicionando Chart.js -->
@@ -642,43 +650,89 @@
       color: #95a5a6;
     }
 
-   @media (max-width: 900px) {
-  nav.sidebar { display:none; }
-  body { flex-direction:column; }
-  main.content { padding:16px; }
+@media (max-width: 900px) {
+  nav.sidebar { display: none !important; }
+  .bottom-nav { display: flex; }
+  body { flex-direction: column; }
   .form-row { flex-direction: column; }
   .agenda-controls { flex-direction: column; align-items: stretch; }
 }
 
-/* 🔥 AGORA FORA DO MEDIA */
+/* Barra de Navegação Inferior */
 .bottom-nav {
-  display: none;
+  display: none;  
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border-top: 1px solid rgba(200,160,69,0.3);
+  justify-content: space-around;
+  padding: 12px 0;
+  z-index: 1000;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
 }
-
-/* 🔥 OUTRO MEDIA SEPARADO */
-@media (max-width: 900px) {
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #0a0a0a;
-    border-top: 1px solid rgba(200,160,69,0.3);
-    display: flex !important;
-    justify-content: space-around;
-    padding: 10px 0;
-    z-index: 9999;
-  }
 
   .bottom-nav a {
-    color: #C8A045;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-decoration: none;
-    font-size: 20px;
+    color: #a88c3a;
+    font-size: 0.65rem;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+
+  .bottom-nav a.active { color: #fff; }
+  .bottom-nav span { font-size: 1.4rem; margin-bottom: 4px; }
+
+  /* Espaço para não ficar atrás da barra inferior */
+  main.content { 
+    padding: 16px; 
+    padding-bottom: 100px !important; 
+  }
+
+  /* Tabelas viram Cards */
+  table, thead, tbody, th, td, tr { display: block; }
+  thead tr { position: absolute; top: -9999px; left: -9999px; }
+  tr { 
+    border: 1px solid rgba(200,160,69,0.2); 
+    margin-bottom: 15px; 
+    border-radius: 12px; 
+    padding: 12px; 
+    background: rgba(200,160,69,0.03); 
+  }
+  td { 
+    border: none; 
+    position: relative; 
+    padding-left: 45% !important; 
+    text-align: right; 
+    margin-bottom: 8px;
+    min-height: 25px;
+  }
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 40%;
+    text-align: left;
+    font-weight: 700;
+    color: #C8A045;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  /* Botões maiores para o polegar */
+  .btn, .btn-edit, .btn-whatsapp, .btn-delete, 
+  .btn-finalizar, .btn-confirmar, .btn-cancelar {
+    padding: 10px;
+    margin: 4px 2px;
+    width: 100%;
+    font-size: 0.9rem;
   }
 }
-
-
-  </style>
+</style>
 </head>
 <body>
   <nav class="sidebar hidden" aria-label="Menu principal">
@@ -1483,6 +1537,7 @@ btnLogout.addEventListener('click', async () => {
 
     function setUnauthenticated() {
       loginPanel.classList.remove('hidden');
+      document.getElementById('bottomNav').style.display = 'none';
       dashboardSection.classList.add('hidden');
       agendaSection.classList.add('hidden');
       vendasSection.classList.add('hidden');
@@ -1496,13 +1551,14 @@ btnLogout.addEventListener('click', async () => {
     }
 
     async function handleSignedIn(user) {
-      currentUser = user;
-      userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
-      btnLogout.classList.remove('hidden');
-      loginPanel.classList.add('hidden');
-      setSidebarEnabled(true);
-      lockMain(false);
-      dashboardSection.classList.remove('hidden');
+  currentUser = user;
+  userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
+  btnLogout.classList.remove('hidden');
+  loginPanel.classList.add('hidden');
+  document.getElementById('bottomNav').style.display = ''; // ← ADICIONA ESSA
+  setSidebarEnabled(true);
+  lockMain(false);
+  dashboardSection.classList.remove('hidden');
 
       console.log('✅ Usuário autenticado:', user.email);
 
@@ -1688,70 +1744,60 @@ btnLogout.addEventListener('click', async () => {
       }
     }
 
-   // --- CARREGAR BARBEIROS ---
-async function loadBarbeiros() {
-  try {
-    const selectBarbeiro = document.getElementById('selectBarbeiro');
-    const editBarbeiro = document.getElementById('editBarbeiro');
-    const novoBarbeiro = document.getElementById('novoBarbeiro');
-    const agendaFiltroBarbeiro = document.getElementById('agendaFiltroBarbeiro');
+    // --- CARREGAR BARBEIROS ---
+    async function loadBarbeiros() {
+      try {
+        let query = supabaseClient
+          .from('profiles')
+          .select('id, barbearia_id, barbearias(nome)')
+          .eq('role', 'barbeiro')
+          .order('barbearia_id');
 
-    let query = supabaseClient
-      .from('profiles')
-      .select('id, barbearia_id, barbearias(nome)')
-      .eq('role', 'barbeiro')
-      .order('barbearia_id');
+        if (currentProfile && currentProfile.role === 'barbeiro') {
+          query = query.eq('barbearia_id', currentProfile.barbearia_id);
+        }
 
-    if (currentProfile && currentProfile.role === 'barbeiro') {
-      query = query.eq('barbearia_id', currentProfile.barbearia_id);
+        const { data, error } = await query;
+  
+        if (error) {
+          console.error('❌ Erro ao carregar barbeiros:', error);
+          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          return;
+        }
+  
+        if (data && data.length > 0) {
+          const options = '<option value="">Selecione o barbeiro (opcional)</option>' +
+            data.map(b => {
+              const barbeariaNome = b.barbearias?.nome || 'N/A';
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
+            }).join('');
+    
+          const filtroOptions = '<option value="">Todos os Barbeiros</option>' +
+            data.map(b => {
+              const barbeariaNome = b.barbearias?.nome || 'N/A';
+              return `<option value="${b.id}">${barbeariaNome}</option>`;
+            }).join('');
+    
+          selectBarbeiro.innerHTML = options;
+          editBarbeiro.innerHTML = options;
+          novoBarbeiro.innerHTML = options;
+          agendaFiltroBarbeiro.innerHTML = filtroOptions;
+    
+          console.log('✅ Barbeiros carregados:', data.length);
+        } else {
+          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          console.warn('⚠️ Nenhum barbeiro encontrado');
+        }
+      } catch (err) {
+        console.error('❌ Erro ao carregar barbeiros:', err);
+      }
     }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('❌ Erro ao carregar barbeiros:', error);
-
-      if (selectBarbeiro) selectBarbeiro.innerHTML = '<option>Erro</option>';
-      if (editBarbeiro) editBarbeiro.innerHTML = '<option>Erro</option>';
-      if (novoBarbeiro) novoBarbeiro.innerHTML = '<option>Erro</option>';
-      if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option>Erro</option>';
-
-      return;
-    }
-
-    if (data && data.length > 0) {
-      const options = '<option value="">Selecione</option>' +
-        data.map(b => {
-          const nome = b.barbearias?.nome || 'N/A';
-          return `<option value="${b.id}">${nome}</option>`;
-        }).join('');
-
-      const filtroOptions = '<option value="">Todos</option>' +
-        data.map(b => {
-          const nome = b.barbearias?.nome || 'N/A';
-          return `<option value="${b.id}">${nome}</option>`;
-        }).join('');
-
-      if (selectBarbeiro) selectBarbeiro.innerHTML = options;
-      if (editBarbeiro) editBarbeiro.innerHTML = options;
-      if (novoBarbeiro) novoBarbeiro.innerHTML = options;
-      if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = filtroOptions;
-
-      console.log('✅ Barbeiros carregados:', data.length);
-
-    } else {
-      if (selectBarbeiro) selectBarbeiro.innerHTML = '<option>Nenhum</option>';
-      if (editBarbeiro) editBarbeiro.innerHTML = '<option>Nenhum</option>';
-      if (novoBarbeiro) novoBarbeiro.innerHTML = '<option>Nenhum</option>';
-      if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option>Todos</option>';
-
-      console.warn('⚠️ Nenhum barbeiro encontrado');
-    }
-
-  } catch (err) {
-    console.error('❌ Erro ao carregar barbeiros:', err);
-  }
-}
 
     // ✅ NOVO: VERIFICAR CONFLITO DE HORÁRIO
     async function verificarConflito(dataHora, barbeiroId) {
@@ -2007,11 +2053,7 @@ window.addEventListener('load', () => {
         .limit(1);
       if (proximos && proximos[0]) {
         const data = new Date(proximos[0].data_hora);
-        const el = document.getElementById('proximoHorarioBarbeiro');
-
-       if (el) {
-       el.innerHTML = `...`;
-        }
+        document.getElementById('proximoHorarioBarbeiro').innerHTML = `
           ${data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - 
           <strong>${proximos[0].cliente_nome}</strong>
         `;
@@ -3379,22 +3421,86 @@ window.addEventListener('load', () => {
       if(btnCalc) btnCalc.addEventListener('click', calcularComissoes);
     }, 1000);
 
-    initApp();
 
 
-document.body.insertAdjacentHTML('beforeend', `
-  <div class="bottom-nav">
-    <a href="#" data-section="dashboard">🏠</a>
-    <a href="#" data-section="agenda">📅</a>
-    <a href="#" data-section="vendas">💰</a>
-    <a href="#" data-section="config">⚙️</a>
-  </div>
-`);
 
+initApp();
+  </script>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('✅ PWA Service Worker registrado'))
+          .catch(err => console.warn('SW erro:', err));
+      });
+    }
   </script>
 
 
+<script>
+  document.querySelectorAll('.bottom-nav a').forEach(link => {
+    link.addEventListener('click', async function(e) {
+      e.preventDefault();
+
+      document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
+      this.classList.add('active');
+
+      document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
+
+      const section = this.getAttribute('data-section');
+
+      if (section === 'dashboard') {
+        document.getElementById('dashboard').classList.remove('hidden');
+        await refreshDashboard();
+      } else if (section === 'agenda') {
+        document.getElementById('agenda').classList.remove('hidden');
+        await refreshAgenda();
+        await refreshAgendaHoje();
+      } else if (section === 'vendas') {
+        document.getElementById('vendas').classList.remove('hidden');
+        await refreshVendas();
+        await refreshMetricasVendas();
+        await refreshResumoBarbeiros();
+      } else if (section === 'fechamento') {
+        document.getElementById('fechamento').classList.remove('hidden');
+        await setupFechamentoDefaults();
+        await refreshFechamento();
+        await refreshHistoricoFechamentos();
+      } else if (section === 'comissoes') {
+        document.getElementById('comissoes').classList.remove('hidden');
+        await carregarBarbeirosComissao();
+      }
+    });
+  });
+
+
+</script>
+  
+
+   <!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottomNav" style="display:none;">
+  <a href="#" data-section="dashboard" class="active">
+    <span>🏠</span>
+    Dashboard
+  </a>
+  <a href="#" data-section="agenda">
+    <span>📅</span>
+    Agenda
+  </a>
+  <a href="#" data-section="vendas">
+    <span>💰</span>
+    Vendas
+  </a>
+  <a href="#" data-section="fechamento">
+    <span>🧾</span>
+    Caixa
+  </a>
+  <a href="#" data-section="comissoes">
+    <span>✂️</span>
+    Comissão
+  </a>
+</nav>
 
 </body>
 </html>
