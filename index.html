@@ -2020,55 +2020,67 @@ window.addEventListener('load', () => {
 });
 // --- Fim do ajuste 2 ---
 
-    async function refreshDashboardBarbeiro() {
-      const barbeiroId = currentProfile?.id;
-      const hoje = new Date().toISOString().split('T')[0];
+  async function refreshDashboardBarbeiro() {
+  try {
+    const barbeiroId = currentProfile?.id;
+    const nomeBarbeiro = currentProfile?.barbearias?.nome;
+    const hoje = new Date().toISOString().split('T')[0];
 
-      // Clientes hoje
-      const { count: clientesHoje } = await supabaseClient
-        .from('vendas')
-        .select('*', { count: 'exact' })
-        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      document.getElementById('clientesHojeBarbeiro').textContent = clientesHoje || 0;
+    // Clientes hoje (obtém somente o count)
+    const { count: clientesHojeCount, error: errClientes } = await supabaseClient
+      .from('vendas')
+      .select('id', { count: 'exact' })
+      .eq('barbeiro_nome', nomeBarbeiro)
+      .gte('created_at', `${hoje}T00:00:00`)
+      .lte('created_at', `${hoje}T23:59:59`);
 
-      // Faturamento hoje
-      const { data: vendasHoje } = await supabaseClient
-        .from('vendas')
-        .select('total')
-        .eq('barbeiro_nome', currentProfile?.barbearias?.nome)
-        .gte('created_at', `${hoje}T00:00:00`)
-        .lte('created_at', `${hoje}T23:59:59`);
-      const total = vendasHoje?.reduce((acc, v) => acc + parseFloat(v.total || 0), 0) || 0;
-      document.getElementById('faturamentoHojeBarbeiro').textContent = `R$ ${total.toFixed(2)}`;
+    if (errClientes) console.error('Erro ao obter clientes hoje:', errClientes);
+    const clientesHoje = clientesHojeCount || 0;
+    const elClientes = document.getElementById('clientesHojeBarbeiro');
+    if (elClientes) elClientes.textContent = clientesHoje;
 
-      // Próximo horário
-      const { data: proximos } = await supabaseClient
-        .from('agendamentos')
-        .select('data_hora, cliente_nome')
-        .eq('barbeiro_id', barbeiroId)
-        .gte('data_hora', new Date().toISOString())
-        .order('data_hora', { ascending: true })
-        .limit(1);
-      if (proximos && proximos[0]) {
-        const data = new Date(proximos[0].data_hora);
-        const el = document.getElementById('proximoHorarioBarbeiro');
+    // Faturamento hoje
+    const { data: vendasHoje = [], error: errVendas } = await supabaseClient
+      .from('vendas')
+      .select('total')
+      .eq('barbeiro_nome', nomeBarbeiro)
+      .gte('created_at', `${hoje}T00:00:00`)
+      .lte('created_at', `${hoje}T23:59:59`);
 
-if (el) {
-  el.innerHTML = `...`;
-} `
-          ${data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - 
+    if (errVendas) console.error('Erro ao obter vendas hoje:', errVendas);
+    const total = vendasHoje.reduce((acc, v) => acc + parseFloat(v.total || 0), 0);
+    const elFaturamento = document.getElementById('faturamentoHojeBarbeiro');
+    if (elFaturamento) elFaturamento.textContent = `R$ ${total.toFixed(2)}`;
+
+    // Próximo horário
+    const { data: proximos = [], error: errProximos } = await supabaseClient
+      .from('agendamentos')
+      .select('data_hora, cliente_nome')
+      .eq('barbeiro_id', barbeiroId)
+      .gte('data_hora', new Date().toISOString())
+      .order('data_hora', { ascending: true })
+      .limit(1);
+
+    if (errProximos) console.error('Erro ao obter próximos agendamentos:', errProximos);
+
+    const elProximo = document.getElementById('proximoHorarioBarbeiro');
+    if (proximos && proximos[0]) {
+      const data = new Date(proximos[0].data_hora);
+      if (elProximo) {
+        elProximo.innerHTML = `
+          ${data.toLocaleDateString('pt-BR')} ${data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} - 
           <strong>${proximos[0].cliente_nome}</strong>
         `;
-      } else {
-        const el = document.getElementById('proximoHorarioBarbeiro');
-
-if (el) {
-  el.innerHTML = `...`;
-};
+      }
+    } else {
+      if (elProximo) {
+        elProximo.innerHTML = `<em>Sem próximos horários</em>`;
       }
     }
+  } catch (error) {
+    console.error('Erro em refreshDashboardBarbeiro:', error);
+  }
+}
 
  // --- MÉTRICAS DASHBOARD ---
     async function refreshMetrics() {
