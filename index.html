@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1761,7 +1762,7 @@ btnLogout.addEventListener('click', async () => {
   
         if (error) {
           console.error('❌ Erro ao carregar barbeiros:', error);
-          selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
+          if (selectBarbeiro) selectBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
           editBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
           novoBarbeiro.innerHTML = '<option value="">Erro ao carregar</option>';
           agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
@@ -1781,17 +1782,17 @@ btnLogout.addEventListener('click', async () => {
               return `<option value="${b.id}">${barbeariaNome}</option>`;
             }).join('');
     
-          selectBarbeiro.innerHTML = options;
-          editBarbeiro.innerHTML = options;
-          novoBarbeiro.innerHTML = options;
-          agendaFiltroBarbeiro.innerHTML = filtroOptions;
+          if (selectBarbeiro) selectBarbeiro.innerHTML = options;
+          if (editBarbeiro) editBarbeiro.innerHTML = options;
+          if (novoBarbeiro) novoBarbeiro.innerHTML = options;
+          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = filtroOptions;
     
           console.log('✅ Barbeiros carregados:', data.length);
         } else {
-          selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
-          agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
+          if (selectBarbeiro) selectBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          if (editBarbeiro) editBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          if (novoBarbeiro) novoBarbeiro.innerHTML = '<option value="">Nenhum barbeiro cadastrado</option>';
+          if (agendaFiltroBarbeiro) agendaFiltroBarbeiro.innerHTML = '<option value="">Todos os Barbeiros</option>';
           console.warn('⚠️ Nenhum barbeiro encontrado');
         }
       } catch (err) {
