@@ -1837,14 +1837,16 @@ async function refreshDashboard() {
 
         // 3) GRÁFICOS - Correção do erro "destroy is not a function"
   
-        // Função auxiliar para criar gráficos sem erro
+        // Função auxiliar para criar gráficos sem erro (Chart.js v3/v4 safe)
         const renderChart = (chartId, type, labels, data, globalVarName, label) => {
             const ctx = document.getElementById(chartId);
             if (!ctx) return;
 
-            // Se o gráfico já existir, destrói ele antes de criar o novo
-            if (window[globalVarName] instanceof Chart) {
-                window[globalVarName].destroy();
+            // Destrói qualquer instância existente no canvas (método seguro Chart.js v3+)
+            const existing = Chart.getChart(ctx);
+            if (existing) existing.destroy();
+            if (window[globalVarName] && window[globalVarName] !== existing) {
+                try { window[globalVarName].destroy(); } catch(e) {}
             }
 
             window[globalVarName] = new Chart(ctx, {
@@ -1927,7 +1929,11 @@ async function atualizarGraficoFaturamentoComFiltro() {
 
     const ctx = document.getElementById('graficoFaturamento');
     if (!ctx) return;
-    if (graficoFaturamentoObj && graficoFaturamentoObj.destroy) graficoFaturamentoObj.destroy();
+    const existingFat = Chart.getChart(ctx);
+    if (existingFat) existingFat.destroy();
+    if (graficoFaturamentoObj && graficoFaturamentoObj !== existingFat) {
+      try { graficoFaturamentoObj.destroy(); } catch(e) {}
+    }
 
     graficoFaturamentoObj = new Chart(ctx, {
       type: 'bar',
@@ -1967,7 +1973,11 @@ async function atualizarGraficoServicosComFiltro() {
 
     const ctx = document.getElementById('graficoServicos');
     if (!ctx) return;
-    if (graficoServicosObj && graficoServicosObj.destroy) graficoServicosObj.destroy();
+    const existingServ = Chart.getChart(ctx);
+    if (existingServ) existingServ.destroy();
+    if (graficoServicosObj && graficoServicosObj !== existingServ) {
+      try { graficoServicosObj.destroy(); } catch(e) {}
+    }
 
     graficoServicosObj = new Chart(ctx, {
       type: 'doughnut',
