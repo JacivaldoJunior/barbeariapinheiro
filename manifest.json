@@ -1,7 +1,7 @@
 {
-  "name": "Dashboard Barbearia",
-  "short_name": "Barbearia",
-  "description": "Dashboard de gerenciamento da barbearia",
+  "name": "Navalha Digital",
+  "short_name": "Navalha Digital",
+  "description": "Sistema de gestão para barbearias",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",

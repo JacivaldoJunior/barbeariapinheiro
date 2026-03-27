@@ -9,10 +9,13 @@
   <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#C8A045" />
+<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Barbearia" />
-  <title>Dashboard Barbearia - Preto e Dourado</title>
+<meta name="apple-mobile-web-app-title" content="Navalha Digital" />
+<link rel="icon" type="image/x-icon" href="icons/favicon.ico" />
+<link rel="apple-touch-icon" href="icons/icon-192x192.png" />
+  <title>Navalha Digital</title>
 
   <!-- ✅ Adicionando Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -409,6 +412,21 @@
       opacity: 0.6;
     }
 
+    /* Table wrapper para scroll horizontal em mobile */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 8px;
+    }
+
+    /* Tap targets mínimos de 44px para mobile */
+    .btn, button, a[data-section] {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     /* PAINEL DE LOGIN ESTILIZADO */
     #loginPanel {
       max-width:420px;
@@ -657,6 +675,82 @@
   body { flex-direction: column; }
   .form-row { flex-direction: column; }
   .agenda-controls { flex-direction: column; align-items: stretch; }
+
+  /* Cards responsivos */
+  .cards {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Topbar mobile */
+  .topbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+  }
+
+  /* Títulos menores */
+  h1 { font-size: 1.6rem !important; }
+  h2 { font-size: 1rem !important; }
+
+  /* Filtros de data em coluna */
+  input[type="date"], input[type="datetime-local"] {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px;
+  }
+
+  /* Botão filtrar largura total */
+  #btnFiltrarFaturamento, #btnFiltrarServicos {
+    width: 100% !important;
+    margin: 8px 0 0 0 !important;
+    padding: 10px !important;
+  }
+
+  /* Gráficos */
+  canvas { max-height: 200px; }
+
+  /* Seções com padding adequado */
+  .section { padding-bottom: 80px; }
+}
+
+@media (max-width: 480px) {
+  /* Cards em coluna única em telas muito pequenas */
+  .cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Login panel */
+  #loginPanel {
+    margin: 20px auto !important;
+    padding: 20px !important;
+  }
+
+  /* Valor do card maior para leitura */
+  .card .value {
+    font-size: 1.4rem !important;
+  }
+
+  /* Tabela overflow scroll horizontal como fallback */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Botões de ação menores lado a lado */
+  .btn-edit, .btn-delete, .btn-whatsapp, 
+  .btn-finalizar, .btn-confirmar, .btn-cancelar {
+    width: auto !important;
+    flex: 1;
+  }
+
+  /* Topbar compacta */
+  #btnLogout {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+  }
 }
 
 /* Barra de Navegação Inferior */
@@ -737,7 +831,7 @@
 </head>
 <body>
   <nav class="sidebar hidden" aria-label="Menu principal">
-    <div class="logo" aria-label="Logo da Barbearia">✂️ Barbearia</div>
+    <div class="logo" aria-label="Logo Navalha Digital">🪒 Navalha Digital</div>
     <a href="#" class="active" data-section="dashboard" aria-current="page">Dashboard</a>
     <a href="#" data-section="agenda">Agenda</a>
     <a href="#" data-section="vendas">Vendas</a>
@@ -772,7 +866,7 @@
     <!-- DASHBOARD -->
     <section id="dashboard" class="section hidden">
       <h1>Dashboard</h1>
-      <p class="subtitle">Visão geral — Barbearia</p>
+      <p class="subtitle" id="dashboardSubtitle">Visão geral</p>
 
       <!-- ✅ Cards principais -->
       <section class="cards">
@@ -2230,11 +2324,11 @@ window.addEventListener('load', () => {
   
             return `
               <tr>
-                <td>${row.cliente_nome || 'N/A'}</td>
-                <td>${row.servico || 'N/A'}</td>
-                <td>${dataHora.toLocaleString('pt-BR')}</td>
-                <td>${barbeiroNome}</td>
-                <td>${barbeariaNome}</td>
+                <td data-label="Cliente">${row.cliente_nome || 'N/A'}</td>
+                <td data-label="Serviço">${row.servico || 'N/A'}</td>
+                <td data-label="Data/Hora">${dataHora.toLocaleString('pt-BR')}</td>
+                <td data-label="Barbeiro">${barbeiroNome}</td>
+                <td data-label="Barbearia">${barbeariaNome}</td>
                 ${acoesHtml}
               </tr>
             `;
@@ -2327,12 +2421,12 @@ window.addEventListener('load', () => {
       
             return `
               <tr>
-                <td>${horario}</td>
-                <td>${row.cliente_nome || 'N/A'}</td>
-                <td>${row.servico || 'N/A'}</td>
-                <td>${barbeiroNome}</td>
-                <td>${barbeariaNome}</td>
-                <td><span class="status-badge ${statusClass}">${status}</span></td>
+                <td data-label="Horário">${horario}</td>
+                <td data-label="Cliente">${row.cliente_nome || 'N/A'}</td>
+                <td data-label="Serviço">${row.servico || 'N/A'}</td>
+                <td data-label="Barbeiro">${barbeiroNome}</td>
+                <td data-label="Barbearia">${barbeariaNome}</td>
+                <td data-label="Status"><span class="status-badge ${statusClass}">${status}</span></td>
                 ${acoesHtml}
               </tr>
             `;
@@ -2748,10 +2842,10 @@ window.addEventListener('load', () => {
       
             return `
               <tr>
-                <td>${row.descricao || 'N/A'}</td>
-                <td>R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
-                <td>${row.forma_pagamento || 'N/A'}</td>
-                <td>${barbeiroNome}</td>
+                <td data-label="Descrição">${row.descricao || 'N/A'}</td>
+                <td data-label="Total">R$ ${parseFloat(row.total || 0).toFixed(2)}</td>
+                <td data-label="Pagamento">${row.forma_pagamento || 'N/A'}</td>
+                <td data-label="Barbeiro">${barbeiroNome}</td>
                 <td>${barbeariaNome}</td>
                 <td>${data_criacao.toLocaleString('pt-BR')}</td>
                 <td>${agendadoBadge}</td>
