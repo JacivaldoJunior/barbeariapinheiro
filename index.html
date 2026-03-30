@@ -5,7 +5,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
   <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#C8A045" />
@@ -37,11 +37,15 @@
       background-image: linear-gradient(rgba(0, 0, 0, 0.20), rgba(0, 0, 0, 0.20)), 
                         url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=2070&auto=format&fit=crop');
       background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
+      background-position: center top;
+      background-attachment: scroll;
       display: flex;
       min-height: 100vh;
+      min-height: -webkit-fill-available;
       overflow: auto;
+    }
+    html {
+      height: -webkit-fill-available;
     }
 
     .hidden {
@@ -282,17 +286,16 @@
       margin-bottom: 18px;
     }
     .cards {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
       margin-bottom: 24px;
-      flex-wrap: wrap;
     }
     .card {
       background: rgba(200,160,69,0.05);
       border: 1px solid rgba(200,160,69,0.3);
       border-radius: 12px;
       padding: 16px 18px;
-      flex: 1 1 220px;
       min-width: 220px;
       box-shadow: 0 0 10px rgba(200,160,69,0.15);
       transition: box-shadow 0.3s ease;
@@ -402,6 +405,7 @@
       color:#fff; 
       flex:1;
       min-width: 200px;
+      font-size: 16px; /* evita zoom automático no iOS */
     }
     .form-row input[type="datetime-local"] { min-width:220px; }
     .form-row input[type="date"] { min-width:180px; }
@@ -430,6 +434,7 @@
     /* PAINEL DE LOGIN ESTILIZADO */
     #loginPanel {
       max-width:420px;
+      width: 100%;
       margin:80px auto;
       background: rgba(20, 20, 20, 0.95);
       padding:30px;
@@ -456,6 +461,7 @@
       border:1px solid rgba(200,160,69,0.2); 
       color:#fff; 
       transition: border 0.3s;
+      font-size: 16px; /* evita zoom automático no iOS */
     }
     #loginPanel input:focus {
       border-color: #C8A045;
@@ -671,7 +677,7 @@
 
 @media (max-width: 900px) {
   nav.sidebar { display: none !important; }
-  .bottom-nav { display: flex; }
+  .bottom-nav { display: flex !important; }
   body { flex-direction: column; }
   .form-row { flex-direction: column; }
   .agenda-controls { flex-direction: column; align-items: stretch; }
@@ -698,8 +704,12 @@
   /* Filtros de data em coluna */
   input[type="date"], input[type="datetime-local"] {
     width: 100%;
-    font-size: 1rem;
+    font-size: 16px;
     padding: 10px;
+  }
+  
+  input, select, textarea {
+    font-size: 16px !important; /* Evita zoom iOS */
   }
 
   /* Botão filtrar largura total */
@@ -714,6 +724,72 @@
 
   /* Seções com padding adequado */
   .section { padding-bottom: 80px; }
+  
+  /* Conteúdo principal no mobile */
+  main.content {
+    padding: 16px !important;
+    padding-bottom: 80px !important;
+    width: 100% !important;
+    overflow-x: hidden;
+  }
+  
+  /* Agenda layout em coluna */
+  .agenda-layout {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Login panel centralizado */
+  #loginPanel {
+    margin: 40px auto !important;
+    max-width: 100% !important;
+    padding: 24px 20px !important;
+  }
+
+
+/* Espaço para não ficar atrás da barra inferior */
+  main.content { 
+    padding: 16px !important; 
+    padding-bottom: 100px !important; 
+  }
+
+  /* Tabelas viram Cards no mobile */
+  table, thead, tbody, th, td, tr { display: block; }
+  thead tr { position: absolute; top: -9999px; left: -9999px; }
+  tr { 
+    border: 1px solid rgba(200,160,69,0.2); 
+    margin-bottom: 15px; 
+    border-radius: 12px; 
+    padding: 12px; 
+    background: rgba(200,160,69,0.03); 
+  }
+  td { 
+    border: none; 
+    position: relative; 
+    padding-left: 45% !important; 
+    text-align: right; 
+    margin-bottom: 8px;
+    min-height: 25px;
+  }
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    width: 40%;
+    text-align: left;
+    font-weight: 700;
+    color: #C8A045;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  /* Botões maiores para o polegar */
+  .btn, .btn-edit, .btn-whatsapp, .btn-delete, 
+  .btn-finalizar, .btn-confirmar, .btn-cancelar {
+    padding: 10px;
+    margin: 4px 2px;
+    width: 100%;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -755,7 +831,7 @@
 
 /* Barra de Navegação Inferior */
 .bottom-nav {
-  display: none;  
+  display: none;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -768,65 +844,21 @@
   box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
 }
 
-  .bottom-nav a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: #a88c3a;
-    font-size: 0.65rem;
-    font-weight: 600;
-    transition: 0.3s;
-  }
-
-  .bottom-nav a.active { color: #fff; }
-  .bottom-nav span { font-size: 1.4rem; margin-bottom: 4px; }
-
-  /* Espaço para não ficar atrás da barra inferior */
-  main.content { 
-    padding: 16px; 
-    padding-bottom: 100px !important; 
-  }
-
-  /* Tabelas viram Cards */
-  table, thead, tbody, th, td, tr { display: block; }
-  thead tr { position: absolute; top: -9999px; left: -9999px; }
-  tr { 
-    border: 1px solid rgba(200,160,69,0.2); 
-    margin-bottom: 15px; 
-    border-radius: 12px; 
-    padding: 12px; 
-    background: rgba(200,160,69,0.03); 
-  }
-  td { 
-    border: none; 
-    position: relative; 
-    padding-left: 45% !important; 
-    text-align: right; 
-    margin-bottom: 8px;
-    min-height: 25px;
-  }
-  td:before {
-    content: attr(data-label);
-    position: absolute;
-    left: 10px;
-    width: 40%;
-    text-align: left;
-    font-weight: 700;
-    color: #C8A045;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-  }
-
-  /* Botões maiores para o polegar */
-  .btn, .btn-edit, .btn-whatsapp, .btn-delete, 
-  .btn-finalizar, .btn-confirmar, .btn-cancelar {
-    padding: 10px;
-    margin: 4px 2px;
-    width: 100%;
-    font-size: 0.9rem;
-  }
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #a88c3a;
+  font-size: 0.65rem;
+  font-weight: 600;
+  transition: 0.3s;
 }
+
+.bottom-nav a.active { color: #fff; }
+.bottom-nav span { font-size: 1.4rem; margin-bottom: 4px; }
+
+
 </style>
 </head>
 <body>
