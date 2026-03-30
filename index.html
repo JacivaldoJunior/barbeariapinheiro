@@ -1445,6 +1445,17 @@ function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.info('✅ Supabase conectado.');
         initAuth();
+
+    // Responsividade dinâmica ao redimensionar
+    window.addEventListener('resize', function() {
+      if (currentUser) {
+        const isMobile = window.innerWidth <= 900;
+        document.getElementById('bottomNav').style.display = isMobile ? 'flex' : 'none';
+        const sidebar = document.querySelector('nav.sidebar');
+        if (isMobile) sidebar.classList.add('hidden');
+        else sidebar.classList.remove('hidden');
+      }
+    });
       } catch (err) {
         console.error('❌ Erro ao iniciar Supabase:', err);
       }
@@ -1618,7 +1629,8 @@ btnLogout.addEventListener('click', async () => {
 
     function setSidebarEnabled(enabled) {
       const sidebar = document.querySelector('nav.sidebar');
-      if (enabled) sidebar.classList.remove('hidden');
+      const isMobile = window.innerWidth <= 900;
+      if (enabled && !isMobile) sidebar.classList.remove('hidden');
       else sidebar.classList.add('hidden');
     }
 
@@ -1665,7 +1677,8 @@ btnLogout.addEventListener('click', async () => {
   userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
   btnLogout.classList.remove('hidden');
   loginPanel.classList.add('hidden');
-  document.getElementById('bottomNav').style.display = ''; // ← ADICIONA ESSA
+  const _isMobile = window.innerWidth <= 900;
+  document.getElementById('bottomNav').style.display = _isMobile ? 'flex' : 'none';
   setSidebarEnabled(true);
   lockMain(false);
   dashboardSection.classList.remove('hidden');
