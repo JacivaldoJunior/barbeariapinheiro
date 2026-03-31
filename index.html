@@ -5,7 +5,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#C8A045" />
@@ -681,76 +681,78 @@
 
 @media (max-width: 900px) {
 
-  /* ===== RESET MOBILE ===== */
-  body {
-    flex-direction: column !important;
-    overflow: hidden !important;
-    height: 100dvh !important;
-    min-height: unset !important;
-  }
+  /* ===== RESET APP ===== */
+  * { -webkit-tap-highlight-color: transparent; }
+  body { overscroll-behavior: none; }
 
-  /* ===== SIDEBAR: ESCONDER ===== */
   nav.sidebar { display: none !important; }
 
-  /* ===== MAIN: FULL SCREEN ===== */
   main.content {
-    flex: 1 !important;
-    width: 100% !important;
-    padding: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-bottom: 70px !important;
+    padding-bottom: 80px !important;
+    padding-top: 0 !important;
     background: transparent !important;
   }
 
-  /* ===== TOPBAR MOBILE: CABEÇALHO DE APP ===== */
+  /* Padding top só quando logado (topbar fixa visível) */
+  main.content:not(.locked) {
+    padding-top: 62px !important;
+  }
+
+  /* ===== TOPBAR FIXA ===== */
   .topbar {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 14px 16px 10px 16px !important;
-    background: rgba(20,20,20,0.97) !important;
-    border-bottom: 1px solid rgba(200,160,69,0.25) !important;
-    position: sticky !important;
+    padding: 0 16px !important;
+    background: #111 !important;
+    border-bottom: 1.5px solid rgba(200,160,69,0.3) !important;
+    position: fixed !important;
     top: 0 !important;
-    z-index: 100 !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 56px !important;
+    z-index: 999 !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5) !important;
   }
 
-  /* Título da seção ativa na topbar */
-  
+  .topbar-title {
+    display: block !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: #C8A045 !important;
+    letter-spacing: 0.02em !important;
+  }
 
   #userInfo {
-    font-size: 0.7rem !important;
-    max-width: 120px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
+    display: none !important;
   }
 
   #btnLogout {
-    padding: 6px 10px !important;
-    font-size: 0.72rem !important;
+    padding: 6px 14px !important;
+    font-size: 0.78rem !important;
     border-radius: 20px !important;
+    min-height: 34px !important;
     white-space: nowrap !important;
   }
 
-  /* ===== SEÇÕES: PADDING INTERNO ===== */
+  /* ===== SEÇÕES ===== */
   .section {
     padding: 16px 14px 20px 14px !important;
+    animation: slideUp 0.22s ease !important;
   }
 
-  /* Esconder h1 e subtitle das seções no mobile (a topbar já mostra o título) */
-  .section > h1 {
-    display: none !important;
-  }
-  .section > p.subtitle {
-    display: none !important;
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ===== CARDS: 2 COLUNAS COMPACTAS ===== */
+  .section > h1 { display: none !important; }
+  .section > p.subtitle { display: none !important; }
+
+  /* ===== CARDS ===== */
   .cards {
     grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
@@ -758,21 +760,21 @@
   }
 
   .card {
-    padding: 12px !important;
-    min-width: unset !important;
-    border-radius: 14px !important;
+    padding: 14px 12px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
   }
 
   .card h2 {
     font-size: 0.68rem !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.03em !important;
+    letter-spacing: 0.04em !important;
+    opacity: 0.7 !important;
     margin-bottom: 6px !important;
-    opacity: 0.8 !important;
   }
 
   .card .value {
-    font-size: 1.2rem !important;
+    font-size: 1.25rem !important;
     font-weight: 700 !important;
   }
 
@@ -780,15 +782,19 @@
   canvas { max-height: 180px !important; }
 
   /* ===== FORMULÁRIOS ===== */
-  .form-row { flex-direction: column !important; }
+  .form-row { flex-direction: column !important; gap: 8px !important; }
+
   input, select, textarea {
     font-size: 16px !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
   }
+
   input[type="date"], input[type="datetime-local"] {
     width: 100% !important;
-    padding: 10px !important;
+    padding: 12px !important;
   }
 
   /* ===== AGENDA ===== */
@@ -806,19 +812,19 @@
   table, thead, tbody, th, td, tr { display: block !important; }
   thead tr { position: absolute; top: -9999px; left: -9999px; }
   tr {
-    border: 1px solid rgba(200,160,69,0.2);
-    margin-bottom: 12px;
-    border-radius: 14px;
-    padding: 12px 14px;
-    background: rgba(200,160,69,0.04);
+    border: 1px solid rgba(200,160,69,0.15) !important;
+    margin-bottom: 12px !important;
+    border-radius: 14px !important;
+    padding: 12px 14px !important;
+    background: rgba(200,160,69,0.04) !important;
   }
   td {
-    border: none;
-    position: relative;
+    border: none !important;
+    position: relative !important;
     padding-left: 48% !important;
-    text-align: right;
-    margin-bottom: 6px;
-    min-height: 24px;
+    text-align: right !important;
+    margin-bottom: 6px !important;
+    min-height: 24px !important;
     font-size: 0.88rem !important;
   }
   td:before {
@@ -833,13 +839,31 @@
     font-size: 0.7rem;
   }
 
-  /* ===== BOTÕES TOUCH-FRIENDLY ===== */
-  .btn, .btn-edit, .btn-whatsapp, .btn-delete,
+  /* ===== BOTÕES ===== */
+  .btn {
+    padding: 12px 16px !important;
+    font-size: 0.9rem !important;
+    border-radius: 12px !important;
+    min-height: 46px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  /* Botões de ação nas tabelas ficam lado a lado */
+  .btn-edit, .btn-whatsapp, .btn-delete,
   .btn-finalizar, .btn-confirmar, .btn-cancelar {
-    padding: 11px 14px !important;
-    font-size: 0.88rem !important;
+    padding: 10px 12px !important;
+    font-size: 0.82rem !important;
     border-radius: 10px !important;
-    min-height: 44px !important;
+    min-height: 40px !important;
+    min-width: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    flex: 1 !important;
   }
 
   /* ===== LOGIN ===== */
@@ -847,6 +871,7 @@
     margin: 32px auto !important;
     max-width: 100% !important;
     padding: 24px 20px !important;
+    border-radius: 20px !important;
   }
 
   /* ===== BOTTOM NAV ===== */
@@ -857,13 +882,13 @@
     left: 0 !important;
     right: 0 !important;
     height: 64px !important;
-    background: #141414 !important;
-    border-top: 1px solid rgba(200,160,69,0.2) !important;
+    background: #111 !important;
+    border-top: 1.5px solid rgba(200,160,69,0.25) !important;
     justify-content: space-around !important;
-    align-items: center !important;
+    align-items: stretch !important;
     padding: 0 !important;
     z-index: 500 !important;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.5) !important;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.6) !important;
   }
 
   .bottom-nav a {
@@ -872,29 +897,36 @@
     align-items: center !important;
     justify-content: center !important;
     text-decoration: none !important;
-    color: #666 !important;
-    font-size: 0.6rem !important;
+    color: #555 !important;
+    font-size: 0.58rem !important;
     font-weight: 600 !important;
     gap: 3px !important;
     flex: 1 !important;
     height: 100% !important;
-    transition: color 0.2s !important;
-    letter-spacing: 0.02em !important;
+    transition: color 0.15s, background 0.15s !important;
+    letter-spacing: 0.03em !important;
+    text-transform: uppercase !important;
+    border-top: 2px solid transparent !important;
+  }
+
+  .bottom-nav a:active {
+    background: rgba(200,160,69,0.1) !important;
   }
 
   .bottom-nav a.active {
     color: #C8A045 !important;
+    border-top: 2px solid #C8A045 !important;
   }
 
   .bottom-nav span {
-    font-size: 1.35rem !important;
+    font-size: 1.3rem !important;
     line-height: 1 !important;
     margin: 0 !important;
   }
+
 }
 
 @media (max-width: 480px) {
-  /* Cards em coluna única em telas muito pequenas */
   .cards {
     grid-template-columns: 1fr !important;
   }
@@ -1554,9 +1586,10 @@ function enviarConfirmacaoWhatsapp(nomeCliente, servico, dataHora, telefone) {
 
     const sectionTitles = {
       dashboard: '🏠 Dashboard',
-      dashboardBarbeiro: '📅 Agenda',
+      dashboardBarbeiro: '📅 Minha Agenda',
+      agenda: '📅 Agenda',
       vendas: '💰 Vendas',
-      resumoBarbeiros: '🧾 Fechamento',
+      fechamento: '🧾 Fechamento de Caixa',
       comissoes: '✂️ Comissões',
       usuarios: '👥 Usuários',
       config: '⚙️ Config'
@@ -3619,6 +3652,7 @@ window.addEventListener('load', () => {
         link.classList.add('active');
   
         const section = link.getAttribute('data-section');
+        updateTopbarTitle(section);
   
         document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
     if (section === 'dashboard') {
