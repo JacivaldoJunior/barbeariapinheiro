@@ -1351,6 +1351,48 @@ btnLogout.addEventListener('click', async () => {
     const fechamentoMsg = document.getElementById('fechamentoMsg');
     const tableHistoricoFechamentosBody = document.querySelector('#tableHistoricoFechamentos tbody');
 
+
+    // ============================================
+    // BOTTOM NAV — navegação mobile
+    // ============================================
+    function setupBottomNav() {
+      document.querySelectorAll('.bottom-nav a').forEach(link => {
+        link.addEventListener('click', async function(e) {
+          e.preventDefault();
+
+          document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
+          this.classList.add('active');
+          updateTopbarTitle(this.dataset.section);
+
+          document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
+
+          const section = this.getAttribute('data-section');
+
+          if (section === 'dashboard') {
+            document.getElementById('dashboard').classList.remove('hidden');
+            await refreshDashboard();
+          } else if (section === 'agenda') {
+            document.getElementById('agenda').classList.remove('hidden');
+            await refreshAgenda();
+            await refreshAgendaHoje();
+          } else if (section === 'vendas') {
+            document.getElementById('vendas').classList.remove('hidden');
+            await refreshVendas();
+            await refreshMetricasVendas();
+            await refreshResumoBarbeiros();
+          } else if (section === 'fechamento') {
+            document.getElementById('fechamento').classList.remove('hidden');
+            await setupFechamentoDefaults();
+            await refreshFechamento();
+            await refreshHistoricoFechamentos();
+          } else if (section === 'comissoes') {
+            document.getElementById('comissoes').classList.remove('hidden');
+            await carregarBarbeirosComissao();
+          }
+        });
+      });
+    }
+
     function setSidebarEnabled(enabled) {
       const sidebar = document.querySelector('nav.sidebar');
       const isMobile = window.innerWidth <= 900;
@@ -1405,6 +1447,7 @@ btnLogout.addEventListener('click', async () => {
   document.getElementById('bottomNav').style.display = _isMobile ? 'flex' : 'none';
   updateTopbarTitle('dashboard');
   setSidebarEnabled(true);
+  setupBottomNav();
   lockMain(false);
   dashboardSection.classList.remove('hidden');
 
@@ -3317,45 +3360,7 @@ initApp();
   </script>
 
 
-<script>
-  document.querySelectorAll('.bottom-nav a').forEach(link => {
-    link.addEventListener('click', async function(e) {
-      e.preventDefault();
 
-      document.querySelectorAll('.bottom-nav a').forEach(a => a.classList.remove('active'));
-      this.classList.add('active');
-      updateTopbarTitle(this.dataset.section);
-
-      document.querySelectorAll('main.content > section').forEach(s => s.classList.add('hidden'));
-
-      const section = this.getAttribute('data-section');
-
-      if (section === 'dashboard') {
-        document.getElementById('dashboard').classList.remove('hidden');
-        await refreshDashboard();
-      } else if (section === 'agenda') {
-        document.getElementById('agenda').classList.remove('hidden');
-        await refreshAgenda();
-        await refreshAgendaHoje();
-      } else if (section === 'vendas') {
-        document.getElementById('vendas').classList.remove('hidden');
-        await refreshVendas();
-        await refreshMetricasVendas();
-        await refreshResumoBarbeiros();
-      } else if (section === 'fechamento') {
-        document.getElementById('fechamento').classList.remove('hidden');
-        await setupFechamentoDefaults();
-        await refreshFechamento();
-        await refreshHistoricoFechamentos();
-      } else if (section === 'comissoes') {
-        document.getElementById('comissoes').classList.remove('hidden');
-        await carregarBarbeirosComissao();
-      }
-    });
-  });
-
-
-</script>
   
 
    <!-- BOTTOM NAV -->
