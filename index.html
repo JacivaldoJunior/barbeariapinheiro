@@ -164,7 +164,7 @@
       font-weight: 700;
       color: #C8A045;
     }
-    #userInfo { display: none !important; }
+    #userInfo { font-size: 0.75rem; }
     #btnLogout {
       padding: 6px 14px;
       font-size: 0.78rem;
@@ -609,6 +609,10 @@
     <a href="#" data-section="comissoes">Comissão de Barbeiros</a>
     <a href="#" data-section="usuarios" class="hidden">Usuários</a>
     <a href="#" data-section="config" class="hidden">Config</a>
+    <div id="sidebarUserInfo" style="margin-top:auto;padding-top:16px;border-top:1px solid rgba(200,160,69,0.2);display:none;">
+      <div id="sidebarUserEmail" style="font-size:0.75rem;color:#aaa;margin-bottom:8px;word-break:break-all;"></div>
+      <button id="btnLogoutSidebar" onclick="document.getElementById('btnLogout').click()" style="width:100%;background:rgba(200,160,69,0.1);color:#C8A045;border:1px solid rgba(200,160,69,0.3);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">🚪 Sair</button>
+    </div>
   </nav>
 
   <main class="content locked" role="main">
@@ -1462,6 +1466,8 @@ btnLogout.addEventListener('click', async () => {
       fechamentoSection.classList.add('hidden');
       userInfo.textContent = 'Não autenticado';
       btnLogout.classList.add('hidden');
+      const sidebarInfo2 = document.getElementById('sidebarUserInfo');
+      if (sidebarInfo2) sidebarInfo2.style.display = 'none';
       setSidebarEnabled(false);
       lockMain(true);
       currentUser = null;
@@ -1472,6 +1478,16 @@ btnLogout.addEventListener('click', async () => {
   currentUser = user;
   userInfo.innerHTML = `<span class="user-chip">${user.email}</span>`;
   btnLogout.classList.remove('hidden');
+  // Sidebar desktop: mostrar info + botão sair
+  const sidebarInfo = document.getElementById('sidebarUserInfo');
+  const sidebarEmail = document.getElementById('sidebarUserEmail');
+  if (sidebarInfo) sidebarInfo.style.display = 'block';
+  if (sidebarEmail) sidebarEmail.textContent = user.email;
+  // Esconder botão PWA se não há prompt disponível
+  if (!window.deferredPrompt) {
+    const pwaBtn = document.getElementById('pwa-install-bar');
+    if (pwaBtn) pwaBtn.classList.remove('visible');
+  }
   loginPanel.classList.add('hidden');
   const _isMobile = window.innerWidth <= 900;
   document.getElementById('bottomNav').style.display = _isMobile ? 'flex' : 'none';
